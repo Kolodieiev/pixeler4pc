@@ -3,6 +3,6 @@
 В якості рендера вікна використовується SFML версії 3.0.2. 
 Для збірки проєкту використовуйте компілятор для вашої ОС, що рекомендується розробником SFML за цим посиланням: [Download SFML 3.0.2](https://www.sfml-dev.org/download/sfml/3.0.2/).
 
-![alt text](image/sokoban.png)
+![alt text](resources/image/sokoban.png)
 <br>
-![alt text](image/cxxdroid_menu.png)
+![alt text](resources/image/cxxdroid_menu.png)
