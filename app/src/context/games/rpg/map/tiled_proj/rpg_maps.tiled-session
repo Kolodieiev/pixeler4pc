@@ -1,0 +1,79 @@
+{
+    "activeFile": "map_tiles.tsx",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "fileStates": {
+        "0.tmx": {
+            "scale": 1.5,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 182.66666666666669,
+                "y": 219.99999999999997
+            }
+        },
+        "1.tmx": {
+            "scale": 2,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 171,
+                "y": 174
+            }
+        },
+        "2.tmx": {
+            "scale": 1.9269121813031158,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 175.41017347838877,
+                "y": 176.44810349897094
+            }
+        },
+        "3.tmx": {
+            "scale": 2,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 172,
+                "y": 173
+            }
+        },
+        "4.tmx": {
+            "scale": 1.9323863636363636,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 175.94825051455456,
+                "y": 175.94825051455456
+            }
+        },
+        "5.tmx": {
+            "scale": 1.9323863636363636,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 175.94825051455456,
+                "y": 175.94825051455456
+            }
+        },
+        "map_tiles.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 2,
+            "scaleInEditor": 3
+        }
+    },
+    "last.exportedFilePath": "D:/Project/Github/perfect_console/Pixeler2PC/src/context/games/rpg/map/tiled_proj",
+    "last.imagePath": "D:/Games/rpg/tiles/terrain/tiled_png",
+    "map.lastUsedExportFilter": "CSV файли (*.csv)",
+    "openFiles": [
+        "map_tiles.tsx"
+    ],
+    "project": "rpg_maps.tiled-project",
+    "recentFiles": [
+        "map_tiles.tsx",
+        "1.tmx",
+        "2.tmx",
+        "3.tmx",
+        "4.tmx",
+        "5.tmx",
+        "0.tmx"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.type": 1
+}
