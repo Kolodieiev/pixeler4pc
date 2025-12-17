@@ -1,6 +1,5 @@
 #include "MenuContext.h"
 //
-#include "../../pixeler/manager/FileManager.h"
 #include "../../pixeler/ui/widget/layout/EmptyLayout.h"
 #include "../../pixeler/ui/widget/menu/item/MenuItem.h"
 #include "../WidgetCreator.h"
@@ -14,7 +13,7 @@
 
 #define ICO_WH 35
 
-const char STR_MUSIC_ITEM[] = "Музика";
+const char STR_3D_ITEM[] = "3D";
 const char STR_READER_ITEM[] = "Читалка";
 const char STR_FILES_ITEM[] = "Файли";
 const char STR_GAME_ITEM[] = "Ігри";
@@ -60,18 +59,18 @@ MenuContext::MenuContext()
   files_item->setLbl(files_lbl);
 
   // Музика
-  MenuItem* mp3_item = creator.getMenuItem(ID_CONTEXT_MP3);
-  _menu->addItem(mp3_item);
+  MenuItem* seudo3d_item = creator.getMenuItem(ID_CONTEXT_MP3);
+  _menu->addItem(seudo3d_item);
 
   Image* mp3_img = new Image(1);
-  mp3_item->setImg(mp3_img);
+  seudo3d_item->setImg(mp3_img);
   mp3_img->setTransparency(true);
   mp3_img->setWidth(ICO_WH);
   mp3_img->setHeight(ICO_WH);
   mp3_img->setSrc(HEADPHONES_IMG);
 
-  Label* mp3_lbl = creator.getItemLabel(STR_MUSIC_ITEM, font_10x20);
-  mp3_item->setLbl(mp3_lbl);
+  Label* pseudo3d_lbl = creator.getItemLabel(STR_3D_ITEM, font_10x20);
+  seudo3d_item->setLbl(pseudo3d_lbl);
 
   // Ігри
   MenuItem* game_item = creator.getMenuItem(ID_CONTEXT_GAMES);
