@@ -1,6 +1,3 @@
-
-#include <cstdint>
-
 #include "pixeler/manager/ContextManager.h"
 using namespace pixeler;
 

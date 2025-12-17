@@ -4,7 +4,6 @@
 #include <functional>
 #include <unordered_map>
 
-#include "../driver/graphics/DisplayWrapper.h"
 #include "context_id_setup.hpp"
 
 // -------------------------------- Підключи нижче заголовкові файли контекстів першого рівня
