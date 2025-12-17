@@ -2,8 +2,8 @@
 #include "ContextManager.h"
 
 #include "../driver/graphics/DisplayWrapper.h"
-#include "../setup/context_id_setup.h"
-#include "../setup/ui_setup.h"
+#include "../setup/context_id_setup.hpp"
+#include "../setup/ui_setup.hpp"
 #include "../ui/context/IContext.h"
 
 namespace pixeler

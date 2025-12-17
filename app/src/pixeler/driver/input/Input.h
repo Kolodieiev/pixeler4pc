@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 #include "../../defines.h"
-#include "../../setup/input_setup.h"
+#include "../../setup/input_setup.hpp"
 #include "Button.h"
 
 namespace pixeler

@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cctype>
 
-#include "../setup/sd_setup.h"
+#include "../setup/sd_setup.hpp"
 
 #ifdef __linux__
 #include <unistd.h>

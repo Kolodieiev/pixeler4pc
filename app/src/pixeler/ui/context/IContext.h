@@ -4,7 +4,7 @@
 #include "../../defines.h"
 #include "../../driver/graphics/DisplayWrapper.h"
 #include "../../driver/input/Input.h"
-#include "../../setup/context_id_setup.h"
+#include "../../setup/context_id_setup.hpp"
 #include "../widget/IWidgetContainer.h"
 #include "../widget/notification/Notification.h"
 #include "../widget/text/Label.h"
