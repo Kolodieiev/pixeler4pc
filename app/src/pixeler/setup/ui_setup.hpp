@@ -7,6 +7,7 @@
 #include "context_id_setup.hpp"
 
 // -------------------------------- Підключи нижче заголовкові файли контекстів першого рівня
+#include "context/3d/ThreeDContext.h"
 #include "context/files/FilesContext.h"
 #include "context/games/GameListContext.h"
 #include "context/games/rpg/RpgContext.h"
@@ -17,9 +18,9 @@
 namespace pixeler
 {
   // -------------------------------- Додай перемикання контексту за прикладом
-  std::unordered_map<ContextID, std::function<IContext*()>> _context_id_map = {
+  inline std::unordered_map<ContextID, std::function<IContext*()>> _context_id_map = {
       {ContextID::ID_CONTEXT_HOME, []()
-       { return new HomeContext(); }},
+       { return new ThreeDContext(); }},
       {ContextID::ID_CONTEXT_MENU, []()
        { return new MenuContext(); }},
       {ContextID::ID_CONTEXT_FILES, []()
@@ -30,6 +31,8 @@ namespace pixeler
        { return new sokoban::SokobanContext(); }},
       {ContextID::ID_CONTEXT_RPG, []()
        { return new rpg::RpgContext(); }},
+      {ContextID::ID_CONTEXT_3D, []()
+       { return new ThreeDContext(); }},
   };
 }  // namespace pixeler
 

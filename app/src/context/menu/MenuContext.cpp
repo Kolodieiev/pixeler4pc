@@ -10,6 +10,7 @@
 #include "./res/sd.h"
 #include "./res/settings.h"
 #include "./res/wifi_ico.h"
+#include "pixeler/setup/context_id_setup.hpp"
 
 #define ICO_WH 35
 
@@ -59,7 +60,7 @@ MenuContext::MenuContext()
   files_item->setLbl(files_lbl);
 
   // Музика
-  MenuItem* seudo3d_item = creator.getMenuItem(ID_CONTEXT_MP3);
+  MenuItem* seudo3d_item = creator.getMenuItem(ID_CONTEXT_3D);
   _menu->addItem(seudo3d_item);
 
   Image* mp3_img = new Image(1);
@@ -211,7 +212,9 @@ void MenuContext::ok()
   ContextID id = static_cast<ContextID>(_menu->getCurrItemID());
   _last_sel_item_pos = _menu->getCurrFocusPos();
 
-  if (id == ID_CONTEXT_FILES || id == ID_CONTEXT_GAMES)
+  if (id == ID_CONTEXT_FILES ||
+      id == ID_CONTEXT_GAMES ||
+      id == pixeler::ID_CONTEXT_3D)
   {
     openContextByID(id);
   }
