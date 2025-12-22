@@ -43,14 +43,7 @@ namespace pixeler
       _img->setParent(this);
       img_width = _img->getWidth() + ITEM_PADDING;
       _img->setPos(ITEM_PADDING, (_height - _img->getHeight()) * 0.5);
-
-      uint16_t bk_color = _back_color;
-
-      if (_has_focus && _need_change_back)
-        _img->setBackColor(_focus_back_color);
-
-      _img->setBackColor(bk_color);
-
+      _img->setBackColor(_back_color);
       _img->onDraw();
     }
 
@@ -139,7 +132,7 @@ namespace pixeler
 
     _label->setBackColor(_back_color);
     _label->setFocusBackColor(_focus_back_color);
-    _label->setChangingBack(_need_change_back);
+    _label->setChangingBack(true);
     _label->setTransparency(_is_transparent);
   }
 }  // namespace pixeler
