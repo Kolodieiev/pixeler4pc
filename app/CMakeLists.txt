@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(Pixeler2PC LANGUAGES CXX C)
+project(Pixeler4PC LANGUAGES CXX C)
 
 set(EN_GIT_BUILD OFF) # GIT SFML 3.0.2
 set(EN_LOCAL_BUILD ON) # Локальний SFML 3.0.2
