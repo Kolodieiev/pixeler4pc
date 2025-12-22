@@ -43,10 +43,12 @@ int lua_image_set_src(lua_State* L)
 
   ImgData img_data = _res.getBmpRes(res_id);
 
-  if (img_data.width == 0)
+  if (img_data.width == 0 || img_data.height == 0)
     return 0;
 
   image->setSrc(img_data.data_ptr);
+  image->setWidth(img_data.width);
+  image->setHeight(img_data.height);
 
   return 0;
 }
