@@ -11,20 +11,6 @@ const char STR_FILE_TYPE[] = "FILE*";
 const char STR_MEM_ALLOC_ERR[] = "Помилка створення буфера";
 const char STR_FILE_READ_ERR[] = "Помилка читання файла";
 //
-const char STR_SD_FILE_EXIST[] = "fileExist";
-const char STR_SD_DIR_EXIST[] = "dirExist";
-const char STR_SD_OPEN_FILE[] = "open";
-const char STR_SD_CLOSE_FILE[] = "close";
-const char STR_SD_GET_FILE_SIZE[] = "fileSize";
-const char STR_SD_AVAILABLE[] = "available";
-const char STR_SD_READ_FILE[] = "read";
-const char STR_SD_READ_FROM_FILE[] = "readFrom";
-const char STR_SD_WRITE_FILE[] = "write";
-const char STR_SD_WRITE_TO_FILE[] = "writeTo";
-const char STR_SD_COPY_FILE[] = "copyFile";
-const char STR_SD_REMOVE[] = "remove";
-const char STR_SD_RENAME[] = "rename";
-const char STR_SD_CREATE_DIR[] = "mkDir";
 
 int lua_sd_file_exist(lua_State* L)
 {
@@ -233,20 +219,20 @@ int lua_sd_unload(lua_State* L)
 }
 
 const struct luaL_Reg LIB_SD[] = {
-    {STR_SD_FILE_EXIST, lua_sd_file_exist},
-    {STR_SD_DIR_EXIST, lua_sd_dir_exist},
-    {STR_SD_OPEN_FILE, lua_sd_open_file},
-    {STR_SD_CLOSE_FILE, lua_sd_close_file},
-    {STR_SD_GET_FILE_SIZE, lua_sd_file_size},
-    {STR_SD_AVAILABLE, lua_sd_available},
-    {STR_SD_READ_FILE, lua_sd_read_file},
-    {STR_SD_READ_FROM_FILE, lua_sd_read_from_file},
-    {STR_SD_WRITE_FILE, lua_sd_write_file},
-    {STR_SD_WRITE_TO_FILE, lua_sd_write_to_file},
-    {STR_SD_COPY_FILE, lua_sd_copy_file},
-    {STR_SD_REMOVE, lua_sd_remove},
-    {STR_SD_RENAME, lua_sd_rename},
-    {STR_SD_CREATE_DIR, lua_sd_create_dir},
+    {"fileExist", lua_sd_file_exist},
+    {"dirExist", lua_sd_dir_exist},
+    {"open", lua_sd_open_file},
+    {"close", lua_sd_close_file},
+    {"fileSize", lua_sd_file_size},
+    {"available", lua_sd_available},
+    {"read", lua_sd_read_file},
+    {"readFrom", lua_sd_read_from_file},
+    {"write", lua_sd_write_file},
+    {"writeTo", lua_sd_write_to_file},
+    {"copyFile", lua_sd_copy_file},
+    {"remove", lua_sd_remove},
+    {"rename", lua_sd_rename},
+    {"mkDir", lua_sd_create_dir},
     {STR_LUA_UNLOAD, lua_sd_unload},
     {nullptr, nullptr},
 };
