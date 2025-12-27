@@ -38,7 +38,7 @@ namespace pixeler
      *
      * @return constexpr TypeID
      */
-    static constexpr TypeID staticType()
+    static constexpr TypeID getTypeID()
     {
       return TypeID::TYPE_ID_NOTIFICATION;
     }

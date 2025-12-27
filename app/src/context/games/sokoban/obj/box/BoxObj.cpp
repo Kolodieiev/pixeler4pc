@@ -42,10 +42,10 @@ namespace sokoban
     std::list<IGameObject*> objs = getObjAt(x, y);  // Вибрати всі об'єкти на плитці куди повинен бути встановлений ящик
     for (auto it = objs.begin(), last_it = objs.end(); it != last_it; ++it)
     {
-      if ((*it)->getTypeID() == ClassID::CLASS_BOX)  // Якщо знайдено об'єкт ящика, рух продовжувати не можна
+      if ((*it)->getObjTypeID() == ClassID::CLASS_BOX)  // Якщо знайдено об'єкт ящика, рух продовжувати не можна
         return false;
 
-      if ((*it)->getTypeID() == ClassID::CLASS_BOX_POINT)  // Якщо об'єкт належить до типу BoxPointObj
+      if ((*it)->getObjTypeID() == ClassID::CLASS_BOX_POINT)  // Якщо об'єкт належить до типу BoxPointObj
         has_point = true;                                  // Підіймаємо прапор
     }
 

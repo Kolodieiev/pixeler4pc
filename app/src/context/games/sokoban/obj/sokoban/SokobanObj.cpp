@@ -87,7 +87,7 @@ namespace sokoban
 
     for (auto it = objs.begin(), last_it = objs.end(); it != last_it; ++it)
     {
-      if ((*it)->getTypeID() == ClassID::CLASS_BOX)  // Якщо знайдено об'єкт ящика
+      if ((*it)->getObjTypeID() == ClassID::CLASS_BOX)  // Якщо знайдено об'єкт ящика
       {
         BoxObj* box = (BoxObj*)*it;
 

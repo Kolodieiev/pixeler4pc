@@ -54,7 +54,7 @@ namespace pixeler
      *
      * @return int16_t
      */
-    int16_t getTypeID() const
+    int16_t getObjTypeID() const
     {
       return _type_ID;
     }

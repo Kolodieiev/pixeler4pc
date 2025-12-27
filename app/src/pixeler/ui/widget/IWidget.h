@@ -79,7 +79,7 @@ namespace pixeler
      *
      * @return TypeID
      */
-    TypeID getTypeID() const
+    TypeID getObjTypeID() const
     {
       return _type_ID;
     }
@@ -459,11 +459,11 @@ namespace pixeler
   template <typename T>
   inline T* IWidget::castTo()
   {
-    if (_type_ID == T::staticType())
+    if (_type_ID == T::getTypeID())
       return static_cast<T*>(this);
     else
     {
-      log_e("Некоректне приведення типу %u до %u", T::staticType(), _type_ID);
+      log_e("Некоректне приведення типу %u до %u", T::getTypeID(), _type_ID);
       return nullptr;
     }
   }
