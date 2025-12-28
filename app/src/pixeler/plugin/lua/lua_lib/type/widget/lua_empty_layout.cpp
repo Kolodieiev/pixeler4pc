@@ -10,7 +10,7 @@ using namespace pixeler;
 int lua_el_new(lua_State* L)
 {
   uint16_t id = luaL_checkinteger(L, 2);
-  EmptyLayout** ret_wid_ptr = (EmptyLayout**)lua_newuserdata(L, sizeof(EmptyLayout*));
+  EmptyLayout** ret_wid_ptr = static_cast<EmptyLayout**>(lua_newuserdata(L, sizeof(EmptyLayout*)));
   *ret_wid_ptr = new EmptyLayout(id);
   luaL_getmetatable(L, STR_TYPE_NAME_EMPTY_LAYOUT);
   lua_setmetatable(L, -2);
@@ -19,11 +19,11 @@ int lua_el_new(lua_State* L)
 
 int lua_el_clone(lua_State* L)
 {
-  EmptyLayout* el = *(EmptyLayout**)lua_touserdata(L, 1);
+  EmptyLayout* el = *static_cast<EmptyLayout**>(lua_touserdata(L, 1));
   uint16_t id = luaL_checkinteger(L, 2);
   EmptyLayout* clone = el->clone(id);
 
-  EmptyLayout** el_clone = (EmptyLayout**)lua_newuserdata(L, sizeof(EmptyLayout*));
+  EmptyLayout** el_clone = static_cast<EmptyLayout**>(lua_newuserdata(L, sizeof(EmptyLayout*)));
   *el_clone = clone;
 
   luaL_getmetatable(L, STR_TYPE_NAME_EMPTY_LAYOUT);

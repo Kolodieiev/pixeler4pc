@@ -11,7 +11,7 @@ using namespace pixeler;
 int lua_image_new(lua_State* L)
 {
   uint16_t id = luaL_checkinteger(L, 2);
-  Image** ret_wid_ptr = (Image**)lua_newuserdata(L, sizeof(Image*));
+  Image** ret_wid_ptr = static_cast<Image**>(lua_newuserdata(L, sizeof(Image*)));
   *ret_wid_ptr = new Image(id);
   luaL_getmetatable(L, STR_TYPE_NAME_IMAGE);
   lua_setmetatable(L, -2);
@@ -20,11 +20,11 @@ int lua_image_new(lua_State* L)
 
 int lua_image_clone(lua_State* L)
 {
-  Image* image = *(Image**)lua_touserdata(L, 1);
+  Image* image = *static_cast<Image**>(lua_touserdata(L, 1));
   uint16_t id = luaL_checkinteger(L, 2);
   Image* clone = image->clone(id);
 
-  Image** image_clone = (Image**)lua_newuserdata(L, sizeof(Image*));
+  Image** image_clone = static_cast<Image**>(lua_newuserdata(L, sizeof(Image*)));
   *image_clone = clone;
 
   luaL_getmetatable(L, STR_TYPE_NAME_IMAGE);
@@ -35,7 +35,7 @@ int lua_image_clone(lua_State* L)
 
 int lua_image_set_src(lua_State* L)
 {
-  Image* image = *(Image**)lua_touserdata(L, 1);
+  Image* image = *static_cast<Image**>(lua_touserdata(L, 1));
   uint16_t res_id = luaL_checkinteger(L, 2);
 
   if (res_id == 0)

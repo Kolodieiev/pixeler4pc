@@ -13,10 +13,7 @@ namespace pixeler
     virtual ~LuaContext();
 
     bool execScript(const char* lua_script);
-    String getMsg() const
-    {
-      return _msg;
-    }
+    String getMsg() const;
 
   protected:
     virtual bool loop() override;

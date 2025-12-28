@@ -10,7 +10,7 @@ using namespace pixeler;
 int lua_progress_new(lua_State* L)
 {
   uint16_t id = luaL_checkinteger(L, 2);
-  ProgressBar** ret_wid_ptr = (ProgressBar**)lua_newuserdata(L, sizeof(ProgressBar*));
+  ProgressBar** ret_wid_ptr = static_cast<ProgressBar**>(lua_newuserdata(L, sizeof(ProgressBar*)));
   *ret_wid_ptr = new ProgressBar(id);
   luaL_getmetatable(L, STR_TYPE_NAME_PROGRESS);
   lua_setmetatable(L, -2);
@@ -20,11 +20,11 @@ int lua_progress_new(lua_State* L)
 
 int lua_progress_clone(lua_State* L)
 {
-  ProgressBar* progress = *(ProgressBar**)lua_touserdata(L, 1);
+  ProgressBar* progress = *static_cast<ProgressBar**>(lua_touserdata(L, 1));
   uint16_t id = luaL_checkinteger(L, 2);
   ProgressBar* clone = progress->clone(id);
 
-  ProgressBar** progress_clone = (ProgressBar**)lua_newuserdata(L, sizeof(ProgressBar*));
+  ProgressBar** progress_clone = static_cast<ProgressBar**>(lua_newuserdata(L, sizeof(ProgressBar*)));
   *progress_clone = clone;
 
   luaL_getmetatable(L, STR_TYPE_NAME_PROGRESS);
@@ -35,7 +35,7 @@ int lua_progress_clone(lua_State* L)
 
 int lua_progress_set_max(lua_State* L)
 {
-  ProgressBar* progress = *(ProgressBar**)lua_touserdata(L, 1);
+  ProgressBar* progress = *static_cast<ProgressBar**>(lua_touserdata(L, 1));
   uint16_t max = luaL_checkinteger(L, 2);
   progress->setMax(max);
   return 0;
@@ -43,14 +43,14 @@ int lua_progress_set_max(lua_State* L)
 
 int lua_progress_get_max(lua_State* L)
 {
-  ProgressBar* progress = *(ProgressBar**)lua_touserdata(L, 1);
+  ProgressBar* progress = *static_cast<ProgressBar**>(lua_touserdata(L, 1));
   lua_pushinteger(L, progress->getMax());
   return 1;
 }
 
 int lua_progress_set_progress(lua_State* L)
 {
-  ProgressBar* progress = *(ProgressBar**)lua_touserdata(L, 1);
+  ProgressBar* progress = *static_cast<ProgressBar**>(lua_touserdata(L, 1));
   uint16_t pr_val = luaL_checkinteger(L, 2);
   progress->setProgress(pr_val);
   return 0;
@@ -58,14 +58,14 @@ int lua_progress_set_progress(lua_State* L)
 
 int lua_progress_get_progress(lua_State* L)
 {
-  ProgressBar* progress = *(ProgressBar**)lua_touserdata(L, 1);
+  ProgressBar* progress = *static_cast<ProgressBar**>(lua_touserdata(L, 1));
   lua_pushinteger(L, progress->getProgress());
   return 1;
 }
 
 int lua_progress_set_progress_color(lua_State* L)
 {
-  ProgressBar* progress = *(ProgressBar**)lua_touserdata(L, 1);
+  ProgressBar* progress = *static_cast<ProgressBar**>(lua_touserdata(L, 1));
   uint16_t color = luaL_checkinteger(L, 2);
   progress->setProgressColor(color);
   return 0;
@@ -73,7 +73,7 @@ int lua_progress_set_progress_color(lua_State* L)
 
 int lua_progress_set_orientation(lua_State* L)
 {
-  ProgressBar* progress = *(ProgressBar**)lua_touserdata(L, 1);
+  ProgressBar* progress = *static_cast<ProgressBar**>(lua_touserdata(L, 1));
   uint16_t raw_value = luaL_checkinteger(L, 2);
   if (raw_value > IWidget::VERTICAL)
     return luaL_error(L, "Invalid orientation value: %d", raw_value);
@@ -85,7 +85,7 @@ int lua_progress_set_orientation(lua_State* L)
 
 int lua_progress_reset(lua_State* L)
 {
-  ProgressBar* progress = *(ProgressBar**)lua_touserdata(L, 1);
+  ProgressBar* progress = *static_cast<ProgressBar**>(lua_touserdata(L, 1));
   progress->reset();
   return 0;
 }

@@ -16,7 +16,7 @@ void lua_push_widget_or_nil(lua_State* L, IWidget* widget)
   }
   else
   {
-    IWidget** r_widget = (IWidget**)lua_newuserdata(L, sizeof(IWidget*));
+    IWidget** r_widget = static_cast<IWidget**>(lua_newuserdata(L, sizeof(IWidget*)));
     *r_widget = widget;
     luaL_getmetatable(L, STR_TYPE_NAME_IWIDGET);
     lua_setmetatable(L, -2);
@@ -25,15 +25,15 @@ void lua_push_widget_or_nil(lua_State* L, IWidget* widget)
 
 int lua_cont_add_widget(lua_State* L)
 {
-  IWidgetContainer* container = *(IWidgetContainer**)lua_touserdata(L, 1);
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 2);
+  IWidgetContainer* container = *static_cast<IWidgetContainer**>(lua_touserdata(L, 1));
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 2));
   container->addWidget(widget);
   return 0;
 }
 
 int lua_cont_delete_widget_by_id(lua_State* L)
 {
-  IWidgetContainer* container = *(IWidgetContainer**)lua_touserdata(L, 1);
+  IWidgetContainer* container = *static_cast<IWidgetContainer**>(lua_touserdata(L, 1));
   uint16_t id = luaL_checkinteger(L, 2);
   bool result = container->delWidgetByID(id);
   lua_pushboolean(L, result);
@@ -42,7 +42,7 @@ int lua_cont_delete_widget_by_id(lua_State* L)
 
 int lua_cont_get_widget_by_id(lua_State* L)
 {
-  IWidgetContainer* container = *(IWidgetContainer**)lua_touserdata(L, 1);
+  IWidgetContainer* container = *static_cast<IWidgetContainer**>(lua_touserdata(L, 1));
   uint16_t id = luaL_checkinteger(L, 2);
   IWidget* widget = container->getWidgetByID(id);
   lua_push_widget_or_nil(L, widget);
@@ -51,7 +51,7 @@ int lua_cont_get_widget_by_id(lua_State* L)
 
 int lua_cont_get_widget_by_indx(lua_State* L)
 {
-  IWidgetContainer* container = *(IWidgetContainer**)lua_touserdata(L, 1);
+  IWidgetContainer* container = *static_cast<IWidgetContainer**>(lua_touserdata(L, 1));
   uint16_t indx = luaL_checkinteger(L, 2);
   IWidget* widget = container->getWidgetByIndx(indx);
   lua_push_widget_or_nil(L, widget);
@@ -60,14 +60,14 @@ int lua_cont_get_widget_by_indx(lua_State* L)
 
 int lua_cont_delete_widgets(lua_State* L)
 {
-  IWidgetContainer* container = *(IWidgetContainer**)lua_touserdata(L, 1);
+  IWidgetContainer* container = *static_cast<IWidgetContainer**>(lua_touserdata(L, 1));
   container->delWidgets();
   return 0;
 }
 
 int lua_cont_get_size(lua_State* L)
 {
-  IWidgetContainer* container = *(IWidgetContainer**)lua_touserdata(L, 1);
+  IWidgetContainer* container = *static_cast<IWidgetContainer**>(lua_touserdata(L, 1));
   uint16_t size = container->getSize();
   lua_pushinteger(L, size);
   return 1;
@@ -75,14 +75,14 @@ int lua_cont_get_size(lua_State* L)
 
 int lua_cont_enable(lua_State* L)
 {
-  IWidgetContainer* container = *(IWidgetContainer**)lua_touserdata(L, 1);
+  IWidgetContainer* container = *static_cast<IWidgetContainer**>(lua_touserdata(L, 1));
   container->enable();
   return 0;
 }
 
 int lua_cont_disable(lua_State* L)
 {
-  IWidgetContainer* container = *(IWidgetContainer**)lua_touserdata(L, 1);
+  IWidgetContainer* container = *static_cast<IWidgetContainer**>(lua_touserdata(L, 1));
   container->disable();
   return 0;
 }

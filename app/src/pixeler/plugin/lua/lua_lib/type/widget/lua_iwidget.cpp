@@ -101,8 +101,8 @@ void init_color_constants(lua_State* L)
   lua_setglobal(L, STR_COLOR_RED);
 
   lua_pushinteger(L, COLOR_GREEN);
-  lua_setglobal(L, STR_COLOR_GREEN); 
-  
+  lua_setglobal(L, STR_COLOR_GREEN);
+
   lua_pushinteger(L, COLOR_GREY);
   lua_setglobal(L, STR_COLOR_GREY);
 
@@ -129,7 +129,7 @@ void deinit_color_constants(lua_State* L)
 
   lua_pushnil(L);
   lua_setglobal(L, STR_COLOR_GREEN);
-  
+
   lua_pushnil(L);
   lua_setglobal(L, STR_COLOR_GREY);
 
@@ -145,14 +145,14 @@ void deinit_color_constants(lua_State* L)
 
 int lua_iwgt_forced_draw(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   widget->forcedDraw();
   return 0;
 }
 
 int lua_iwgt_set_pos(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   uint16_t x = luaL_checknumber(L, 2);
   uint16_t y = luaL_checknumber(L, 3);
   widget->setPos(x, y);
@@ -161,7 +161,7 @@ int lua_iwgt_set_pos(lua_State* L)
 
 int lua_iwgt_set_height(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   uint16_t h = luaL_checknumber(L, 2);
   widget->setHeight(h);
   return 0;
@@ -169,7 +169,7 @@ int lua_iwgt_set_height(lua_State* L)
 
 int lua_iwgt_get_hight(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   uint16_t h = widget->getHeight();
   lua_pushinteger(L, h);
   return 1;
@@ -177,7 +177,7 @@ int lua_iwgt_get_hight(lua_State* L)
 
 int lua_iwgt_set_width(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   uint16_t w = luaL_checknumber(L, 2);
   widget->setWidth(w);
   return 0;
@@ -185,7 +185,7 @@ int lua_iwgt_set_width(lua_State* L)
 
 int lua_iwgt_get_width(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   uint16_t w = widget->getWidth();
   lua_pushinteger(L, w);
   return 1;
@@ -193,7 +193,7 @@ int lua_iwgt_get_width(lua_State* L)
 
 int lua_iwgt_set_corner_radius(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   uint16_t r = luaL_checkinteger(L, 2);
   widget->setCornerRadius(r);
   return 0;
@@ -201,7 +201,7 @@ int lua_iwgt_set_corner_radius(lua_State* L)
 
 int lua_iwgt_set_border(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   bool state = lua_toboolean(L, 2);
   widget->setBorder(state);
   return 0;
@@ -209,7 +209,7 @@ int lua_iwgt_set_border(lua_State* L)
 
 int lua_iwgt_set_border_color(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   uint16_t c = luaL_checkinteger(L, 2);
   widget->setBorderColor(c);
   return 0;
@@ -217,7 +217,7 @@ int lua_iwgt_set_border_color(lua_State* L)
 
 int lua_iwgt_get_x_pos(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   uint16_t x = widget->getXPos();
   lua_pushinteger(L, x);
   return 1;
@@ -225,7 +225,7 @@ int lua_iwgt_get_x_pos(lua_State* L)
 
 int lua_iwgt_get_y_pos(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   uint16_t y = widget->getYPos();
   lua_pushinteger(L, y);
   return 1;
@@ -233,7 +233,7 @@ int lua_iwgt_get_y_pos(lua_State* L)
 
 int lua_iwgt_get_id(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   uint16_t id = widget->getID();
   lua_pushinteger(L, id);
   return 1;
@@ -241,7 +241,7 @@ int lua_iwgt_get_id(lua_State* L)
 
 int lua_iwgt_set_changing_border(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   bool state = lua_toboolean(L, 2);
   widget->setChangingBorder(state);
   return 0;
@@ -249,7 +249,7 @@ int lua_iwgt_set_changing_border(lua_State* L)
 
 int lua_iwgt_set_changing_back(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   bool state = lua_toboolean(L, 2);
   widget->setChangingBack(state);
   return 0;
@@ -257,7 +257,7 @@ int lua_iwgt_set_changing_back(lua_State* L)
 
 int lua_iwgt_set_focus_border_color(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   uint16_t c = luaL_checkinteger(L, 2);
   widget->setFocusBorderColor(c);
   return 0;
@@ -265,7 +265,7 @@ int lua_iwgt_set_focus_border_color(lua_State* L)
 
 int lua_iwgt_set_focus_back_color(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   uint16_t c = luaL_checkinteger(L, 2);
   widget->setFocusBackColor(c);
   return 0;
@@ -273,21 +273,21 @@ int lua_iwgt_set_focus_back_color(lua_State* L)
 
 int lua_iwgt_set_focus(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   widget->setFocus();
   return 0;
 }
 
 int lua_iwgt_remove_focus(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   widget->removeFocus();
   return 0;
 }
 
 int lua_iwgt_set_visibility(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   uint16_t raw_value = luaL_checkinteger(L, 2);
   if (raw_value > IWidget::INVISIBLE)
     return luaL_error(L, "Invalid visibility value: %d", raw_value);
@@ -299,7 +299,7 @@ int lua_iwgt_set_visibility(lua_State* L)
 
 int lua_iwgt_set_transparency(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   bool state = lua_toboolean(L, 2);
   widget->setTransparency(state);
   return 0;
@@ -307,7 +307,7 @@ int lua_iwgt_set_transparency(lua_State* L)
 
 int lua_iwgt_set_back_color(lua_State* L)
 {
-  IWidget* widget = *(IWidget**)lua_touserdata(L, 1);
+  IWidget* widget = *static_cast<IWidget**>(lua_touserdata(L, 1));
   uint16_t color = luaL_checkinteger(L, 2);
   widget->setBackColor(color);
   return 0;

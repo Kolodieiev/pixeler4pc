@@ -12,7 +12,7 @@ using namespace pixeler;
 int lua_label_new(lua_State* L)
 {
   uint16_t id = luaL_checkinteger(L, 2);
-  Label** ret_wid_ptr = (Label**)lua_newuserdata(L, sizeof(Label*));
+  Label** ret_wid_ptr = static_cast<Label**>(lua_newuserdata(L, sizeof(Label*)));
   *ret_wid_ptr = new Label(id);
   luaL_getmetatable(L, STR_TYPE_NAME_LABEL);
   lua_setmetatable(L, -2);
@@ -22,11 +22,11 @@ int lua_label_new(lua_State* L)
 
 int lua_label_clone(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
   uint16_t id = luaL_checkinteger(L, 2);
   Label* clone = label->clone(id);
 
-  Label** label_clone = (Label**)lua_newuserdata(L, sizeof(Label*));
+  Label** label_clone = static_cast<Label**>(lua_newuserdata(L, sizeof(Label*)));
   *label_clone = clone;
 
   luaL_getmetatable(L, STR_TYPE_NAME_LABEL);
@@ -37,7 +37,7 @@ int lua_label_clone(lua_State* L)
 
 int lua_label_init_width_to_fit(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
   uint16_t add_val = luaL_checknumber(L, 2);
   label->initWidthToFit(add_val);
   return 0;
@@ -45,7 +45,7 @@ int lua_label_init_width_to_fit(lua_State* L)
 
 int lua_label_update_width_to_fit(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
   uint16_t add_val = luaL_checknumber(L, 2);
   label->updateWidthToFit(add_val);
   return 0;
@@ -53,7 +53,7 @@ int lua_label_update_width_to_fit(lua_State* L)
 
 int lua_label_set_text(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
   const char* text = luaL_checkstring(L, 2);
   label->setText(text);
   return 0;
@@ -61,14 +61,14 @@ int lua_label_set_text(lua_State* L)
 
 int lua_label_get_text(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
   lua_pushstring(L, label->getText().c_str());
   return 1;
 }
 
 int lua_label_set_text_size(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
   uint8_t size = luaL_checkinteger(L, 2);
   label->setTextSize(size);
   return 0;
@@ -76,7 +76,7 @@ int lua_label_set_text_size(lua_State* L)
 
 int lua_label_set_text_color(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
   uint16_t color = luaL_checkinteger(L, 2);
   label->setTextColor(color);
   return 0;
@@ -84,7 +84,7 @@ int lua_label_set_text_color(lua_State* L)
 
 int lua_label_set_font(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
   const char* font_name = luaL_checkstring(L, 2);
   label->setFont(fontNameToFont(font_name));
   return 0;
@@ -92,7 +92,7 @@ int lua_label_set_font(lua_State* L)
 
 int lua_label_set_gravity(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
   uint16_t raw_value = luaL_checkinteger(L, 2);
   if (raw_value > IWidget::GRAVITY_BOTTOM)
     return luaL_error(L, "Invalid gravity value: %d", raw_value);
@@ -104,7 +104,7 @@ int lua_label_set_gravity(lua_State* L)
 
 int lua_label_set_align(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
   uint16_t raw_value = luaL_checkinteger(L, 2);
   if (raw_value > IWidget::ALIGN_END)
     return luaL_error(L, "Invalid alignment value: %d", raw_value);
@@ -116,7 +116,7 @@ int lua_label_set_align(lua_State* L)
 
 int lua_label_set_h_padding(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
   uint8_t padding = luaL_checkinteger(L, 2);
   label->setHPadding(padding);
   return 0;
@@ -124,14 +124,14 @@ int lua_label_set_h_padding(lua_State* L)
 
 int lua_label_get_text_len(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
   lua_pushinteger(L, label->getLen());
   return 1;
 }
 
 int lua_label_set_autoscroll(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
   bool state = lua_toboolean(L, 2);
   label->setAutoscroll(state);
   return 0;
@@ -139,7 +139,7 @@ int lua_label_set_autoscroll(lua_State* L)
 
 int lua_label_set_autoscroll_in_focus(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
   bool state = lua_toboolean(L, 2);
   label->setAutoscrollInFocus(state);
   return 0;
@@ -147,8 +147,8 @@ int lua_label_set_autoscroll_in_focus(lua_State* L)
 
 int lua_label_set_back_img(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
-  Image** image = (Image**)lua_touserdata(L, 2);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
+  Image** image = static_cast<Image**>(lua_touserdata(L, 2));
   label->setBackImg(*image);
 
   return 0;
@@ -156,7 +156,7 @@ int lua_label_set_back_img(lua_State* L)
 
 int lua_label_set_multiline(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
   bool state = lua_toboolean(L, 2);
   label->setMultiline(state);
   return 0;
@@ -164,7 +164,7 @@ int lua_label_set_multiline(lua_State* L)
 
 int lua_label_set_autoscroll_delay(lua_State* L)
 {
-  Label* label = *(Label**)lua_touserdata(L, 1);
+  Label* label = *static_cast<Label**>(lua_touserdata(L, 1));
   int delay = luaL_checkinteger(L, 2);
   label->setAutoscrollDelay(delay);
   return 0;

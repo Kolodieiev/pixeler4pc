@@ -12,6 +12,8 @@
 const char STR_NOTIFICATION[] = "Повідомлення";
 const char STR_OK[] = "OK";
 const char STR_NOT_ENOUGH_RAM[] = "Недостатньо RAM для роботи LuaVM";
+const char STR_LUA_START[] = "LuaVM стартувала";
+const char STR_LUA_STOP[] = "LuaVM зупинено";
 //
 const char STR_UPDATE_NAME[] = "update";
 //
@@ -67,6 +69,8 @@ namespace pixeler
 
     for (size_t i = 0; i < _managed_widgets.size(); ++i)
       delete _managed_widgets[i];
+
+    log_i("%s", STR_LUA_STOP);
   }
 
   bool LuaContext::initLua()
@@ -111,6 +115,8 @@ namespace pixeler
     if (!initLua())
       return false;
 
+    log_i("%s", STR_LUA_START);
+
     if (luaL_loadstring(_lua, lua_script) != LUA_OK || lua_pcall(_lua, 0, LUA_MULTRET, 0) != LUA_OK)
     {
       luaErrToMsg();
@@ -121,12 +127,15 @@ namespace pixeler
       _msg = "Скрипт повинен містити визначення функції update";
       return false;
     }
-    else
-    {
-      _msg = "";
-      _is_script_exec = true;
-      return true;
-    }
+
+    _msg = "";
+    _is_script_exec = true;
+    return true;
+  }
+
+  String LuaContext::getMsg() const
+  {
+    return _msg;
   }
 
   void* LuaContext::luAlloc(void* ud, void* ptr, size_t osize, size_t nsize)
@@ -253,7 +262,7 @@ namespace pixeler
     }
     else
     {
-      IWidgetContainer** udata = (IWidgetContainer**)lua_newuserdata(L, sizeof(IWidgetContainer*));
+      IWidgetContainer** udata = static_cast<IWidgetContainer**>(lua_newuserdata(L, sizeof(IWidgetContainer*)));
       *udata = layout;
 
       luaL_getmetatable(L, STR_TYPE_NAME_IWIDGET_CONT);
@@ -265,8 +274,8 @@ namespace pixeler
 
   int LuaContext::lua_context_manage_widget(lua_State* L)
   {
-    Label** label = (Label**)lua_touserdata(L, 1);
-    _self->_managed_widgets.push_back(*label);
+    IWidget** iwidget = static_cast<IWidget**>(lua_touserdata(L, 1));
+    _self->_managed_widgets.push_back(*iwidget);
     return 0;
   }
 
@@ -364,23 +373,29 @@ namespace pixeler
   int LuaContext::lua_show_toast(lua_State* L)
   {
     uint8_t arg_num = lua_gettop(L);
-
     const char* toast_str = luaL_checkstring(L, 1);
+
+#ifdef GRAPHICS_ENABLED
     float time = TOAST_LENGTH_SHORT;
 
     if (arg_num > 1)
       time = luaL_checknumber(L, 2);
 
     _self->showToast(toast_str, time);
+
+#else
+    log_i("%s", toast_str);
+
+#endif
+
     return 0;
   }
 
   int LuaContext::lua_show_notification(lua_State* L)
   {
     uint8_t arg_num = lua_check_top(L, {1, 4});
-    if (arg_num == 0)
-      return 0;
 
+#ifdef GRAPHICS_ENABLED
     if (arg_num == 1)
     {
       const char* notification_msg = luaL_checkstring(L, 1);
@@ -401,8 +416,33 @@ namespace pixeler
       _self->_notification->setLeftText(n_left);
       _self->_notification->setRightText(n_rigt);
     }
+    else
+    {
+      return 0;
+    }
 
     _self->showNotification(_self->_notification);
+
+#else
+    int stack_msg_pos = 1;
+    if (arg_num == 1)
+    {
+      lua_stack_pos = 1;
+    }
+    else if (arg_num == 4)
+    {
+      lua_stack_pos = 2;
+    }
+    else
+    {
+      return 0;
+    }
+
+    const char* notification_msg = luaL_checkstring(L, lua_stack_pos);
+    log_i("%s", notification_msg);
+
+#endif
+
     return 0;
   }
 

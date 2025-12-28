@@ -17,7 +17,6 @@
 const char STR_SIZE[] = "File size:";
 const char STR_LUA_EXT[] = ".lua";
 const char STR_BMP_EXT[] = ".bmp";
-const char STR_LUA_RUNNING[] = "LuaVM працює";
 const char STR_SET_WALLPP[] = "На шпалери";
 
 bool FilesContext::loop()
@@ -942,7 +941,6 @@ void FilesContext::executeScript()
   else
   {
     _mode = MODE_LUA;
-    log_i("%s", STR_LUA_RUNNING);
   }
 
   free(text_buf);

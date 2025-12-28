@@ -10,7 +10,7 @@
 // int lua_spin_item_new(lua_State *L)
 // {
 //     uint16_t id = luaL_checkinteger(L, 2);
-//     ToggleItem **ret_wid_ptr = (ToggleItem **)lua_newuserdata(L, sizeof(ToggleItem *));
+//     ToggleItem **ret_wid_ptr = static_cast<ToggleItem**>(lua_newuserdata(L, sizeof(ToggleItem *));
 //     *ret_wid_ptr = new ToggleItem(id);
 //     luaL_getmetatable(L, STR_TYPE_NAME_TOGGLE_ITEM);
 //     lua_setmetatable(L, -2);
@@ -19,11 +19,11 @@
 
 // int lua_spin_item_clone(lua_State *L)
 // {
-//     ToggleItem *toggle_item = *(ToggleItem **)lua_touserdata(L, 1);
+//     ToggleItem *toggle_item = *static_cast<ToggleItem**>(lua_touserdata(L, 1);
 //     uint16_t id = luaL_checkinteger(L, 2);
 //     ToggleItem *clone = toggle_item->clone(id);
 
-//     ToggleItem **toggle_item_clone = (ToggleItem **)lua_newuserdata(L, sizeof(ToggleItem *));
+//     ToggleItem **toggle_item_clone = static_cast<ToggleItem**>(lua_newuserdata(L, sizeof(ToggleItem *));
 //     *toggle_item_clone = clone;
 
 //     luaL_getmetatable(L, STR_TYPE_NAME_TOGGLE_ITEM);
@@ -33,7 +33,7 @@
 
 // int lua_toggle_item_set_spinbox(lua_State *L)
 // {
-//     ToggleItem *toggle_item = *(ToggleItem **)lua_touserdata(L, 1);
+//     ToggleItem *toggle_item = *static_cast<ToggleItem**>(lua_touserdata(L, 1);
 //     ToggleSwitch *toggle_switch = *(ToggleSwitch **)lua_touserdata(L, 2);
 //     toggle_item->setToggle(toggle_switch);
 //     return 0;
@@ -41,7 +41,7 @@
 
 // int lua_toggle_item_get_spinbox(lua_State *L)
 // {
-//     ToggleItem *toggle_item = *(ToggleItem **)lua_touserdata(L, 1);
+//     ToggleItem *toggle_item = *static_cast<ToggleItem**>(lua_touserdata(L, 1);
 //     ToggleSwitch **lua_toggle_switch = (ToggleSwitch **)lua_newuserdata(L, sizeof(ToggleSwitch *));
 //     *lua_toggle_switch = toggle_item->getToggle();
 

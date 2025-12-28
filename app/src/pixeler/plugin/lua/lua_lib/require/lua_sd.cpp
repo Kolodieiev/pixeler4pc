@@ -39,8 +39,8 @@ int lua_sd_open_file(lua_State* L)
   }
   else
   {
-    FILE* f = *(FILE**)lua_newuserdata(L, sizeof(FILE*));
-    f = fp;
+    FILE** f = static_cast<FILE**>(lua_newuserdata(L, sizeof(FILE*)));
+    *f = fp;
     luaL_getmetatable(L, STR_FILE_TYPE);
     lua_setmetatable(L, -2);
   }
@@ -50,8 +50,8 @@ int lua_sd_open_file(lua_State* L)
 
 int lua_sd_close_file(lua_State* L)
 {
-  FILE* f = *(FILE**)luaL_checkudata(L, 1, STR_FILE_TYPE);
-  pixeler::_fs.closeFile(f);
+  FILE** f = static_cast<FILE**>(luaL_checkudata(L, 1, STR_FILE_TYPE));
+  pixeler::_fs.closeFile(*f);
   return 0;
 }
 
@@ -64,10 +64,10 @@ int lua_sd_file_size(lua_State* L)
 
 int lua_sd_available(lua_State* L)
 {
-  FILE* f = *(FILE**)luaL_checkudata(L, 1, STR_FILE_TYPE);
+  FILE** f = static_cast<FILE**>(luaL_checkudata(L, 1, STR_FILE_TYPE));
   int size = luaL_checkinteger(L, 2);
 
-  lua_pushinteger(L, pixeler::_fs.available(f, size));
+  lua_pushinteger(L, pixeler::_fs.available(*f, size));
   return 1;
 }
 
@@ -101,7 +101,7 @@ int lua_sd_read_from_file(lua_State* L)
 {
   bool has_seek_pos = lua_gettop(L) == 3;
 
-  FILE* f = *(FILE**)luaL_checkudata(L, 1, STR_FILE_TYPE);
+  FILE** f = static_cast<FILE**>(luaL_checkudata(L, 1, STR_FILE_TYPE));
   int len = luaL_checkinteger(L, 2);
   int seek_pos = 0;
   if (has_seek_pos)
@@ -116,7 +116,7 @@ int lua_sd_read_from_file(lua_State* L)
   if (!buffer)
     return luaL_error(L, STR_MEM_ALLOC_ERR);
 
-  bool successfull = pixeler::_fs.readChunkFromFile(f, buffer, len, seek_pos);
+  bool successfull = pixeler::_fs.readChunkFromFile(*f, buffer, len, seek_pos);
 
   if (!successfull)
   {
@@ -145,11 +145,11 @@ int lua_sd_write_file(lua_State* L)
 
 int lua_sd_write_to_file(lua_State* L)
 {
-  FILE* f = *(FILE**)luaL_checkudata(L, 1, STR_FILE_TYPE);
+  FILE** f = static_cast<FILE**>(luaL_checkudata(L, 1, STR_FILE_TYPE));
   size_t len;
   const char* buf = luaL_checklstring(L, 2, &len);
 
-  size_t bytes_write = pixeler::_fs.writeToFile(f, buf, len);
+  size_t bytes_write = pixeler::_fs.writeToFile(*f, buf, len);
 
   lua_pushboolean(L, bytes_write == len);
 
@@ -240,11 +240,7 @@ const struct luaL_Reg LIB_SD[] = {
 int lua_open_sd(lua_State* L)
 {
   luaL_newlib(L, LIB_SD);
-
   luaL_newmetatable(L, STR_FILE_TYPE);
-  lua_pushcfunction(L, lua_sd_close_file);
-  lua_setfield(L, -2, STR_LUA_GC);
   lua_pop(L, 1);
-
   return 1;
 }
