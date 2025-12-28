@@ -64,14 +64,15 @@ namespace pixeler
   }
 #endif
 
-  void FileManager::makeFullPath(String& out_path, const char* path)
+  String FileManager::makeFullPath(const char* path)
   {
-    out_path = SD_MOUNTPOINT;
+    String full_path = SD_MOUNTPOINT;
 #ifdef __linux__
-    out_path += "/";
-    out_path += getlogin();
+    full_path += "/";
+    full_path += getlogin();
 #endif
-    out_path += path;
+    full_path += path;
+    return full_path;
   }
 
   uint8_t FileManager::getEntryType(const char* path, dirent* entry)
@@ -106,8 +107,7 @@ namespace pixeler
 
   size_t FileManager::getFileSize(const char* path)
   {
-    String full_path;
-    makeFullPath(full_path, path);
+    String full_path = makeFullPath(path);
 
     struct stat st;
 
@@ -125,8 +125,7 @@ namespace pixeler
 
   bool FileManager::readStat(struct stat& out_stat, const char* path)
   {
-    String full_path;
-    makeFullPath(full_path, path);
+    String full_path = makeFullPath(path);
 
 #ifdef _WIN32
     String ansi_str = utf8ToAnsi(full_path.c_str());
@@ -142,8 +141,7 @@ namespace pixeler
 
   bool FileManager::fileExist(const char* path, bool silently)
   {
-    String full_path;
-    makeFullPath(full_path, path);
+    String full_path = makeFullPath(path);
 
     bool result = getEntryType(full_path.c_str()) == DT_REG;
 
@@ -155,8 +153,7 @@ namespace pixeler
 
   bool FileManager::dirExist(const char* path, bool silently)
   {
-    String full_path;
-    makeFullPath(full_path, path);
+    String full_path = makeFullPath(path);
 
     bool result = getEntryType(full_path.c_str()) == DT_DIR;
 
@@ -168,8 +165,7 @@ namespace pixeler
 
   bool FileManager::exists(const char* path, bool silently)
   {
-    String full_path;
-    makeFullPath(full_path, path);
+    String full_path = makeFullPath(path);
 
     uint8_t type = getEntryType(full_path.c_str());
 
@@ -182,8 +178,7 @@ namespace pixeler
 
   bool FileManager::createDir(const char* path)
   {
-    String full_path;
-    makeFullPath(full_path, path);
+    String full_path = makeFullPath(path);
 
     errno = 0;
 
@@ -208,8 +203,7 @@ namespace pixeler
 
   size_t FileManager::readFile(const char* path, void* out_buffer, size_t len, int32_t seek_pos)
   {
-    String full_path;
-    makeFullPath(full_path, path);
+    String full_path = makeFullPath(path);
 
 #ifdef _WIN32
     String ansi_str = utf8ToAnsi(full_path.c_str());
@@ -220,13 +214,13 @@ namespace pixeler
 
     if (!f)
     {
-      log_e("Помилка відкриття файлу: %s", path);
+      log_e("Помилка відкриття файлу: %s", full_path.c_str());
       return 0;
     }
 
     if (seek_pos > 0 && fseek(f, seek_pos, SEEK_SET))
     {
-      log_e("Помилка встановлення позиції(%d) у файлі %s", seek_pos, path);
+      log_e("Помилка встановлення позиції(%d) у файлі %s", seek_pos, full_path.c_str());
       fclose(f);
       return 0;
     }
@@ -301,8 +295,7 @@ namespace pixeler
       return 0;
     }
 
-    String full_path;
-    makeFullPath(full_path, path);
+    String full_path = makeFullPath(path);
 
 #ifdef _WIN32
     String ansi_str = utf8ToAnsi(full_path.c_str());
@@ -313,7 +306,7 @@ namespace pixeler
 
     if (!f)
     {
-      log_e("Помилка відркиття файлу: %s", path);
+      log_e("Помилка відркиття файлу: %s", full_path.c_str());
       return 0;
     }
 
@@ -370,8 +363,7 @@ namespace pixeler
 
   FILE* FileManager::openFile(const char* path, const char* mode)
   {
-    String full_path;
-    makeFullPath(full_path, path);
+    String full_path = makeFullPath(path);
 
 #ifdef _WIN32
     String ansi_str = utf8ToAnsi(full_path.c_str());
@@ -433,8 +425,7 @@ namespace pixeler
   {
     bool result = false;
 
-    String full_path;
-    makeFullPath(full_path, _rm_path.c_str());
+    String full_path = makeFullPath(_rm_path.c_str());
 
     bool is_dir = dirExist(_rm_path.c_str(), true);
 
@@ -455,8 +446,7 @@ namespace pixeler
 
     if (make_full)
     {
-      String full_path;
-      makeFullPath(full_path, path);
+      String full_path = makeFullPath(path);
 
 #ifdef _WIN32
       String ansi_str = utf8ToAnsi(full_path.c_str());
@@ -464,6 +454,8 @@ namespace pixeler
 #else
       result = !remove(full_path.c_str());
 #endif
+      if (!result)
+        log_e("Помилка видалення файлу: %s", full_path.c_str());
     }
     else
     {
@@ -473,10 +465,9 @@ namespace pixeler
 #else
       result = !remove(path);
 #endif
+      if (!result)
+        log_e("Помилка видалення файлу: %s", path);
     }
-
-    if (!result)
-      log_e("Помилка видалення файлу: %s", path);
 
     return result;
   }
@@ -490,8 +481,7 @@ namespace pixeler
 
     if (make_full)
     {
-      String full_path;
-      makeFullPath(full_path, path);
+      String full_path = makeFullPath(path);
 
 #ifdef _WIN32
       String ansi_str = utf8ToAnsi(full_path.c_str());
@@ -549,7 +539,7 @@ namespace pixeler
       }
       else
       {
-        log_e("Невідомий тип або не вдалося прочитати: %s", path);
+        log_e("Невідомий тип або не вдалося прочитати: %s", full_path.c_str());
         goto exit;
       }
 
@@ -608,10 +598,8 @@ namespace pixeler
     if (!exists(old_name))
       return false;
 
-    String old_n;
-    makeFullPath(old_n, old_name);
-    String new_n;
-    makeFullPath(new_n, new_name);
+    String old_n = makeFullPath(old_name);
+    String new_n = makeFullPath(new_name);
 
     if (new_n.length() >= old_n.length() &&
         (new_n.c_str()[old_n.length()] == '/' || new_n.c_str()[old_n.length()] == '\0') &&
@@ -644,11 +632,8 @@ namespace pixeler
       ++counter;
     }
 
-    String from;
-    String to;
-
-    makeFullPath(from, _copy_from_path.c_str());
-    makeFullPath(to, _copy_to_path.c_str());
+    String from = makeFullPath(_copy_from_path.c_str());
+    String to = makeFullPath(_copy_to_path.c_str());
 
 #ifdef _WIN32
     String to_ansi_str = utf8ToAnsi(to.c_str());
@@ -796,8 +781,7 @@ namespace pixeler
     if (!dirExist(dir_path))
       return;
 
-    String full_path;
-    makeFullPath(full_path, dir_path);
+    String full_path = makeFullPath(dir_path);
 
     DIR* dir = opendir(full_path.c_str());
     if (!dir)

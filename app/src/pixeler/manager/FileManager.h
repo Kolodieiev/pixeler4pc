@@ -82,12 +82,12 @@ namespace pixeler
   {
   public:
     /**
-     * @brief Записує в out_path повний шлях до path, з урахуванням точки монтування.
+     * @brief Формує повний шлях до path, з урахуванням точки монтування.
      *
-     * @param out_path Змінна куди буди записано повний шлях.
      * @param path Шлях, вказаний без точки монтування.
+     * @return String
      */
-    void makeFullPath(String& out_path, const char* path);
+    String makeFullPath(const char* path);
 
     /**
      * @brief Перевіряє чи існує двійковий файл на карті пам'яті.
