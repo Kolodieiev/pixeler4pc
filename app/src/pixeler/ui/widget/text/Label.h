@@ -232,9 +232,10 @@ namespace pixeler
     }
 
     /**
-     * @brief Set the Full Autoscroll object
+     * @brief Встановлює тип прокручування тексту.
      *
-     * @param state
+     * @param state Якщо передано true - текст у віджеті буде прокручуватися до останнього символу. 
+     * Інакше на 3/4 від ширини віджета.
      */
     void setFullAutoscroll(bool state);
 

@@ -48,6 +48,7 @@ namespace pixeler
       cln->_text_alignment = _text_alignment;
       cln->_has_autoscroll = _has_autoscroll;
       cln->_temp_has_autoscroll = _temp_has_autoscroll;
+      cln->_has_full_autoscroll = _has_full_autoscroll;
       cln->_has_autoscroll_in_focus = _has_autoscroll_in_focus;
       cln->_temp_has_autoscroll_in_focus = _temp_has_autoscroll_in_focus;
       cln->_temp_width = _temp_width;
