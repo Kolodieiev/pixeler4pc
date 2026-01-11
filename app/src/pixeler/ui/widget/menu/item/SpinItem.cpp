@@ -45,8 +45,8 @@ namespace pixeler
     _label->setHeight(_height - 4);
     _label->setPos(img_width + ITEM_PADDING, 1);
     _label->setWidth(_width - ITEM_PADDING * 2 - img_width - (_spinbox->getWidth() + ITEM_PADDING));
-    
-    if (_has_focus)
+
+    if (_has_focus && _need_change_back)
       _label->setFocus();
     else
       _label->removeFocus();

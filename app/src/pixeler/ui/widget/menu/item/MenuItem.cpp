@@ -51,7 +51,7 @@ namespace pixeler
     _label->setPos(img_width + ITEM_PADDING, 1);
     _label->setWidth(_width - ITEM_PADDING * 2 - img_width);
 
-    if (_has_focus)
+    if (_has_focus && _need_change_back)
       _label->setFocus();
     else
       _label->removeFocus();
@@ -132,7 +132,7 @@ namespace pixeler
 
     _label->setBackColor(_back_color);
     _label->setFocusBackColor(_focus_back_color);
-    _label->setChangingBack(true);
+    _label->setChangingBack(true);  // TODO
     _label->setTransparency(_is_transparent);
   }
 }  // namespace pixeler
