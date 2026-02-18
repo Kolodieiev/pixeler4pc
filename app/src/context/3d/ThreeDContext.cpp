@@ -1,13 +1,13 @@
 #include "ThreeDContext.h"
 
 #include "../WidgetCreator.h"
-#include "pixeler/manager/SettingsManager.h"
-#include "pixeler/util/img/BmpUtil.h"
+#include "pixeler/src/manager/SettingsManager.h"
+#include "pixeler/src/util/img/BmpUtil.h"
 
 ThreeDContext::ThreeDContext()
 {
-  WidgetCreator creator;
-  EmptyLayout* layout = creator.getEmptyLayout();
+  
+  EmptyLayout* layout = WidgetCreator::getEmptyLayout();
   setLayout(layout);
 
   _game.init();

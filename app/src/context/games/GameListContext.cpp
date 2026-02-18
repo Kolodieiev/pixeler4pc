@@ -2,8 +2,8 @@
 
 #include "../WidgetCreator.h"
 #include "./icons/sokoban_ico.h"
-#include "pixeler/ui/widget/layout/EmptyLayout.h"
-#include "pixeler/ui/widget/menu/item/MenuItem.h"
+#include "pixeler/src/widget/layout/EmptyLayout.h"
+#include "pixeler/src/widget/menu/item/MenuItem.h"
 
 const char STR_SOKOBAN_ITEM[] = "Комірник";
 const char STR_RPG_ITEM[] = "RPG";
@@ -12,9 +12,9 @@ GameListContext::GameListContext()
 {
   //------ Налаштування зовнішнього вигляду віджетів
 
-  WidgetCreator creator;
+  
   //
-  EmptyLayout* layout = creator.getEmptyLayout();
+  EmptyLayout* layout = WidgetCreator::getEmptyLayout();
   setLayout(layout);
   //
   _menu = new FixedMenu(ID_MENU);
@@ -32,7 +32,7 @@ GameListContext::GameListContext()
   
   //
 
-  MenuItem* sokoban_item = creator.getMenuItem(ID_CONTEXT_SOKOBAN);
+  MenuItem* sokoban_item = WidgetCreator::getMenuItem(ID_CONTEXT_SOKOBAN);
   _menu->addItem(sokoban_item);
 
   Image* soko_img = new Image(1);
@@ -43,31 +43,25 @@ GameListContext::GameListContext()
   soko_img->setTransparency(true);
   soko_img->setSrc(ICO_SOKOBAN);
 
-  Label* soko_lbl = creator.getItemLabel(STR_SOKOBAN_ITEM, font_10x20);
+  Label* soko_lbl = WidgetCreator::getItemLabel(STR_SOKOBAN_ITEM, font_10x20);
   sokoban_item->setLbl(soko_lbl);
   soko_lbl->setAutoscrollInFocus(true);
 
   //
 
-  MenuItem* rpg_item = creator.getMenuItem(ID_CONTEXT_RPG);
+  MenuItem* rpg_item = WidgetCreator::getMenuItem(ID_CONTEXT_RPG);
   _menu->addItem(rpg_item);
 
-  Label* rpg_lbl = creator.getItemLabel(STR_RPG_ITEM, font_10x20);
+  Label* rpg_lbl = WidgetCreator::getItemLabel(STR_RPG_ITEM, font_10x20);
   rpg_item->setLbl(rpg_lbl);
   rpg_lbl->setAutoscrollInFocus(true);
-
-  //
-
-  _bin.reserve(_menu->getSize());
-  _bin.push_back(soko_img);
 
   _scrollbar->setMax(_menu->getSize());
 }
 
 GameListContext::~GameListContext()
 {
-  for (auto b_it = _bin.begin(), e_it = _bin.end(); b_it != e_it; ++b_it)
-    delete *b_it;
+
 }
 
 bool GameListContext::loop()

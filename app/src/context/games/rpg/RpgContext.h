@@ -1,11 +1,11 @@
 #pragma once
 //
-#include "pixeler/game/DataStream.h"
+#include "pixeler/src/game/DataStream.h"
 //
 #include "scene/RpgBaseScene.h"
 
-#include "pixeler/ui/context/IContext.h"
-#include "pixeler/ui/widget/menu/FixedMenu.h"
+#include "pixeler/src/context/IContext.h"
+#include "pixeler/src/widget/menu/FixedMenu.h"
 
 using namespace pixeler;
 

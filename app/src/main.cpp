@@ -1,4 +1,4 @@
-#include "pixeler/manager/ContextManager.h"
+#include "pixeler/src/Pixeler.h"
 using namespace pixeler;
 
 #ifdef _WIN32
@@ -17,8 +17,8 @@ int main()
   activate_utf8_on_windows();
 #endif
 
-  ContextManager context_manager;
-  context_manager.run();
+  // Запустити виконання Pixeler.
+  Pixeler::begin(80);
 
   return 0;
 }

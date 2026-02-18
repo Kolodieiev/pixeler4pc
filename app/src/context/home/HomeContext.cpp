@@ -1,16 +1,16 @@
 #include "HomeContext.h"
 
 #include "../WidgetCreator.h"
-#include "pixeler/manager/SettingsManager.h"
-#include "pixeler/util/img/BmpUtil.h"
+#include "pixeler/src/manager/SettingsManager.h"
+#include "pixeler/src/util/img/BmpUtil.h"
 
 #define UPD_DISPLAY_INTERVAL_MS 5000UL
 
 HomeContext::HomeContext()
 {
-  WidgetCreator creator;
+  
 
-  EmptyLayout* layout = creator.getEmptyLayout();
+  EmptyLayout* layout = WidgetCreator::getEmptyLayout();
   setLayout(layout);
 
   String walpp_path = SettingsManager::get(STR_WALLPP_FILENAME);

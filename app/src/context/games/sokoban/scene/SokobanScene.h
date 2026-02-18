@@ -2,7 +2,7 @@
 
 #include "../obj/ghost/GhostObj.h"
 #include "../obj/sokoban/SokobanObj.h"
-#include "pixeler/game/IGameScene.h"
+#include "pixeler/src/game/IGameScene.h"
 
 using namespace pixeler;
 

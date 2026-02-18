@@ -6,8 +6,8 @@
 #include <cstdint>
 
 #include "Player.h"
-#include "pixeler/defines.h"
-#include "pixeler/driver/graphics/DisplayWrapper.h"
+#include "pixeler/src/defines.h"
+#include "pixeler/src/driver/graphics/DisplayWrapper.h"
 #include "texture/texture_blue_block.h"
 #include "texture/texture_brick.h"
 #include "texture/texture_stone.h"

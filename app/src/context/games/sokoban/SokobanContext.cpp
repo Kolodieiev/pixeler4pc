@@ -13,8 +13,8 @@ namespace sokoban
 {
   SokobanContext::SokobanContext()
   {
-    WidgetCreator creator;
-    EmptyLayout* layout = creator.getEmptyLayout();
+    
+    EmptyLayout* layout = WidgetCreator::getEmptyLayout();
     setLayout(layout);
     showLvlMenu();
   }
@@ -83,7 +83,7 @@ namespace sokoban
 
   void SokobanContext::showLvlMenu()
   {
-    WidgetCreator creator;
+    
     EmptyLayout* layout = getLayout()->castTo<EmptyLayout>();
 
     _lvl_menu = new FixedMenu(ID_LVL_LIST);
@@ -102,13 +102,13 @@ namespace sokoban
 
     for (uint8_t i{1}; i <= LEVEL_NUM; ++i)
     {
-      MenuItem* lvl_item = creator.getMenuItem(i);
+      MenuItem* lvl_item = WidgetCreator::getMenuItem(i);
       _lvl_menu->addItem(lvl_item);
 
       String lbl = STR_LVL;
       lbl += i;
 
-      Label* lvl_lbl = creator.getItemLabel(lbl.c_str());
+      Label* lvl_lbl = WidgetCreator::getItemLabel(lbl.c_str());
       lvl_item->setLbl(lvl_lbl);
       lvl_lbl->setFont(font_10x20);
     }

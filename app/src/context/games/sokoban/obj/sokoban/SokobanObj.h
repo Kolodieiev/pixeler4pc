@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../box/BoxObj.h"
-#include "pixeler/game/object/IGameObject.h"
+#include "pixeler/src/game/object/IGameObject.h"
 
 using namespace pixeler;
 

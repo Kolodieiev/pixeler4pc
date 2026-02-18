@@ -1,9 +1,9 @@
 #pragma once
 #include <stdint.h>
 
-#include "pixeler/ui/context/IContext.h"
-#include "pixeler/ui/widget/menu/FixedMenu.h"
-#include "pixeler/ui/widget/scrollbar/ScrollBar.h"
+#include "pixeler/src/context/IContext.h"
+#include "pixeler/src/widget/menu/FixedMenu.h"
+#include "pixeler/src/widget/scrollbar/ScrollBar.h"
 
 using namespace pixeler;
 
@@ -28,7 +28,6 @@ private:
   void down();
 
 private:
-  std::vector<IWidget*> _bin;
   FixedMenu* _menu;
   ScrollBar* _scrollbar;
 };

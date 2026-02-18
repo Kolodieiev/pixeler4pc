@@ -20,7 +20,7 @@ namespace pixeler
   // -------------------------------- Додай перемикання контексту за прикладом
   inline std::unordered_map<ContextID, std::function<IContext*()>> _context_id_map = {
       {ContextID::ID_CONTEXT_HOME, []()
-       { return new ThreeDContext(); }},
+       { return new HomeContext(); }},
       {ContextID::ID_CONTEXT_MENU, []()
        { return new MenuContext(); }},
       {ContextID::ID_CONTEXT_FILES, []()

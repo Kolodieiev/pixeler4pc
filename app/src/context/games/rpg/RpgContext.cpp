@@ -31,8 +31,8 @@ namespace rpg
   {
     _mode = MODE_MAIN_MENU;
 
-    WidgetCreator creator;
-    EmptyLayout* layout = creator.getEmptyLayout();
+    
+    EmptyLayout* layout = WidgetCreator::getEmptyLayout();
     setLayout(layout);
 
     layout->setBackColor(COLOR_MAIN_RPG_BACK);
@@ -50,7 +50,7 @@ namespace rpg
 
     // TODO перевірити збереження, якщо наявне додати ITEM_LOAD
 
-    MenuItem* item_load_game = creator.getMenuItem(ID_ITEM_LOAD_GAME);
+    MenuItem* item_load_game = WidgetCreator::getMenuItem(ID_ITEM_LOAD_GAME);
     _game_menu->addItem(item_load_game);
     item_load_game->setBackColor(COLOR_ITEM_RPG_BACK);
     item_load_game->setBorderColor(COLOR_ITEM_RPG_BORDER);
@@ -59,7 +59,7 @@ namespace rpg
     item_load_game->setChangingBorder(false);
     item_load_game->setChangingBack(true);
 
-    Label* lbl_load_game = creator.getItemLabel(STR_LOAD_GAME, font_10x20);
+    Label* lbl_load_game = WidgetCreator::getItemLabel(STR_LOAD_GAME, font_10x20);
     item_load_game->setLbl(lbl_load_game);
     lbl_load_game->setGravity(IWidget::GRAVITY_CENTER);
     lbl_load_game->setAlign(IWidget::ALIGN_CENTER);
@@ -91,8 +91,8 @@ namespace rpg
   {
     _mode = MODE_HELP;
 
-    WidgetCreator creator;
-    EmptyLayout* layout = creator.getEmptyLayout();
+    
+    EmptyLayout* layout = WidgetCreator::getEmptyLayout();
     setLayout(layout);
   }
 

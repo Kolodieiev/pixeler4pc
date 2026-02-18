@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "pixeler/defines.h"
+#include "pixeler/src/defines.h"
 
 Player::Player()
 {
