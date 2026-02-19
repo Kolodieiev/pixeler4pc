@@ -2,6 +2,7 @@
 #include "FileManager.h"
 
 #include <errno.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 
 #include <algorithm>
@@ -12,7 +13,6 @@
 #include "pixeler/src/util/AutoLock.h"
 
 #ifdef __linux__
-#include <fcntl.h>
 #include <unistd.h>
 #endif
 
@@ -103,21 +103,30 @@ namespace pixeler
   uint8_t FileManager::getEntryTypeUnlocked(const char* path, dirent* entry)
   {
     struct stat st;
-    if (entry && entry->d_type != DT_UNKNOWN)
-      return entry->d_type;
 
 #ifdef _WIN32
     String ansi_str = utf8ToAnsi(path);
+
     if (stat(ansi_str.c_str(), &st) == 0)
-#else
-    if (stat(path, &st) == 0)
-#endif
     {
       if (S_ISREG(st.st_mode))
         return DT_REG;
       if (S_ISDIR(st.st_mode))
         return DT_DIR;
     }
+#else
+    if (entry && entry->d_type != DT_UNKNOWN)
+      return entry->d_type;
+
+    if (stat(path, &st) == 0)
+
+    {
+      if (S_ISREG(st.st_mode))
+        return DT_REG;
+      if (S_ISDIR(st.st_mode))
+        return DT_DIR;
+    }
+#endif
 
     return DT_UNKNOWN;
   }
@@ -207,7 +216,11 @@ namespace pixeler
 
     AutoLock lock(_sd_mutex);
 
+#ifdef _WIN32
+    if (mkdir(full_path.c_str()) != 0)
+#else
     if (mkdir(full_path.c_str(), 0777) != 0)
+#endif
     {
       log_e("Помилка створення директорії: %s", full_path.c_str());
       if (errno == EEXIST)
