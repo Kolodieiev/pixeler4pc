@@ -20,15 +20,15 @@ GameListContext::GameListContext()
   _menu = new FixedMenu(ID_MENU);
   layout->addWidget(_menu);
   _menu->setBackColor(COLOR_MENU_ITEM);
-  _menu->setWidth(TFT_WIDTH - SCROLLBAR_WIDTH - 2);
-  _menu->setHeight(TFT_HEIGHT - 2);
+  _menu->setWidth(UI_WIDTH - SCROLLBAR_WIDTH - 2);
+  _menu->setHeight(UI_HEIGHT - 2);
   _menu->setItemHeight((_menu->getHeight() - 2) / 4);
   //
   _scrollbar = new ScrollBar(ID_SCROLLBAR);
   layout->addWidget(_scrollbar);
   _scrollbar->setWidth(SCROLLBAR_WIDTH);
-  _scrollbar->setHeight(TFT_HEIGHT);
-  _scrollbar->setPos(TFT_WIDTH - SCROLLBAR_WIDTH, 0);
+  _scrollbar->setHeight(UI_HEIGHT);
+  _scrollbar->setPos(UI_WIDTH - SCROLLBAR_WIDTH, 0);
   
   //
 

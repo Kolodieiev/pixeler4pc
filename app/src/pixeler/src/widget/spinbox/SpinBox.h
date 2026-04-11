@@ -131,6 +131,14 @@ namespace pixeler
      */
     float getStep() const;
 
+  protected:
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const override;
+
   private:
     using Label::hasAutoscroll;
     using Label::hasAutoscrollInFocus;

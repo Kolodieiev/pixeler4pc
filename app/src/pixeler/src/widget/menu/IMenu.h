@@ -1,5 +1,5 @@
 /**
- * @file Menu.h
+ * @file IMenu.h
  * @brief Головний абстракний клас, від якого повинні бути успадковані всі віджети меню
  * @details Керує позиціонуванням, приховуванням та відображенням елементів меню.
  *
@@ -14,14 +14,26 @@
 
 namespace pixeler
 {
-  class Menu : public IWidgetContainer
+  class IMenu : public IWidgetContainer
   {
   public:
-    Menu(uint16_t widget_ID, TypeID type_ID);
-    virtual ~Menu() {}
+    IMenu(uint16_t widget_ID, TypeID type_ID);
+    virtual ~IMenu() {}
 
     virtual bool focusUp() = 0;
     virtual bool focusDown() = 0;
+    virtual bool pageUp() = 0;
+    virtual bool pageDown() = 0;
+
+    /**
+     * @brief Повертає вказівник на самий верхній віджет, який підтримує дотики та пересікається з вказаною точкою.
+     *
+     * @param x - Координата точки.
+     * @param y - Координата точки.
+     * @return IWidget* - Вказівник на вкладений віджет або на самого себе, якщо виявлено пересічення з точкою.
+     * @return nullptr - Інакше.
+     */
+    virtual IWidget* findTouchableAt(uint16_t x, uint16_t y) override;
 
     /**
      * @brief Викликає процедуру малювання віджета на дисплей.
@@ -146,9 +158,25 @@ namespace pixeler
      *
      * @return uint16_t
      */
-    uint16_t getItemsNumOnScreen() const;
+    uint16_t getItemsPerPage() const;
+
+    /**
+     * @brief Встановлює прапор підтримки сенсорного екрану.
+     *
+     * @param state true - Меню не встановлює фокус для елементів списку,
+     * а також вимикає підтримку усіх операцій пов'язаних з фокусом елемента.
+     * @param state false - Меню встановлює фокус для елементів списку (за замовченням).
+     */
+    void setTouchSupport(bool state);
 
   protected:
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const override;
+
     void drawItems(uint16_t start, uint16_t count);
     uint16_t getCyclesCount() const;
 
@@ -166,5 +194,7 @@ namespace pixeler
     uint16_t _items_spacing{0};
 
     Orientation _orientation{VERTICAL};
+
+    bool _has_touch_support{false};
   };
 }  // namespace pixeler

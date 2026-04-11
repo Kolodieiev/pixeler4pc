@@ -36,31 +36,7 @@ namespace pixeler
 
     String path = getSettingsFilePath(pref_name, subdir);
 
-    if (path.isEmpty())
-      return emptyString;
-
-    size_t file_size = _fs.getFileSize(path.c_str());
-
-    if (file_size == 0)
-      return emptyString;
-
-    char* buffer = static_cast<char*>(malloc(file_size + 1));
-
-    if (!buffer)
-    {
-      log_e("Bad memory alloc: %zu b", file_size);
-      return emptyString;
-    }
-
-    size_t bytes_read = _fs.readFile(path.c_str(), buffer, file_size);
-    buffer[bytes_read] = '\0';
-
-    String ret;
-    if (bytes_read > 0)
-      ret = buffer;
-
-    free(buffer);
-    return ret;
+    return _fs.readFileToStr(path);
   }
 
   String SettingsManager::getSettingsFilePath(const char* pref_name, const char* subdir)

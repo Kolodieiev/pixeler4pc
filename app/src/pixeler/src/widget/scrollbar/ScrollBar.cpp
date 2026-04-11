@@ -5,48 +5,34 @@ namespace pixeler
 {
   ScrollBar::ScrollBar(uint16_t widget_ID) : IWidget(widget_ID, TYPE_SCROLLBAR) {}
 
+  void ScrollBar::copyTo(IWidget* widget) const
+  {
+    IWidget::copyTo(widget);
+
+    ScrollBar* clone = static_cast<ScrollBar*>(widget);
+    clone->_max_value = _max_value;
+    clone->_cur_value = _cur_value;
+    clone->_slider_color = _slider_color;
+    clone->_orientation = _orientation;
+    clone->_slider_last_x_pos = _slider_last_x_pos;
+    clone->_slider_last_y_pos = _slider_last_y_pos;
+    clone->_slider_width = _slider_width;
+    clone->_slider_height = _slider_height;
+    clone->_slider_step_size = _slider_step_size;
+    clone->_smart_scroll_enabled = _smart_scroll_enabled;
+    clone->_smart_value = _smart_value;
+    clone->_steps_to_scroll = _steps_to_scroll;
+    clone->_steps_counter = _steps_counter;
+    clone->_scroll_direction = _scroll_direction;
+  }
+
   ScrollBar* ScrollBar::clone(uint16_t id) const
   {
     try
     {
-      ScrollBar* cln = new ScrollBar(id);
-      cln->_has_border = _has_border;
-      cln->_x_pos = _x_pos;
-      cln->_y_pos = _y_pos;
-      cln->_width = _width;
-      cln->_height = _height;
-      cln->_back_color = _back_color;
-      cln->_border_color = _border_color;
-      cln->_corner_radius = _corner_radius;
-      cln->_is_transparent = _is_transparent;
-      cln->_visibility = _visibility;
-      cln->_has_focus = _has_focus;
-      cln->_old_border_state = _old_border_state;
-      cln->_need_clear_border = _need_clear_border;
-      cln->_need_change_border = _need_change_border;
-      cln->_need_change_back = _need_change_back;
-      cln->_focus_border_color = _focus_border_color;
-      cln->_old_border_color = _old_border_color;
-      cln->_focus_back_color = _focus_back_color;
-      cln->_old_back_color = _old_back_color;
-      cln->_parent = _parent;
-
-      cln->_max_value = _max_value;
-      cln->_cur_value = _cur_value;
-      cln->_slider_color = _slider_color;
-      cln->_orientation = _orientation;
-      cln->_slider_last_x_pos = _slider_last_x_pos;
-      cln->_slider_last_y_pos = _slider_last_y_pos;
-      cln->_slider_width = _slider_width;
-      cln->_slider_height = _slider_height;
-      cln->_slider_step_size = _slider_step_size;
-      cln->_smart_scroll_enabled = _smart_scroll_enabled;
-      cln->_smart_value = _smart_value;
-      cln->_steps_to_scroll = _steps_to_scroll;
-      cln->_steps_counter = _steps_counter;
-      cln->_scroll_direction = _scroll_direction;
-
-      return cln;
+      ScrollBar* clone = new ScrollBar(id);
+      copyTo(clone);
+      return clone;
     }
     catch (const std::bad_alloc& e)
     {
@@ -148,7 +134,7 @@ namespace pixeler
 
   void ScrollBar::setMax(uint16_t max_value)
   {
-    _max_value = max_value > 0 ? max_value : 1;
+    _max_value = (max_value > 0) ? max_value : 1;
 
     if (_cur_value > _max_value)
       _cur_value = _max_value;
@@ -157,45 +143,42 @@ namespace pixeler
     {
       _slider_width = _width;
 
-      float temp_slider_height = (float)_height / _max_value;
-
-      if (temp_slider_height >= 1.0f)
+      // чи вміщується хоча б 1 піксель на кожне значення
+      if (_height >= _max_value)
       {
         _smart_scroll_enabled = false;
-        _slider_step_size = floor(temp_slider_height);
-        _slider_height = _slider_step_size + _height - _slider_step_size * _max_value;
+        _slider_step_size = _height / _max_value;
+        // Розрахунок висоти слайдера, щоб він заповнив залишок
+        _slider_height = _slider_step_size + (_height - (_slider_step_size * _max_value));
       }
       else
       {
-        _steps_to_scroll = ceil((float)_max_value / _height);  // кількість прокруток до зміни позиції слайдера.
-        uint16_t positions_number = floor((double)_max_value / _steps_to_scroll);
+        // елементів більше, ніж висота екрана
+        _steps_to_scroll = (_max_value + _height - 1) / _height;
+        uint16_t positions_number = _max_value / _steps_to_scroll;
 
-        _slider_height = 1 + _height - positions_number;
+        _slider_height = 1 + (_height - positions_number);
         _slider_step_size = 1;
-
         _smart_scroll_enabled = true;
       }
     }
-    else
+    else  // HORIZONTAL
     {
       _slider_height = _height;
 
-      float temp_slider_width = (float)_width / _max_value;
-
-      if (temp_slider_width >= 1.0f)
+      if (_width >= _max_value)
       {
         _smart_scroll_enabled = false;
-        _slider_step_size = floor(temp_slider_width);
-        _slider_width = _slider_step_size + _width - _slider_step_size * _max_value;
+        _slider_step_size = _width / _max_value;
+        _slider_width = _slider_step_size + (_width - (_slider_step_size * _max_value));
       }
       else
       {
-        _steps_to_scroll = ceil((float)_max_value / _width);
-        uint16_t positions_number = floor((double)_max_value / _steps_to_scroll);
+        _steps_to_scroll = (_max_value + _width - 1) / _width;
+        uint16_t positions_number = _max_value / _steps_to_scroll;
 
-        _slider_width = 1 + _width - positions_number;
+        _slider_width = 1 + (_width - positions_number);
         _slider_step_size = 1;
-
         _smart_scroll_enabled = true;
       }
     }

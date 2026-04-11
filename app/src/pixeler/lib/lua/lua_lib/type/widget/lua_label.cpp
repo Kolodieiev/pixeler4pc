@@ -171,6 +171,13 @@ int lua_label_set_autoscroll_delay(lua_State* L)
   return 0;
 }
 
+int lua_label_unload(lua_State* L)
+{
+  lua_pushnil(L);
+  lua_setfield(L, LUA_REGISTRYINDEX, STR_TYPE_NAME_LABEL);
+  return 0;
+}
+
 const struct luaL_Reg TYPE_METH_LABEL[] = {
     {"initWidthToFit", lua_label_init_width_to_fit},
     {"updateWidthToFit", lua_label_update_width_to_fit},
@@ -189,6 +196,7 @@ const struct luaL_Reg TYPE_METH_LABEL[] = {
     {"setBackImg", lua_label_set_back_img},
     {"setMultiline", lua_label_set_multiline},
     {STR_LUA_WIDGET_CLONE, lua_label_clone},
+    {STR_LUA_UNLOAD, lua_label_unload},
     {nullptr, nullptr},
 };
 

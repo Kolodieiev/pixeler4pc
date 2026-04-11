@@ -179,74 +179,68 @@ namespace pixeler
 
   uint16_t IGameObject::calcDistToPoint(uint16_t x, uint16_t y)
   {
-    uint16_t a = abs(_x_global + _sprite.x_pivot - x);
-    uint16_t b = abs(_y_global + _sprite.y_pivot - y);
+    uint16_t a = __builtin_abs(_x_global + _sprite.x_pivot - x);
+    uint16_t b = __builtin_abs(_y_global + _sprite.y_pivot - y);
 
     return sqrt((a * a) + (b * b));
   }
 
   void IGameObject::stepToPoint(uint16_t x_to, uint16_t y_to, uint16_t step_w)
   {
-    if (_x_global == x_to)
-    {
-      if (_y_global == y_to)
-        return;
+    if (_x_global == x_to && _y_global == y_to)
+      return;
+
+    int32_t dx = static_cast<int32_t>(x_to) - _x_global;
+    int32_t dy = static_cast<int32_t>(y_to) - _y_global;
+
+    if (dx == 0)
+    {  // Рух строго по вертикалі
+      if (__builtin_abs(dy) <= step_w)
+        _y_global = y_to;
       else
-      {
-        if (_y_global > y_to)
-        {
-          _y_global -= step_w;
-          if (_y_global < y_to)
-            _y_global = y_to;
-        }
-        else
-        {
-          _y_global += step_w;
-          if (_y_global > y_to)
-            _y_global = y_to;
-        }
-      }
+        _y_global += (dy > 0) ? step_w : -step_w;
+      return;
     }
-    else if (_y_global == y_to)
+
+    if (dy == 0)
+    {  // Рух строго по горизонталі
+      if (__builtin_abs(dx) <= step_w)
+        _x_global = x_to;
+      else
+        _x_global += (dx > 0) ? step_w : -step_w;
+      return;
+    }
+
+    // Визначаємо, по якій осі відстань більша, щоб зробити її базовою
+    if (__builtin_abs(dx) >= __builtin_abs(dy))
     {
-      if (_x_global > x_to)
+      // Рух переважно по X
+      int16_t x_prev = _x_global;
+      if (__builtin_abs(dx) <= step_w)
       {
-        _x_global -= step_w;
-        if (_x_global < x_to)
-          _x_global = x_to;
+        _x_global = x_to;
+        _y_global = y_to;
       }
       else
       {
-        _x_global += step_w;
-        if (_x_global > x_to)
-          _x_global = x_to;
+        _x_global += (dx > 0) ? step_w : -step_w;
+        // Множимо перед діленням для збереження точності
+        _y_global += static_cast<int32_t>(_x_global - x_prev) * dy / dx;
       }
     }
     else
     {
-      uint16_t x_next{_x_global};
-
-      if (x_next < x_to)
+      int16_t y_prev = _y_global;
+      if (__builtin_abs(dy) <= step_w)
       {
-        x_next += step_w;
-        if (x_next > x_to)
-        {
-          _x_global = x_to;
-          return;
-        }
+        _y_global = y_to;
+        _x_global = x_to;
       }
       else
       {
-        x_next -= step_w;
-        if (x_next < x_to)
-        {
-          _x_global = x_to;
-          return;
-        }
+        _y_global += (dy > 0) ? step_w : -step_w;
+        _x_global += static_cast<int32_t>(_y_global - y_prev) * dx / dy;
       }
-
-      _y_global = _y_global + (x_next - _x_global) * (float)(y_to - _y_global) / (x_to - _x_global);
-      _x_global = x_next;
     }
   }
 
@@ -271,42 +265,37 @@ namespace pixeler
 
   bool IGameObject::hasIntersectWithCircle(uint16_t x_mid, uint16_t y_mid, uint16_t radius, bool rigid_only) const
   {
-    float half_body_w;
-    float half_body_h;
+    if (rigid_only && !_sprite.is_rigid)
+      return false;
 
-    float dist_x;
-    float dist_y;
+    // 1. Визначаємо межі прямокутника (AABB)
+    int16_t rect_x1, rect_y1, rect_x2, rect_y2;
 
     if (rigid_only)
     {
-      if (!_sprite.is_rigid)
-        return false;
-
-      half_body_w = (float)(_sprite.width - _sprite.rigid_offsets.left - _sprite.rigid_offsets.right) * 0.5f;
-      half_body_h = (float)(_sprite.height - _sprite.rigid_offsets.top - _sprite.rigid_offsets.bottom) * 0.5f;
-
-      dist_x = abs(x_mid - _x_global + _sprite.rigid_offsets.left - half_body_w);
-      dist_y = abs(y_mid - _y_global + _sprite.rigid_offsets.top - half_body_h);
+      rect_x1 = _x_global + _sprite.rigid_offsets.left;
+      rect_y1 = _y_global + _sprite.rigid_offsets.top;
+      rect_x2 = _x_global + _sprite.width - _sprite.rigid_offsets.right;
+      rect_y2 = _y_global + _sprite.height - _sprite.rigid_offsets.bottom;
     }
     else
     {
-      half_body_w = (float)_sprite.width * 0.5f;
-      half_body_h = (float)_sprite.height * 0.5f;
-
-      dist_x = abs(x_mid - _x_global - half_body_w);
-      dist_y = abs(y_mid - _y_global - half_body_h);
+      rect_x1 = _x_global;
+      rect_y1 = _y_global;
+      rect_x2 = _x_global + _sprite.width;
+      rect_y2 = _y_global + _sprite.height;
     }
 
-    if (dist_x > half_body_w + radius || dist_y > half_body_h + radius)
-      return false;
+    // 2. Знаходимо найближчу точку на прямокутнику до центру кола
+    int16_t closest_x = (x_mid < rect_x1) ? rect_x1 : (x_mid > rect_x2 ? rect_x2 : x_mid);
+    int16_t closest_y = (y_mid < rect_y1) ? rect_y1 : (y_mid > rect_y2 ? rect_y2 : y_mid);
 
-    if (dist_x <= half_body_w || dist_y <= half_body_h)
-      return true;
+    // 3. Рахуємо відстань від найближчої точки до центру кола
+    int32_t dx = static_cast<int32_t>(x_mid) - closest_x;
+    int32_t dy = static_cast<int32_t>(y_mid) - closest_y;
 
-    float dx = dist_x - half_body_w;
-    float dy = dist_y - half_body_h;
-
-    return dx * dx + dy * dy <= radius * radius;
+    // 4. Перевірка: чи відстань менша за радіус (використовуємо квадрат відстані)
+    return (dx * dx + dy * dy) <= (static_cast<int32_t>(radius) * radius);
   }
 
   bool IGameObject::hasIntersectWithRect(uint16_t x_start, uint16_t y_start, uint16_t rect_width, uint16_t rect_height, bool rigid_only) const

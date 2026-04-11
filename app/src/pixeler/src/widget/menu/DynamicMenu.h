@@ -16,10 +16,19 @@
 
 namespace pixeler
 {
-  class DynamicMenu final : public Menu
+  class DynamicMenu final : public IMenu
   {
   public:
+    /**
+     * @brief Тип функції-обробника, яку може бути викликано для завантаження наступної сторінки динамічного меню.
+     *
+     */
     typedef std::function<void(std::vector<MenuItem*>& items, uint8_t size, uint16_t cur_id, void* arg)> NextItemsLoadHandler_t;
+
+    /**
+     * @brief Тип функції-обробника, яку може бути викликано для завантаження попередньої сторінки динамічного меню.
+     *
+     */
     typedef std::function<void(std::vector<MenuItem*>& items, uint8_t size, uint16_t cur_id, void* arg)> PrevItemsLoadHandler_t;
 
     explicit DynamicMenu(uint16_t widget_ID);
@@ -43,6 +52,22 @@ namespace pixeler
     {
       return TypeID::TYPE_DYN_MENU;
     }
+
+    /**
+     * @brief Рендерить попередню сторінку меню.
+     *
+     * @return true - Якщо операцію виконано успішно.
+     * @return false - Інакше.
+     */
+    virtual bool pageUp() override;
+
+    /**
+     * @brief Рендерить наступну сторінку меню.
+     *
+     * @return true - Якщо операцію виконано успішно.
+     * @return false - Інакше.
+     */
+    virtual bool pageDown() override;
 
     /**
      * @brief Переміщує фокус на попередній віджет у контейнері.
@@ -76,6 +101,15 @@ namespace pixeler
      */
     void setOnPrevItemsLoadHandler(PrevItemsLoadHandler_t handler, void* arg);
 
+  protected:
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const override;
+
+  private:
   private:
     NextItemsLoadHandler_t _next_items_load_handler{nullptr};
     PrevItemsLoadHandler_t _prev_items_load_handler{nullptr};

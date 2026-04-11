@@ -62,6 +62,14 @@ namespace pixeler
      */
     void setSrc(const uint16_t* image_ptr);
 
+  protected:
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const override;
+
   private:
     const uint16_t* _img_ptr{nullptr};
     bool _has_transparency{false};

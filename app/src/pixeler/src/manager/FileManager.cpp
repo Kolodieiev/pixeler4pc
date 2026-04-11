@@ -8,13 +8,9 @@
 #include <algorithm>
 #include <cctype>
 #include <cstring>
+#include <vector>
 
-#include "pixeler/setup/sd_setup.hpp"
-#include "pixeler/src/util/AutoLock.h"
-
-#ifdef __linux__
-#include <unistd.h>
-#endif
+#include "pixeler/src/util/MutexGuard.h"
 
 #define IDLE_WD_GUARD_TIME 250U
 #define OPT_BLOCK_SIZE 16384
@@ -23,7 +19,6 @@ namespace pixeler
 {
 #ifdef _WIN32
 #include <windows.h>
-
   static String ansiToUtf8(const char* ansi_str)
   {
     if (!ansi_str)
@@ -96,7 +91,7 @@ namespace pixeler
     return unique_filename;
   }
 
-  FileManager::FileManager() : _sd_mutex{xSemaphoreCreateMutex()}
+  FileManager::FileManager()
   {
   }
 
@@ -133,7 +128,7 @@ namespace pixeler
 
   size_t FileManager::getFileSize(const char* path)
   {
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
     return getFileSizeUnlocked(path);
   }
 
@@ -159,7 +154,7 @@ namespace pixeler
     full_path = utf8ToAnsi(full_path.c_str());
 #endif
 
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
 
     if (stat(full_path.c_str(), &out_stat) != 0)
       return false;
@@ -171,7 +166,7 @@ namespace pixeler
   {
     String full_path = makeFullPath(path);
 
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
     bool result = getEntryTypeUnlocked(full_path.c_str()) == DT_REG;
 
     if (!result && !silently)
@@ -184,7 +179,7 @@ namespace pixeler
   {
     String full_path = makeFullPath(path);
 
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
     bool result = getEntryTypeUnlocked(full_path.c_str()) == DT_DIR;
 
     if (!result && !silently)
@@ -196,7 +191,7 @@ namespace pixeler
   bool FileManager::exists(const char* path, bool silently)
   {
     String full_path = makeFullPath(path);
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
     uint8_t type = getEntryTypeUnlocked(full_path.c_str());
 
     if (type == DT_REG || type == DT_DIR)
@@ -214,7 +209,7 @@ namespace pixeler
 #endif
     errno = 0;
 
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
 
 #ifdef _WIN32
     if (mkdir(full_path.c_str()) != 0)
@@ -239,9 +234,14 @@ namespace pixeler
     full_path = utf8ToAnsi(full_path.c_str());
 #endif
 
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
 
     int fd = open(full_path.c_str(), O_RDONLY);
+    if (fd < 0)
+    {
+      log_e("Помилка відкриття файлу: %s", full_path.c_str());
+      return 0;
+    }
 
     if (seek_pos > 0)
     {
@@ -282,7 +282,7 @@ namespace pixeler
 
     int fd = fileno(file);
 
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
 
     if (seek_pos > 0)
     {
@@ -307,6 +307,35 @@ namespace pixeler
     return bytes_read;
   }
 
+  String FileManager::readFileToStr(String path)
+  {
+    if (path.isEmpty())
+      return emptyString;
+
+    size_t file_size = getFileSize(path.c_str());
+
+    if (file_size == 0)
+      return emptyString;
+
+    char* buffer = static_cast<char*>(malloc(file_size + 1));
+
+    if (!buffer)
+    {
+      log_e("Bad memory alloc: %zu b", file_size);
+      return emptyString;
+    }
+
+    size_t bytes_read = readFile(path.c_str(), buffer, file_size);
+    buffer[bytes_read] = '\0';
+
+    String ret;
+    if (bytes_read > 0)
+      ret = buffer;
+
+    free(buffer);
+    return ret;
+  }
+
   bool FileManager::readFromFileExact(FILE* file, void* out_buffer, size_t len, size_t seek_pos)
   {
     return readFromFile(file, out_buffer, len, seek_pos) == static_cast<ssize_t>(len);
@@ -328,7 +357,7 @@ namespace pixeler
     full_path = utf8ToAnsi(full_path.c_str());
 #endif
 
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
 
     int fd = open(full_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
     if (fd < 0)
@@ -356,7 +385,7 @@ namespace pixeler
       return 0;
     }
 
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
     int fd = fileno(file);
     return writeOptimalUnlocked(fd, buffer, len);
   }
@@ -405,7 +434,7 @@ namespace pixeler
     full_path = utf8ToAnsi(full_path.c_str());
 #endif
 
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
     FILE* f = fopen(full_path.c_str(), mode);
 
     if (!f)
@@ -418,7 +447,7 @@ namespace pixeler
   {
     if (file)
     {
-      AutoLock lock(_sd_mutex);
+      MutexGuard lock(_sd_mutex);
       closeFileUnlocked(file);
     }
   }
@@ -438,7 +467,7 @@ namespace pixeler
 
     int fd = fileno(file);
 
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
 
     off_t result = lseek(fd, pos, mode);
     if (result == -1)
@@ -457,7 +486,7 @@ namespace pixeler
 
     int fd = fileno(file);
 
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
 
     off_t pos = lseek(fd, 0, SEEK_CUR);
     if (pos == -1)
@@ -468,7 +497,7 @@ namespace pixeler
 
   size_t FileManager::available(FILE* file, size_t file_size)
   {
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
     return availableUnlocked(file, file_size);
   }
 
@@ -502,12 +531,17 @@ namespace pixeler
 
     bool is_dir = dirExist(_rm_path.c_str(), true);
 
+    if (!is_dir)
     {
-      AutoLock lock(_sd_mutex);
-      if (!is_dir)
-        result = rmFileUnlocked(full_path.c_str());
-      else
-        result = rmDirUnlocked(full_path.c_str());
+      MutexGuard lock(_sd_mutex);
+      result = rmFileUnlocked(full_path.c_str());
+    }
+    else
+    {
+      bool was_mutex_taken = false;
+      result = rmDirRecursively(full_path.c_str(), was_mutex_taken);
+      if (was_mutex_taken)
+        xSemaphoreGive(_sd_mutex);
     }
 
     if (result)
@@ -516,52 +550,25 @@ namespace pixeler
     taskDone(result);
   }
 
-  bool FileManager::rmFileUnlocked(const char* path, bool make_full)
-  {
-    bool result;
-
-    if (make_full)
-    {
-      String full_path = makeFullPath(path);
-#ifdef _WIN32
-      full_path = utf8ToAnsi(full_path.c_str());
-#endif
-
-      result = !remove(full_path.c_str());
-
-      if (!result)
-        log_e("Помилка видалення файлу: %s", full_path.c_str());
-    }
-    else
-    {
-#ifdef _WIN32
-      String ansi_str = utf8ToAnsi(path);
-      result = !remove(ansi_str.c_str());
-#else
-      result = !remove(path);
-#endif
-
-      if (!result)
-        log_e("Помилка видалення файлу: %s", path);
-    }
-
-    return result;
-  }
-
-  bool FileManager::rmDirUnlocked(const char* path, bool make_full)
+  bool FileManager::rmDirRecursively(const char* path, bool& was_mutex_taken, bool make_full)
   {
     bool result = false;
 
     dirent* dir_entry{nullptr};
     DIR* dir;
 
+    if (!was_mutex_taken)
+    {
+      xSemaphoreTake(_sd_mutex, portMAX_DELAY);
+      was_mutex_taken = true;
+    }
+
     if (make_full)
     {
       String full_path = makeFullPath(path);
 #ifdef _WIN32
       full_path = utf8ToAnsi(full_path.c_str());
 #endif
-
       dir = opendir(full_path.c_str());
     }
     else
@@ -574,55 +581,66 @@ namespace pixeler
 #endif
     }
 
-    if (!dir)
-      goto exit;
-
-    errno = 0;
-
-    while (!_is_canceled)
-    {
-      dir_entry = readdir(dir);
-      if (!dir_entry)
-      {
-        if (!errno)
-          result = true;
-        break;
-      }
-
-      if (std::strcmp(dir_entry->d_name, ".") == 0 || std::strcmp(dir_entry->d_name, "..") == 0)
-        continue;
-
-      String full_path = path;
-      full_path += "/";
-      full_path += dir_entry->d_name;
-
-      uint8_t entr_type = getEntryTypeUnlocked(full_path.c_str(), dir_entry);
-
-      if (entr_type == DT_REG)
-      {
-        result = rmFileUnlocked(full_path.c_str());
-        if (!result)
-          goto exit;
-      }
-      else if (entr_type == DT_DIR)
-      {
-        result = rmDirUnlocked(full_path.c_str());
-
-        if (!result)
-          goto exit;
-      }
-      else
-      {
-        log_e("Невідомий тип або не вдалося прочитати: %s", full_path.c_str());
-        goto exit;
-      }
-
-      delay(1);
-    }
-
-  exit:
     if (dir)
+    {
+      errno = 0;
+      _ts = millis();
+      while (!_is_canceled)
+      {
+        if (!was_mutex_taken)
+        {
+          xSemaphoreTake(_sd_mutex, portMAX_DELAY);
+          was_mutex_taken = true;
+        }
+
+        dir_entry = readdir(dir);
+        if (!dir_entry)
+        {
+          if (!errno)
+            result = true;
+          break;
+        }
+
+        if (std::strcmp(dir_entry->d_name, ".") == 0 || std::strcmp(dir_entry->d_name, "..") == 0)
+          continue;
+
+        String full_path = path;
+        full_path += "/";
+        full_path += dir_entry->d_name;
+#ifdef _WIN32
+        full_path = utf8ToAnsi(full_path.c_str());
+#endif
+
+        uint8_t entr_type = getEntryTypeUnlocked(full_path.c_str(), dir_entry);
+
+        if (entr_type == DT_REG)
+        {
+          result = rmFileUnlocked(full_path.c_str());
+        }
+        else if (entr_type == DT_DIR)
+        {
+          result = rmDirRecursively(full_path.c_str(), was_mutex_taken);
+        }
+        else
+        {
+          log_e("Невідомий тип або не вдалося прочитати: %s", full_path.c_str());
+          result = false;
+        }
+
+        if (!result)
+          break;
+
+        if (millis() - _ts > IDLE_WD_GUARD_TIME)
+        {
+          xSemaphoreGive(_sd_mutex);
+          was_mutex_taken = false;
+          delay(1);
+          _ts = millis();
+        }
+      }
+
       closedir(dir);
+    }
 
     if (result)
       result = !remove(path);
@@ -632,17 +650,43 @@ namespace pixeler
     return result;
   }
 
+  bool FileManager::rmDir(const char* path)
+  {
+    _is_canceled = false;
+    bool was_mutex_taken = false;
+    bool result = rmDirRecursively(path, was_mutex_taken, true);
+    if (was_mutex_taken)
+      xSemaphoreGive(_sd_mutex);
+    return result;
+  }
+
   bool FileManager::rmFile(const char* path)
   {
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
     return rmFileUnlocked(path, true);
   }
 
-  bool FileManager::rmDir(const char* path)
+  bool FileManager::rmFileUnlocked(const char* path, bool make_full)
   {
-    AutoLock lock(_sd_mutex);
-    _is_canceled = false;
-    return rmDirUnlocked(path, true);
+    bool result;
+
+    if (make_full)
+    {
+      String full_path = makeFullPath(path);
+      result = !remove(full_path.c_str());
+
+      if (!result)
+        log_e("Помилка видалення файлу: %s", full_path.c_str());
+    }
+    else
+    {
+      result = !remove(path);
+
+      if (!result)
+        log_e("Помилка видалення файлу: %s", path);
+    }
+
+    return result;
   }
 
   void FileManager::rmTask(void* params)
@@ -701,12 +745,15 @@ namespace pixeler
     new_n = utf8ToAnsi(new_n.c_str());
 #endif
 
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
     return !::rename(old_n.c_str(), new_n.c_str());
   }
 
-  bool FileManager::copyFileUnlocked(const String& from, const String& to)
+  bool FileManager::createFileCopy(const String& from, const String& to)
   {
+    xSemaphoreTake(_sd_mutex, portMAX_DELAY);
+    bool was_mutex_taken = true;
+
 #ifdef _WIN32
     String to_ansi_str = utf8ToAnsi(to.c_str());
     int n_fd = open(to_ansi_str.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0666);
@@ -718,6 +765,7 @@ namespace pixeler
     if (n_fd < 0)
     {
       log_e("Помилка створення файлу: %s", to.c_str());
+      xSemaphoreGive(_sd_mutex);
       return false;
     }
 
@@ -732,6 +780,7 @@ namespace pixeler
     {
       log_e("Помилка читання файлу: %s", from.c_str());
       close(n_fd);
+      xSemaphoreGive(_sd_mutex);
       return false;
     }
 
@@ -759,6 +808,7 @@ namespace pixeler
     }
 
     size_t file_size = getFileSizeUnlocked(_copy_from_path.c_str());
+    size_t writed_bytes_counter{0};
 
     if (file_size > 0)
     {
@@ -766,15 +816,19 @@ namespace pixeler
       log_i("З: %s", from.c_str());
       log_i("До: %s", to.c_str());
 
-      size_t writed_bytes_counter{0};
       ssize_t bytes_read;
 
       off_t current_pos = lseek(o_fd, 0, SEEK_CUR);
-      size_t byte_aval = (current_pos != -1 && file_size > static_cast<size_t>(current_pos)) ? file_size - current_pos : 0;
+      size_t byte_aval = file_size;
 
-      unsigned long ts = millis();
+      _ts = millis();
       while (!_is_canceled && byte_aval > 0)
       {
+        if (!was_mutex_taken)
+        {
+          xSemaphoreTake(_sd_mutex, portMAX_DELAY);
+          was_mutex_taken = true;
+        }
         size_t to_read = (byte_aval < buf_size) ? byte_aval : buf_size;
         bytes_read = read(o_fd, buffer, to_read);
 
@@ -787,10 +841,12 @@ namespace pixeler
         current_pos = lseek(o_fd, 0, SEEK_CUR);
         byte_aval = (current_pos != -1 && file_size > static_cast<size_t>(current_pos)) ? file_size - current_pos : 0;
 
-        if (millis() - ts > IDLE_WD_GUARD_TIME)
+        if (millis() - _ts > IDLE_WD_GUARD_TIME)
         {
+          xSemaphoreGive(_sd_mutex);
+          was_mutex_taken = false;
           delay(1);
-          ts = millis();
+          _ts = millis();
         }
       }
     }
@@ -806,7 +862,10 @@ namespace pixeler
     close(n_fd);
     close(o_fd);
 
-    return true;
+    if (was_mutex_taken)
+      xSemaphoreGive(_sd_mutex);
+
+    return writed_bytes_counter == file_size;
   }
 
   void FileManager::copyFile()
@@ -816,17 +875,17 @@ namespace pixeler
     String from = makeFullPath(_copy_from_path.c_str());
     String to = makeFullPath(_copy_to_path.c_str());
 
-    bool result;
-
-    {
-      AutoLock lock(_sd_mutex);
-      result = copyFileUnlocked(from, to);
-    }
+    bool result = createFileCopy(from, to);
 
     if (_is_canceled)
     {
       log_i("Копіювання скасовано: %s", from.c_str());
-      rmFileUnlocked(to.c_str());
+
+      {
+        MutexGuard lock(_sd_mutex);
+        rmFileUnlocked(to.c_str());
+      }
+
       taskDone(false);
     }
     else
@@ -846,7 +905,7 @@ namespace pixeler
     instance->copyFile();
   }
 
-  bool FileManager::startCopyFile(const char* from, const char* to)
+  bool FileManager::startCopyingFile(const char* from, const char* to)
   {
     if (!from || !to)
     {
@@ -884,7 +943,7 @@ namespace pixeler
     }
   }
 
-  void FileManager::index(std::vector<FileInfo>& out_vec, const char* dir_path, IndexMode mode, const char* file_ext)
+  void FileManager::index(std::vector<FileInfo>& out_vec, const char* dir_path, IndexMode mode, const std::vector<String>& file_ext)
   {
     out_vec.clear();
     out_vec.reserve(40);
@@ -893,8 +952,11 @@ namespace pixeler
       return;
 
     String full_path = makeFullPath(dir_path);
+#ifdef _WIN32
+    full_path = utf8ToAnsi(full_path.c_str());
+#endif
 
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
     DIR* dir = opendir(full_path.c_str());
     if (!dir)
     {
@@ -947,8 +1009,14 @@ namespace pixeler
             out_vec.emplace_back(filename, false);
           break;
         case INDX_MODE_FILES_EXT:
-          if (!is_dir && filename.endsWith(file_ext))
-            out_vec.emplace_back(filename, false);
+          for (const String& i : file_ext)
+          {
+            if (!is_dir && filename.endsWith(i))
+            {
+              out_vec.emplace_back(filename, false);
+              break;
+            }
+          }
           break;
         case INDX_MODE_ALL:
           if (is_dir)
@@ -972,24 +1040,24 @@ namespace pixeler
       closedir(dir);
   }
 
-  void FileManager::indexFilesExt(std::vector<FileInfo>& out_vec, const char* dir_path, const char* file_ext)
+  void FileManager::indexFilesExt(std::vector<FileInfo>& out_vec, const char* dir_path, const std::vector<String>& file_ext)
   {
     return index(out_vec, dir_path, INDX_MODE_FILES_EXT, file_ext);
   }
 
   void FileManager::indexFiles(std::vector<FileInfo>& out_vec, const char* dir_path)
   {
-    return index(out_vec, dir_path, INDX_MODE_FILES);
+    return index(out_vec, dir_path, INDX_MODE_FILES, {});
   }
 
   void FileManager::indexDirs(std::vector<FileInfo>& out_vec, const char* dir_path)
   {
-    return index(out_vec, dir_path, INDX_MODE_DIR);
+    return index(out_vec, dir_path, INDX_MODE_DIR, {});
   }
 
   void FileManager::indexAll(std::vector<FileInfo>& out_vec, const char* dir_path)
   {
-    return index(out_vec, dir_path, INDX_MODE_ALL);
+    return index(out_vec, dir_path, INDX_MODE_ALL, {});
   }
 
   void FileManager::taskDone(bool result)
@@ -1033,7 +1101,7 @@ namespace pixeler
       return false;
     }
 
-    AutoLock lock(_sd_mutex);
+    MutexGuard lock(_sd_mutex);
     return isMountedUnlocked();
   }
 
@@ -1052,14 +1120,39 @@ namespace pixeler
     return S_ISDIR(st.st_mode);
   }
 
-  bool FileManager::mount()
+  void FileManager::enableSdPower()
   {
+    // stub
+  }
+
+  bool FileManager::mount(SemaphoreHandle_t bus_mutex)
+  {
+    if (_sd_mutex)
+      return true;
+
+    if (bus_mutex)
+    {
+      _is_ext_lock = true;
+      _sd_mutex = bus_mutex;
+    }
+    else
+    {
+      _is_ext_lock = false;
+      _sd_mutex = xSemaphoreCreateMutex();
+    }
+
+    if (!_sd_mutex)
+    {
+      log_e("Недостатньо ресурсів для роботи SD");
+      esp_restart();
+    }
     return true;
   }
 
   void FileManager::unmount()
   {
-    // stub
+    if (!_is_ext_lock)
+      vSemaphoreDelete(_sd_mutex);
   }
 
   FileManager _fs;

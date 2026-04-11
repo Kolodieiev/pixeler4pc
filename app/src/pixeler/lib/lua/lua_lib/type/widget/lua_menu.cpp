@@ -158,6 +158,13 @@ int lua_menu_set_curr_focus_pos(lua_State* L)
   return 0;
 }
 
+int lua_menu_unload(lua_State* L)
+{
+  lua_pushnil(L);
+  lua_setfield(L, LUA_REGISTRYINDEX, STR_TYPE_NAME_MENU);
+  return 0;
+}
+
 const struct luaL_Reg TYPE_METH_MENU[] = {
     {"focusUp", lua_menu_focus_up},
     {"focusDown", lua_menu_focus_down},
@@ -176,6 +183,7 @@ const struct luaL_Reg TYPE_METH_MENU[] = {
     {"setLoopState", lua_menu_set_loop_state},
     {"setCurrFocusPos", lua_menu_set_curr_focus_pos},
     {STR_LUA_WIDGET_CLONE, lua_menu_clone},
+    {STR_LUA_UNLOAD, lua_menu_unload},
     {nullptr, nullptr},
 };
 

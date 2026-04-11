@@ -121,6 +121,14 @@ namespace pixeler
      */
     void removeFocus();
 
+  protected:
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const override;
+
   private:
     IWidget* getFocusBtn() const;
 

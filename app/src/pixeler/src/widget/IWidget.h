@@ -103,11 +103,11 @@ namespace pixeler
      * навіть, якщо його не було змінено.
      *
      */
-    void forcedDraw();
+    void drawForced();
 
     /**
      * @brief Встановлює позицію віджета відносно лівого верхнього кута свого батьківського контейнера.
-     * Або відносно лівого верхнього кута дисплею, якщо батьківський контейнер відсутній.
+     * Або відносно лівого верхнього кута дисплея, якщо батьківський контейнер відсутній.
      *
      * @param x Координата.
      * @param y Координата.
@@ -175,14 +175,14 @@ namespace pixeler
     void setBorderColor(uint16_t color);
 
     /**
-     * @brief Повертає X координату віджета відносно верхнього лівого кута дисплею.
+     * @brief Повертає X координату віджета відносно верхнього лівого кута дисплея.
      *
      * @return uint16_t
      */
     uint16_t getXPos() const;
 
     /**
-     * @brief  Повертає Y координату віджета відносно верхнього лівого кута дисплею.
+     * @brief  Повертає Y координату віджета відносно верхнього лівого кута дисплея.
      *
      * @return uint16_t
      */
@@ -322,24 +322,6 @@ namespace pixeler
     Visibility getVisibility() const;
 
     /**
-     * @brief Перевіряє чи пересікається віджет з указаними координатами.
-     *
-     * @param x Координата.
-     * @param y Координата.
-     * @return true - Якщо віджет пересікається з цими координатами.
-     * @return false - Інакше.
-     */
-    bool hasIntersectWithCoords(uint16_t x, uint16_t y) const;
-
-    /**
-     * @brief Повертає стан прапору, який вказує на те, чи являється цей віджет контейнером для інших віджетів.
-     *
-     * @return true - Якщо віджет є контейнером.
-     * @return false - Інакше.
-     */
-    bool isContainer() const;
-
-    /**
      * @brief Встановлює прозорість фону віджета.
      *
      * @param state Якщо true - фон віджета не замальовується фоновим кольором.
@@ -355,6 +337,42 @@ namespace pixeler
      */
     bool isTransparent() const;
 
+    /**
+     * @brief Повертає вказівник на самий верхній віджет, який підтримує дотики на сенсорному екрані
+     * та пересікається з вказаною точкою.
+     *
+     * @param x - Координата точки.
+     * @param y - Координата точки.
+     * @return IWidget* - Вказівник на вкладений віджет або на самого себе, якщо виявлено пересічення з точкою.
+     * @return nullptr - Інакше.
+     */
+    virtual IWidget* findTouchableAt(uint16_t x, uint16_t y);
+
+    /**
+     * @brief Перевіряє чи пересікається віджет з точкою на дисплеї.
+     *
+     * @param x Координата.
+     * @param y Координата.
+     * @return true - Якщо віджет пересікається з вказаною точкою.
+     * @return false - Інакше.
+     */
+    bool hitTest(uint16_t x, uint16_t y) const;
+
+    /**
+     * @brief Встановлює прапор підтримки дотика на сенсорному екрані для віджета.
+     *
+     * @param state
+     */
+    void setTouchable(bool state);
+
+    /**
+     * @brief Повертає прапор підтримки дотика на сенсорному екрані для віджета.
+     *
+     * @return true - Якщо віджет підтримує дотик.
+     * @return false - Інакше.
+     */
+    bool isTouchable() const;
+
   protected:
     /**
      * @brief  Залити місце розташування віджета фоновим кольором та відобразити межу віджета, якщо потрібно.
@@ -369,6 +387,13 @@ namespace pixeler
      * @brief  Приховати елемент. Працює, якщо віджет має батьківський контейнер.
      */
     void hide();
+
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const;
 
   protected:
     const IWidget* _parent{nullptr};
@@ -391,6 +416,7 @@ namespace pixeler
     Visibility _visibility{VISIBLE};
     uint8_t _corner_radius{0};
 
+    bool _is_touchable{false};
     bool _is_changed{true};
     bool _has_border{false};
     bool _is_transparent{false};
@@ -402,7 +428,6 @@ namespace pixeler
 
   private:
     const TypeID _type_ID;
-    const bool _is_container;
   };
 
   /**

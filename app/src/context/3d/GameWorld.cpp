@@ -17,7 +17,7 @@ using namespace pixeler;
 
 #define MAX_RAY_NUM 64
 
-constexpr int HORIZON_H = TFT_HEIGHT / 2;
+constexpr int HORIZON_H = UI_HEIGHT / 2;
 
 GameWorld::GameWorld()
 {
@@ -121,17 +121,17 @@ void GameWorld::renderWalls()
   // 1. ПІДГОТОВКА КАДРУ
 
   // Малюємо небо (верхня частина) та підлогу (нижня частина) суцільними кольорами
-  _display.fillRect(0, 0, TFT_WIDTH, HORIZON_H, COLOR_BLUE);
-  _display.fillRect(0, HORIZON_H, TFT_WIDTH, TFT_HEIGHT - HORIZON_H, COLOR_BROWN);
+  _display.fillRect(0, 0, UI_WIDTH, HORIZON_H, COLOR_BLUE);
+  _display.fillRect(0, HORIZON_H, UI_WIDTH, UI_HEIGHT - HORIZON_H, COLOR_BROWN);
 
   // Очищуємо Z-буфер (потрібен, щоб спрайти/об'єкти не малювалися крізь стіни)
-  std::fill(zBuffer, zBuffer + TFT_WIDTH, 1e30f);
+  std::fill(zBuffer, zBuffer + UI_WIDTH, 1e30f);
 
   // 2. ГОЛОВНИЙ ЦИКЛ: Йдемо по кожному вертикальному ряду пікселів екрана (x)
-  for (int x = 0; x < TFT_WIDTH; x++)
+  for (int x = 0; x < UI_WIDTH; x++)
   {
     // Обчислюємо напрямок променя залежно від кута огляду (FOV)
-    float cameraX = 2.0f * x / (float)TFT_WIDTH - 1.0f;
+    float cameraX = 2.0f * x / (float)UI_WIDTH - 1.0f;
     float rayDirX = _player->getDirX() + _player->getPlaneX() * cameraX;
     float rayDirY = _player->getDirY() + _player->getPlaneY() * cameraX;
 
@@ -223,13 +223,13 @@ void GameWorld::renderWalls()
     // Обрізаємо дистанцію для розрахунку висоти стіни
     float visualDist = (perpWallDist < 0.1f) ? 0.1f : perpWallDist;
 
-    int lineHeight = (int)(TFT_HEIGHT / visualDist);
+    int lineHeight = (int)(UI_HEIGHT / visualDist);
     int drawStart = HORIZON_H - (int)(lineHeight * (hitCell.ceilingHeight - _player->getPosZ()));
     int drawEnd = HORIZON_H - (int)(lineHeight * (hitCell.floorHeight - _player->getPosZ()));
 
     // Обмежуємо малювання межами екрана
     int actualDrawStart = std::max(0, drawStart);
-    int actualDrawEnd = std::min(TFT_HEIGHT - 1, drawEnd);
+    int actualDrawEnd = std::min(UI_HEIGHT - 1, drawEnd);
     int drawHeight = actualDrawEnd - actualDrawStart;
 
     if (drawHeight <= 0)
@@ -305,25 +305,25 @@ void GameWorld::renderSprites()
       continue;
 
     // Обчислюємо позицію центру спрайта на екрані та його масштаб (залежно від відстані transformY)
-    int spriteScreenX = (int)((TFT_WIDTH / 2) * (1 + transformX / transformY));
-    int spriteHeight = abs((int)(TFT_HEIGHT / transformY * spr.height));
-    int spriteWidth = abs((int)(TFT_HEIGHT / transformY * spr.width));
+    int spriteScreenX = (int)((UI_WIDTH / 2) * (1 + transformX / transformY));
+    int spriteHeight = abs((int)(UI_HEIGHT / transformY * spr.height));
+    int spriteWidth = abs((int)(UI_HEIGHT / transformY * spr.width));
 
     // Розраховуємо крайні точки малювання (з урахуванням висоти спрайта spr.z)
     int drawStartY = HORIZON_H - spriteHeight / 2 -
-        (int)((spr.z - _player->getPosZ()) * TFT_HEIGHT / transformY);
+        (int)((spr.z - _player->getPosZ()) * UI_HEIGHT / transformY);
     int drawStartX = spriteScreenX - spriteWidth / 2;
 
     // Перевірка, чи спрайт взагале потрапляє в межі екрана
-    if (drawStartX >= TFT_WIDTH || drawStartX + spriteWidth < 0 ||
-        drawStartY >= TFT_HEIGHT || drawStartY + spriteHeight < 0)
+    if (drawStartX >= UI_WIDTH || drawStartX + spriteWidth < 0 ||
+        drawStartY >= UI_HEIGHT || drawStartY + spriteHeight < 0)
       continue;
 
     // 5. ПЕРЕВІРКА ВИДИМОСТІ
     // Швидка перевірка: чи є хоча б одна вертикальна смуга спрайта перед стіною (через zBuffer)
     bool visible = false;
     for (int sx = std::max(0, drawStartX);
-         sx < std::min(TFT_WIDTH, drawStartX + spriteWidth); sx++)
+         sx < std::min(UI_WIDTH, drawStartX + spriteWidth); sx++)
     {
       if (transformY < zBuffer[sx])
       {
@@ -347,7 +347,7 @@ void GameWorld::renderSprites()
     {
       int screenY = drawStartY + sy;
       // Відсікання по вертикалі (екран)
-      if (screenY < 0 || screenY >= TFT_HEIGHT)
+      if (screenY < 0 || screenY >= UI_HEIGHT)
         continue;
 
       // Обчислюємо вертикальну координату текстури
@@ -359,7 +359,7 @@ void GameWorld::renderSprites()
       {
         int screenX = drawStartX + sx;
         // Відсікання по горизонталі (екран)
-        if (screenX < 0 || screenX >= TFT_WIDTH)
+        if (screenX < 0 || screenX >= UI_WIDTH)
           continue;
 
         // Перевірка Z-буфера: якщо стіна ближче за спрайт — не малюємо піксель

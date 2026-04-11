@@ -8,7 +8,7 @@
 
 HomeContext::HomeContext()
 {
-  
+  _fs.mount();
 
   EmptyLayout* layout = WidgetCreator::getEmptyLayout();
   setLayout(layout);
@@ -33,8 +33,8 @@ HomeContext::HomeContext()
   Label* lbl = new Label(ID_MESSAGE_LBL);
   layout->addWidget(lbl);
   lbl->setText("Натисни Enter");
-  lbl->setWidth(TFT_WIDTH);
-  lbl->setHeight(TFT_HEIGHT);
+  lbl->setWidth(UI_WIDTH);
+  lbl->setHeight(UI_HEIGHT);
   lbl->setGravity(IWidget::GRAVITY_CENTER);
   lbl->setAlign(IWidget::ALIGN_CENTER);
   lbl->setTextSize(2);

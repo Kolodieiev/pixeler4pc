@@ -31,12 +31,11 @@ namespace pixeler
     _title_lbl->setHeight(_title_lbl->getHeight() + title_padding);
     _left_lbl->setHeight(_left_lbl->getHeight() + title_padding);
     _right_lbl->setHeight(_left_lbl->getHeight());
-    _msg_lbl->setHeight(TFT_HEIGHT - _h_margin * 2 - _title_lbl->getHeight() - _left_lbl->getHeight());
+    _msg_lbl->setHeight(_height - _h_margin * 2 - _title_lbl->getHeight() - _left_lbl->getHeight());
     //
-    _width = TFT_WIDTH;
     _title_lbl->setWidth(_width - 4);
     _msg_lbl->setWidth(_title_lbl->getWidth());
-    _left_lbl->setWidth((float)(_title_lbl->getWidth()) * 0.5);
+    _left_lbl->setWidth(_title_lbl->getWidth() / 2);
     _right_lbl->setWidth(_left_lbl->getWidth());
     //
     _x_pos = 0;
@@ -61,10 +60,10 @@ namespace pixeler
   {
     clear();
 
-    _title_lbl->forcedDraw();
-    _msg_lbl->forcedDraw();
-    _left_lbl->forcedDraw();
-    _right_lbl->forcedDraw();
+    _title_lbl->drawForced();
+    _msg_lbl->drawForced();
+    _left_lbl->drawForced();
+    _right_lbl->drawForced();
   }
 
   Notification* Notification::clone(uint16_t id) const

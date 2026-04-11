@@ -160,7 +160,7 @@ int lua_sd_copy_file(lua_State* L)
   const char* to_path = luaL_checkstring(L, 2);
 
   bool result = false;
-  if (pixeler::_fs.startCopyFile(from_path, to_path))
+  if (pixeler::_fs.startCopyingFile(from_path, to_path))
   {
     while (pixeler::_fs.isWorking())
       delay(2);

@@ -48,7 +48,7 @@ namespace pixeler
     bool is_flipped = bmp_header.height > 0;
 
     uint16_t width = static_cast<uint16_t>(bmp_header.width);
-    uint16_t height = static_cast<uint16_t>(std::abs(bmp_header.height));
+    uint16_t height = static_cast<uint16_t>(__builtin_abs(bmp_header.height));
     //
     size_t data_size = static_cast<size_t>(width * height * 2);
     //
@@ -150,7 +150,7 @@ namespace pixeler
     {
       uint16_t* data_p16 = reinterpret_cast<uint16_t*>(data + header.data_offset);
       for (int i = 0; i < buf_size; ++i)
-        data_p16[i] = __bswap_16(buff[i]);
+        data_p16[i] = __bswap16(buff[i]);
     }
 
     size_t written_bytes = _fs.writeFile(path_to_bmp, data, header.file_size);

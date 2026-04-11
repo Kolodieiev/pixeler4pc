@@ -12,7 +12,7 @@
 
 #define UPD_TRACK_INF_INTERVAL 1000UL
 #define PADDING_BOTT 40
-#define MENU_ITEMS_NUM 7
+#define MENU_ITEMS_NUM 6
 
 const char STR_SIZE[] = "File size:";
 const char STR_LUA_EXT[] = ".lua";
@@ -35,7 +35,7 @@ bool FilesContext::loop()
       else
       {
         _mode = MODE_NAVIGATION;
-        getLayout()->forcedDraw();
+        getLayout()->drawForced();
       }
 
       delete _lua_context;
@@ -62,7 +62,6 @@ FilesContext::FilesContext() : _sync_task_mutex{xSemaphoreCreateMutex()}
   _lua_img = _dir_img->clone(1);
   _lua_img->setSrc(LUA_IMG);
 
-  
   EmptyLayout* layout = WidgetCreator::getEmptyLayout();
   setLayout(layout);
 
@@ -88,13 +87,12 @@ FilesContext::~FilesContext()
 
 void FilesContext::showCopyingTmpl()
 {
-  
   IWidgetContainer* layout = WidgetCreator::getEmptyLayout();
 
   _msg_lbl = WidgetCreator::getStatusMsgLable(ID_MSG_LBL, STR_COPYING, 2);
   layout->addWidget(_msg_lbl);
   _msg_lbl->setHeight(32);
-  _msg_lbl->setPos(0, TFT_HEIGHT / 2 - _msg_lbl->getHeight() - 2);
+  _msg_lbl->setPos(0, UI_HEIGHT / 2 - _msg_lbl->getHeight() - 2);
 
   _task_progress = new ProgressBar(ID_PROGRESS);
   layout->addWidget(_task_progress);
@@ -102,10 +100,10 @@ void FilesContext::showCopyingTmpl()
   _task_progress->setProgressColor(COLOR_ORANGE);
   _task_progress->setBorderColor(COLOR_WHITE);
   _task_progress->setMax(100);
-  _task_progress->setWidth(TFT_WIDTH - 5 * 8);
+  _task_progress->setWidth(UI_WIDTH - 5 * 8);
   _task_progress->setHeight(20);
   _task_progress->setProgress(0);
-  _task_progress->setPos((TFT_WIDTH - _task_progress->getWidth()) / 2, TFT_HEIGHT / 2 + 2);
+  _task_progress->setPos((UI_WIDTH - _task_progress->getWidth()) / 2, UI_HEIGHT / 2 + 2);
 
   _mode = MODE_COPYING;
 
@@ -116,7 +114,6 @@ void FilesContext::showRemovingTmpl()
 {
   _mode = MODE_REMOVING;
 
-  
   IWidgetContainer* layout = WidgetCreator::getEmptyLayout();
   setLayout(layout);
 
@@ -126,7 +123,6 @@ void FilesContext::showRemovingTmpl()
 
 void FilesContext::showCancelingTmpl()
 {
-  
   IWidgetContainer* layout = WidgetCreator::getEmptyLayout();
 
   _msg_lbl = WidgetCreator::getStatusMsgLable(ID_MSG_LBL, STR_CANCELING, 2);
@@ -138,25 +134,15 @@ void FilesContext::showCancelingTmpl()
 
 void FilesContext::showFilesTmpl()
 {
-  
   IWidgetContainer* layout = WidgetCreator::getEmptyLayout();
 
   layout->setBackColor(COLOR_BLACK);
 
-  _files_list = WidgetCreator::getDynamicMenu(ID_DYNAMIC_MENU);
-  layout->addWidget(_files_list);
-  _files_list->setHeight(TFT_HEIGHT - PADDING_BOTT);
-  _files_list->setItemHeight((_files_list->getHeight() - 2) / MENU_ITEMS_NUM);
-  _files_list->setWidth(TFT_WIDTH - SCROLLBAR_WIDTH);
-
-  _files_list->setOnNextItemsLoadHandler(onNextItemsLoad, this);
-  _files_list->setOnPrevItemsLoadHandler(onPrevItemsLoad, this);
-
   _scrollbar = new ScrollBar(ID_SCROLLBAR);
   layout->addWidget(_scrollbar);
   _scrollbar->setWidth(SCROLLBAR_WIDTH);
-  _scrollbar->setHeight(TFT_HEIGHT - PADDING_BOTT);
-  _scrollbar->setPos(TFT_WIDTH - SCROLLBAR_WIDTH, 0);
+  _scrollbar->setHeight(UI_HEIGHT - PADDING_BOTT);
+  _scrollbar->setPos(UI_WIDTH - SCROLLBAR_WIDTH, 0);
   _scrollbar->setBackColor(COLOR_MAIN_BACK);
 
   Label* size_title_lbl = new Label(ID_SIZE_TITLE_LBL);
@@ -164,7 +150,7 @@ void FilesContext::showFilesTmpl()
   size_title_lbl->setText(STR_SIZE);
   size_title_lbl->setTextColor(COLOR_WHITE);
   size_title_lbl->initWidthToFit();
-  size_title_lbl->setPos(0, TFT_HEIGHT - size_title_lbl->getHeight() * 2 - 7);
+  size_title_lbl->setPos(0, UI_HEIGHT - size_title_lbl->getHeight() * 2 - 7);
 
   _file_size_lbl = new Label(ID_SIZE_LBL);
   layout->addWidget(_file_size_lbl);
@@ -178,7 +164,16 @@ void FilesContext::showFilesTmpl()
   _file_pos_lbl->setText("[0/0]");
   _file_pos_lbl->setTextColor(COLOR_WHITE);
   _file_pos_lbl->initWidthToFit();
-  _file_pos_lbl->setPos(0, TFT_HEIGHT - _file_pos_lbl->getHeight() - 2);
+  _file_pos_lbl->setPos(0, UI_HEIGHT - _file_pos_lbl->getHeight() - 2);
+
+  _files_list = WidgetCreator::getDynamicMenu(ID_DYNAMIC_MENU);
+  layout->addWidget(_files_list);
+  _files_list->setHeight(UI_HEIGHT - (UI_HEIGHT - _file_size_lbl->getYPos()));
+  _files_list->setItemHeight((_files_list->getHeight() - 2) / MENU_ITEMS_NUM);
+  _files_list->setWidth(UI_WIDTH - SCROLLBAR_WIDTH);
+
+  _files_list->setOnNextItemsLoadHandler(onNextItemsLoad, this);
+  _files_list->setOnPrevItemsLoadHandler(onPrevItemsLoad, this);
 
   _mode = MODE_NAVIGATION;
 
@@ -202,12 +197,10 @@ void FilesContext::showContextMenu()
   _mode = MODE_CONTEXT_MENU;
   _files_list->disable();
 
-  
-
   _context_menu = new FixedMenu(ID_CNTXT_MENU);
   getLayout()->addWidget(_context_menu);
   _context_menu->setItemHeight(18);
-  _context_menu->setWidth((float)TFT_WIDTH / 2.2);
+  _context_menu->setWidth((float)UI_WIDTH / 2.2);
   _context_menu->setBackColor(COLOR_BLACK);
   _context_menu->setBorder(true);
   _context_menu->setBorderColor(COLOR_ORANGE);
@@ -316,8 +309,8 @@ void FilesContext::showContextMenu()
 
   //
   _context_menu->setHeight(_context_menu->getSize() * _context_menu->getItemHeight() + 4);
-  _context_menu->setPos(TFT_WIDTH - _context_menu->getWidth() - 1,
-                        TFT_HEIGHT - PADDING_BOTT - _context_menu->getHeight() - 2);
+  _context_menu->setPos(UI_WIDTH - _context_menu->getWidth() - 1,
+                        UI_HEIGHT - PADDING_BOTT - _context_menu->getHeight() - 2);
 }
 
 void FilesContext::hideContextMenu()
@@ -331,12 +324,11 @@ void FilesContext::hideContextMenu()
 
 void FilesContext::showDialog(Mode mode)
 {
-  
   IWidgetContainer* layout = WidgetCreator::getEmptyLayout();
 
   _dialog_txt = new TextBox(ID_DIALOG_TXT);
   _dialog_txt->setHPadding(5);
-  _dialog_txt->setWidth(TFT_WIDTH - 10);
+  _dialog_txt->setWidth(UI_WIDTH - 10);
   _dialog_txt->setHeight(40);
   _dialog_txt->setBackColor(COLOR_WHITE);
   _dialog_txt->setTextColor(COLOR_BLACK);
@@ -458,7 +450,7 @@ void FilesContext::pasteFile()
   }
   else if (_has_copying_file)
   {
-    if (!_fs.fileExist(old_file_path.c_str()) || !_fs.startCopyFile(old_file_path.c_str(), new_file_path.c_str()))
+    if (!_fs.fileExist(old_file_path.c_str()) || !_fs.startCopyingFile(old_file_path.c_str(), new_file_path.c_str()))
     {
       showResultToast(false);
     }
@@ -635,7 +627,7 @@ void FilesContext::ok()
   {
     hideNotification();
     _mode = MODE_NAVIGATION;
-    getLayout()->forcedDraw();
+    getLayout()->drawForced();
   }
 }
 
@@ -765,7 +757,7 @@ void FilesContext::fillFilesTmpl()
 
   std::vector<MenuItem*> items;
 
-  makeMenuFilesItems(items, 0, _files_list->getItemsNumOnScreen());
+  makeMenuFilesItems(items, 0, _files_list->getItemsPerPage());
 
   for (size_t i = 0; i < items.size(); ++i)
     _files_list->addItem(items[i]);
@@ -805,7 +797,6 @@ void FilesContext::makeMenuFilesItems(std::vector<MenuItem*>& items, uint16_t fi
   if (read_to > _files.size())
     read_to = _files.size();
 
-  
   items.clear();
   items.reserve(read_to - file_pos);
 

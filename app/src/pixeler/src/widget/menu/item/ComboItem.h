@@ -75,8 +75,16 @@ namespace pixeler
      */
     void scrollDown();
 
+  protected:
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const override;
+
   private:
     std::vector<String> _range;
-    uint16_t _curr_pos{0};
+    uint16_t _selected_pos{0};
   };
 }  // namespace pixeler

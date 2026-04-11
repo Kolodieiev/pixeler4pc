@@ -111,14 +111,14 @@ namespace pixeler
      *
      * @param gravity Може мати значення: GRAVITY_TOP / GRAVITY_CENTER / GRAVITY_BOTTOM.
      */
-    void setGravity(const Gravity gravity);
+    void setGravity(Gravity gravity);
 
     /**
      * @brief Встановлює розташування тексту по горизонталі відносно віджета.
      *
      * @param alignment Може мати значення: ALIGN_START / ALIGN_CENTER / ALIGN_END.
      */
-    void setAlign(const Alignment alignment);
+    void setAlign(Alignment alignment);
 
     /**
      * @brief Встановлює горизонтальні відступи для тексту (в пікселях).
@@ -231,6 +231,13 @@ namespace pixeler
     void setFullAutoscroll(bool state);
 
   protected:
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const override;
+
     uint16_t calcXStrOffset(uint16_t str_pix_num) const;
     uint16_t calcYStrOffset() const;
     uint32_t calcRealStrLen(const String& str) const;
@@ -254,6 +261,7 @@ namespace pixeler
     uint16_t _temp_width{0};
     uint16_t _first_draw_char_pos{0};
     uint16_t _char_hgt{0};
+    int16_t _y_char_offset{0};
 
     uint8_t _text_size{1};
     uint8_t _h_padding{0};

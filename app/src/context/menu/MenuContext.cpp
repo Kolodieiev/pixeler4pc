@@ -31,9 +31,9 @@ MenuContext::MenuContext()
   _menu = new FixedMenu(ID_MENU);
   layout->addWidget(_menu);
   _menu->setBackColor(COLOR_MAIN_BACK);
-  _menu->setWidth(TFT_WIDTH - SCROLLBAR_WIDTH - DISPLAY_PADDING * 2);
-  _menu->setHeight(TFT_HEIGHT);
-  _menu->setItemHeight(TFT_HEIGHT / 4 - 2);
+  _menu->setWidth(UI_WIDTH - SCROLLBAR_WIDTH - DISPLAY_PADDING * 2);
+  _menu->setHeight(UI_HEIGHT);
+  _menu->setItemHeight(UI_HEIGHT / 4 - 2);
   _menu->setPos(DISPLAY_PADDING, 0);
   //
   _scrollbar = new ScrollBar(ID_SCROLLBAR);

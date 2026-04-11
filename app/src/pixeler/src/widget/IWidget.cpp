@@ -4,8 +4,7 @@
 namespace pixeler
 {
   IWidget::IWidget(uint16_t widget_ID, TypeID type_ID, bool is_container) : _id{widget_ID},
-                                                                            _type_ID{type_ID},
-                                                                            _is_container{is_container}
+                                                                            _type_ID{type_ID}
 
   {
     if (widget_ID == 0)
@@ -22,7 +21,7 @@ namespace pixeler
     return _type_ID;
   }
 
-  void IWidget::forcedDraw()
+  void IWidget::drawForced()
   {
     _is_changed = true;
     onDraw();
@@ -98,7 +97,20 @@ namespace pixeler
 
     if (_corner_radius == 0)
     {
-      _display.fillRect(_x_pos + x_offset, _y_pos + y_offset, _width, _height, _back_color);
+#if CONFIG_IDF_TARGET_ESP32P4
+      if (_width * _height > PPA_FILL_SIZE_TRIGG)
+      {
+        bool old_state = _display.isPPAEnabled();
+
+        _display.setPPAState(true);
+        _display.fillRect(_x_pos + x_offset, _y_pos + y_offset, _width, _height, _back_color);
+        _display.setPPAState(old_state);
+      }
+      else
+#endif  // #if CONFIG_IDF_TARGET_ESP32P4
+      {
+        _display.fillRect(_x_pos + x_offset, _y_pos + y_offset, _width, _height, _back_color);
+      }
 
       if (keep_border && _has_border)
         _display.drawRect(_x_pos + x_offset, _y_pos + y_offset, _width, _height, _border_color);
@@ -146,6 +158,38 @@ namespace pixeler
       }
       _display.fillRoundRect(_x_pos + x_offset, _y_pos + y_offset, _width, _height, _corner_radius, back_color);
     }
+  }
+
+  void IWidget::copyTo(IWidget* widget) const
+  {
+    if (!widget)
+    {
+      log_e("Спроба копіювати властивості (id: %u) до nullptr", _id);
+      esp_restart();
+    }
+
+    widget->_parent = _parent;
+    widget->_x_pos = _x_pos;
+    widget->_y_pos = _y_pos;
+    widget->_width = _width;
+    widget->_height = _height;
+    widget->_back_color = _back_color;
+    widget->_border_color = _border_color;
+    widget->_focus_border_color = _focus_border_color;
+    widget->_old_border_color = _old_border_color;
+    widget->_focus_back_color = _focus_back_color;
+    widget->_old_back_color = _old_back_color;
+    widget->_visibility = _visibility;
+    widget->_corner_radius = _corner_radius;
+    widget->_is_touchable = _is_touchable;
+    widget->_is_changed = _is_changed;
+    widget->_has_border = _has_border;
+    widget->_is_transparent = _is_transparent;
+    widget->_has_focus = _has_focus;
+    widget->_old_border_state = _old_border_state;
+    widget->_need_clear_border = _need_clear_border;
+    widget->_need_change_border = _need_change_border;
+    widget->_need_change_back = _need_change_back;
   }
 
   uint16_t IWidget::getXPos() const
@@ -297,20 +341,6 @@ namespace pixeler
     return _visibility;
   }
 
-  bool IWidget::hasIntersectWithCoords(uint16_t x, uint16_t y) const
-  {
-    if (_parent)
-      return (x > _parent->getXPos() + _x_pos && x < _parent->getXPos() + _x_pos + _width) &&
-          (y > _parent->getYPos() + _y_pos && y < _parent->getYPos() + _y_pos + _height);
-    else
-      return (x > _x_pos && x < _x_pos + _width) && (y > _y_pos && y < _y_pos + _height);
-  }
-
-  bool IWidget::isContainer() const
-  {
-    return _is_container;
-  }
-
   void IWidget::setTransparency(bool state)
   {
     _is_transparent = state;
@@ -319,5 +349,33 @@ namespace pixeler
   bool IWidget::isTransparent() const
   {
     return _is_transparent;
+  }
+
+  IWidget* IWidget::findTouchableAt(uint16_t x, uint16_t y)
+  {
+    if (!_is_touchable || !hitTest(x, y))
+      return nullptr;
+
+    return this;
+  }
+
+  bool IWidget::hitTest(uint16_t x, uint16_t y) const
+  {
+    if (_parent)
+      return (x > _parent->getXPos() + _x_pos && x < _parent->getXPos() + _x_pos + _width) &&
+          (y > _parent->getYPos() + _y_pos && y < _parent->getYPos() + _y_pos + _height);
+    else
+      return (x > _x_pos && x < _x_pos + _width) && (y > _y_pos && y < _y_pos + _height);
+  }
+
+  void IWidget::setTouchable(bool state)
+  {
+    _is_touchable = state;
+    _is_changed = true;
+  }
+
+  bool IWidget::isTouchable() const
+  {
+    return _is_touchable;
   }
 }  // namespace pixeler

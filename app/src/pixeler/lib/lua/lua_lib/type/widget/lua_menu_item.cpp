@@ -100,6 +100,13 @@ int lua_menu_item_get_text(lua_State* L)
   return 1;
 }
 
+int lua_menu_item_unload(lua_State* L)
+{
+  lua_pushnil(L);
+  lua_setfield(L, LUA_REGISTRYINDEX, STR_TYPE_NAME_MENU_ITEM);
+  return 0;
+}
+
 const struct luaL_Reg TYPE_METH_MENU_ITEM[] = {
     {"setImg", lua_menu_item_set_img},
     {"getImg", lua_menu_item_get_img},
@@ -108,6 +115,7 @@ const struct luaL_Reg TYPE_METH_MENU_ITEM[] = {
     {"setText", lua_menu_item_set_text},
     {"getText", lua_menu_item_get_text},
     {STR_LUA_WIDGET_CLONE, lua_menu_item_clone},
+    {STR_LUA_UNLOAD, lua_menu_item_unload},
     {nullptr, nullptr},
 };
 

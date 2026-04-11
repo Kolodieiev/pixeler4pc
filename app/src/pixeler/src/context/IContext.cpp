@@ -34,11 +34,13 @@ namespace pixeler
             if (millis() - _toast_birthtime > _toast_lifetime)
               removeToast();
             else
-              _toast_label->forcedDraw();
+              _toast_label->drawForced();
           }
           xSemaphoreGive(_layout_mutex);
 
+#ifndef DIRECT_DRAWING
           _display.__flush();
+#endif  // #ifndef DIRECT_DRAWING
         }
 #endif  // GRAPHICS_ENABLED
       }
@@ -55,12 +57,29 @@ namespace pixeler
     return _is_released;
   }
 
+  void IContext::openContextByID(ContextID context_ID)
+  {
+    _input.reset();
+    _next_context_ID = context_ID;
+    _is_released = true;
+  }
+
+  void IContext::release()
+  {
+    openContextByID(static_cast<ContextID>(0));
+  }
+
+#ifndef GRAPHICS_ENABLED
+  IContext::IContext() {}
+  IContext::~IContext() {}
+#else  // GRAPHICS_ENABLED
+
   IContext::IContext() : _layout_mutex{xSemaphoreCreateMutex()},
                          _layout{new EmptyLayout(1)}
   {
     _layout->setBackColor(COLOR_YELLOW);
-    _layout->setWidth(TFT_WIDTH);
-    _layout->setHeight(TFT_HEIGHT);
+    _layout->setWidth(UI_WIDTH);
+    _layout->setHeight(UI_HEIGHT);
   }
 
   IContext::~IContext()
@@ -95,18 +114,6 @@ namespace pixeler
     return _layout;
   }
 
-  void IContext::openContextByID(ContextID context_ID)
-  {
-    _input.reset();
-    _next_context_ID = context_ID;
-    _is_released = true;
-  }
-
-  void IContext::release()
-  {
-    openContextByID(static_cast<ContextID>(0));
-  }
-
   void IContext::showToast(const char* msg_txt, unsigned long duration)
   {
     if (!msg_txt)
@@ -138,22 +145,22 @@ namespace pixeler
     _toast_label->setHeight(25);
     _toast_label->setHPadding(4);
 
-    if (TFT_WIDTH < 120)
-      _toast_label->setWidth(TFT_WIDTH - 6);
+    if (UI_WIDTH < 120)
+      _toast_label->setWidth(UI_WIDTH - 6);
     else
       _toast_label->setWidth(120);
 
-    _toast_label->setPos(getCenterX(_toast_label), TFT_HEIGHT - _toast_label->getHeight() - 15);
+    _toast_label->setPos(getCenterX(_toast_label), UI_HEIGHT - _toast_label->getHeight() - 15);
   }
 
   uint16_t IContext::getCenterX(const IWidget* widget) const
   {
-    return widget ? (TFT_WIDTH - widget->getWidth()) / 2 : 0;
+    return widget ? (UI_WIDTH - widget->getWidth()) / 2 : 0;
   }
 
   uint16_t IContext::getCenterY(const IWidget* widget) const
   {
-    return widget ? (TFT_HEIGHT - widget->getHeight()) / 2 : 0;
+    return widget ? (UI_HEIGHT - widget->getHeight()) / 2 : 0;
   }
 
   void IContext::showNotification(Notification* notification)
@@ -166,7 +173,7 @@ namespace pixeler
     _notification = nullptr;
 
     if (_layout)
-      _layout->forcedDraw();
+      _layout->drawForced();
   }
 
   bool IContext::takeLayoutMutex()
@@ -185,6 +192,8 @@ namespace pixeler
     _toast_label = nullptr;
 
     if (_layout)
-      _layout->forcedDraw();
+      _layout->drawForced();
   }
+
+#endif  // #ifdef GRAPHICS_ENABLED
 }  // namespace pixeler

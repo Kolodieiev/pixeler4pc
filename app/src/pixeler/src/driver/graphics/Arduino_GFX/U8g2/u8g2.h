@@ -129,34 +129,6 @@
 #endif
 
 /*
-  U8glib V2 contains support for unicode plane 0 (Basic Multilingual Plane, BMP).
-  The following macro activates this support. Deactivation would save some ROM.
-  This definition also defines the behavior of the expected string encoding.
-  If the following macro is defined, then the DrawUTF8 function is enabled and
-  the string argument for this function is assumed
-  to be UTF-8 encoded.
-  If the following macro is not defined, then all strings in the c-code are assumed
-  to be ISO 8859-1/CP1252 encoded.
-  Independently from this macro, the Arduino print function never accepts UTF-8
-  strings.
-
-  This macro does not affect the u8x8 string draw function.
-  u8x8 has also two function, one for pure strings and one for UTF8
-
-  Conclusion:
-    U8G2_WITH_UNICODE defined
-      - C-Code Strings must be UTF-8 encoded
-      - Full support of all 65536 glyphs of the unicode basic multilingual plane
-      - Up to 65536 glyphs of the font file can be used.
-    U8G2_WITH_UNICODE not defined
-      - C-Code Strings are assumbed to be ISO 8859-1/CP1252 encoded
-      - Only character values 0 to 255 are supported in the font file.
-*/
-#ifndef U8G2_WITHOUT_UNICODE
-#define U8G2_WITH_UNICODE
-#endif
-
-/*
   See issue https://github.com/olikraus/u8g2/issues/1561
   The old behaviour of the StrWidth and UTF8Width functions returned an unbalanced string width, where
   a small space was added to the left but not to the right of the string in some cases.
@@ -253,9 +225,7 @@ typedef int16_t u8g2_long_t; /* introduced for ellipse calculation */
     uint16_t start_pos_lower_a;
 
     /* offset 21 */
-#ifdef U8G2_WITH_UNICODE
     uint16_t start_pos_unicode;
-#endif
   };
   typedef struct _u8g2_font_info_t u8g2_font_info_t;
 

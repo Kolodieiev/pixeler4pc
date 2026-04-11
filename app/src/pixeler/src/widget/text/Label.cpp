@@ -11,54 +11,43 @@ namespace pixeler
     updateHeight();
   }
 
+  void Label::copyTo(IWidget* widget) const
+  {
+    IWidget::copyTo(widget);
+
+    Label* clone = static_cast<Label*>(widget);
+    clone->_is_multiline = _is_multiline;
+    clone->_text_size = _text_size;
+    clone->_text_color = _text_color;
+    clone->_font_ptr = _font_ptr;
+    clone->_char_hgt = _char_hgt;
+    clone->_h_padding = _h_padding;
+    clone->_text_gravity = _text_gravity;
+    clone->_text_alignment = _text_alignment;
+    clone->_has_autoscroll = _has_autoscroll;
+    clone->_temp_has_autoscroll = _temp_has_autoscroll;
+    clone->_has_full_autoscroll = _has_full_autoscroll;
+    clone->_has_autoscroll_in_focus = _has_autoscroll_in_focus;
+    clone->_temp_has_autoscroll_in_focus = _temp_has_autoscroll_in_focus;
+    clone->_temp_width = _temp_width;
+    clone->_autoscroll_update_delay = _autoscroll_update_delay;
+    clone->_is_reverse_autoscroll = _is_reverse_autoscroll;
+
+    clone->setText(_text);
+
+    if (_back_img)
+    {
+      clone->_back_img = _back_img->clone(_back_img->getID());
+    }
+  }
+
   Label* Label::clone(uint16_t id) const
   {
     try
     {
-      Label* cln = new Label(id);
-      cln->_has_border = _has_border;
-      cln->_x_pos = _x_pos;
-      cln->_y_pos = _y_pos;
-      cln->_width = _width;
-      cln->_height = _height;
-      cln->_back_color = _back_color;
-      cln->_border_color = _border_color;
-      cln->_corner_radius = _corner_radius;
-      cln->_is_transparent = _is_transparent;
-      cln->_visibility = _visibility;
-      cln->_has_focus = _has_focus;
-      cln->_old_border_state = _old_border_state;
-      cln->_need_clear_border = _need_clear_border;
-      cln->_need_change_border = _need_change_border;
-      cln->_need_change_back = _need_change_back;
-      cln->_focus_border_color = _focus_border_color;
-      cln->_old_border_color = _old_border_color;
-      cln->_focus_back_color = _focus_back_color;
-      cln->_old_back_color = _old_back_color;
-      cln->_parent = _parent;
-
-      cln->_is_multiline = _is_multiline;
-      cln->setText(_text);
-      cln->_text_size = _text_size;
-      cln->_text_color = _text_color;
-      cln->_font_ptr = _font_ptr;
-      cln->_char_hgt = _char_hgt;
-      cln->_h_padding = _h_padding;
-      cln->_text_gravity = _text_gravity;
-      cln->_text_alignment = _text_alignment;
-      cln->_has_autoscroll = _has_autoscroll;
-      cln->_temp_has_autoscroll = _temp_has_autoscroll;
-      cln->_has_full_autoscroll = _has_full_autoscroll;
-      cln->_has_autoscroll_in_focus = _has_autoscroll_in_focus;
-      cln->_temp_has_autoscroll_in_focus = _temp_has_autoscroll_in_focus;
-      cln->_temp_width = _temp_width;
-
-      if (_back_img)
-      {
-        cln->_back_img = _back_img->clone(_back_img->getID());
-      }
-
-      return cln;
+      Label* clone = new Label(id);
+      copyTo(clone);
+      return clone;
     }
     catch (const std::bad_alloc& e)
     {
@@ -151,10 +140,6 @@ namespace pixeler
   void Label::setMultiline(bool state)
   {
     _is_multiline = state;
-
-    if (_is_multiline)
-      _width = TFT_WIDTH;
-
     _is_changed = true;
   }
 
@@ -217,13 +202,13 @@ namespace pixeler
     return _font_ptr;
   }
 
-  void Label::setGravity(const Gravity gravity)
+  void Label::setGravity(Gravity gravity)
   {
     _text_gravity = gravity;
     _is_changed = true;
   }
 
-  void Label::setAlign(const Alignment alignment)
+  void Label::setAlign(Alignment alignment)
   {
     _text_alignment = alignment;
     _is_changed = true;
@@ -352,14 +337,14 @@ namespace pixeler
 
   void Label::updateHeight()
   {
-    int16_t x1, y1;
+    int16_t x1;
     uint16_t w;
     _display.setTextSize(_text_size);
     _display.setFont(_font_ptr);
-    _display.calcTextBounds("I", 0, 0, x1, y1, w, _char_hgt);
+    _display.calcTextBounds("Йg", 0, 0, x1, _y_char_offset, w, _char_hgt);
 
-    if (_char_hgt + RESERVE_PIX_HEIGHT > _height)
-      _height = _char_hgt + RESERVE_PIX_HEIGHT;
+    if (_char_hgt + RESERVE_PIX_HEIGHT >= _height)
+      _height = _char_hgt + RESERVE_PIX_HEIGHT + 2;
   }
 
   uint32_t Label::utf8ToUnicode(const uint8_t* buf, uint16_t& byte_pos, uint16_t remaining) const
@@ -568,7 +553,7 @@ namespace pixeler
     if (_back_img)
     {
       _back_img->setParent(this);
-      _back_img->forcedDraw();
+      _back_img->drawForced();
     }
 
     if (str_pix_num + _h_padding * 2 - 2 < _width)
@@ -601,29 +586,26 @@ namespace pixeler
               else
                 ++_first_draw_char_pos;
             }
+            else if (!_is_reverse_autoscroll)
+            {
+              if (!_text.endsWith(sub_str))
+                ++_first_draw_char_pos;
+              else
+                _is_reverse_autoscroll = true;
+            }
             else
             {
-              if (!_is_reverse_autoscroll)
-              {
-                if (sub_str_pix_num + _h_padding > (_width * 3) >> 2)  // 3/4 від ширини
-                  ++_first_draw_char_pos;
-                else
-                  _is_reverse_autoscroll = true;
-              }
+              if (_first_draw_char_pos > 0)
+                --_first_draw_char_pos;
               else
-              {
-                if (_first_draw_char_pos > 0)
-                  --_first_draw_char_pos;
-                else
-                  _is_reverse_autoscroll = false;
-              }
+                _is_reverse_autoscroll = false;
             }
 
             _last_autoscroll_ts = millis();
           }
         }
 
-        _display.setCursor(_x_pos + x_offset + txt_x_pos, _y_pos + y_offset + txtYPos + _char_hgt);
+        _display.setCursor(_x_pos + x_offset + txt_x_pos, _y_pos + y_offset + txtYPos - _y_char_offset);
         _display.print(sub_str.c_str());
       }
       else
@@ -633,8 +615,10 @@ namespace pixeler
         _has_autoscroll_in_focus = false;
 
         _display.setTextWrap(true);
-        _display.setCursor(0, _y_pos + y_offset + _char_hgt);
+        _display.setTextBound(x_offset + 1, _y_pos + y_offset + 1, _width - 1, _height - 1);
+        _display.setCursor(x_offset, _y_pos + y_offset + _char_hgt + 2);
         _display.print(_text.c_str());
+        _display.resetTextBound();
         _display.setTextWrap(false);
       }
     }

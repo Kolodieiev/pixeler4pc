@@ -3,11 +3,89 @@
 
 namespace pixeler
 {
-  FixedMenu::FixedMenu(uint16_t widget_ID) : Menu(widget_ID, TYPE_FIX_MENU) {}
+  FixedMenu::FixedMenu(uint16_t widget_ID) : IMenu(widget_ID, TYPE_FIX_MENU) {}
+
+  bool FixedMenu::pageUp()
+  {
+    uint16_t capacity = getItemsPerPage();
+
+    if (capacity == 0 || _widgets.empty())
+      return false;
+
+    if (_first_item_index > 0)
+    {
+      if (_first_item_index >= capacity)  // Перевіряємо, чи ми можемо відняти цілу сторінку
+      {
+        _first_item_index -= capacity;
+      }
+      else
+      {
+        _first_item_index = 0;  // Якщо до початку менше, ніж ціла сторінка, стаємо в нуль
+      }
+    }
+    else if (_is_loop_enbl)
+    {
+      uint16_t total = _widgets.size();  // Переходимо до останньої можливої сторінки
+
+      if (total <= capacity)
+      {
+        return false;
+      }
+
+      _first_item_index = (total - 1 / capacity) * capacity;  // Розраховуємо індекс для відображення залишку елементів
+    }
+    else
+    {
+      return false;
+    }
+
+    if (!_has_touch_support && _cur_focus_pos != _first_item_index)
+    {
+      _widgets[_cur_focus_pos]->removeFocus();
+      _cur_focus_pos = _first_item_index;
+      _widgets[_cur_focus_pos]->setFocus();
+    }
+
+    drawItems(_first_item_index, capacity);
+    return true;
+  }
+
+  bool FixedMenu::pageDown()
+  {
+    uint16_t capacity = getItemsPerPage();
+
+    if (capacity == 0 || _widgets.empty())
+      return false;
+
+    uint16_t next_first_pos = _first_item_index + capacity;
+
+    if (next_first_pos < _widgets.size())  // Якщо є хоча б одни елемент що не видно на поточній сторінці меню
+    {
+      _first_item_index = next_first_pos;
+    }
+    else if (_is_loop_enbl && _first_item_index > 0)  // Якщо меню може зациклюватися і ми не на першому елементі
+    {
+      _first_item_index = 0;
+    }
+    else
+    {
+      return false;
+    }
+
+    if (!_has_touch_support && _cur_focus_pos != _first_item_index)
+    {
+      _widgets[_cur_focus_pos]->removeFocus();
+      _cur_focus_pos = _first_item_index;
+      _widgets[_cur_focus_pos]->setFocus();
+    }
+
+    drawItems(_first_item_index, capacity);
+    return true;
+  }
 
   bool FixedMenu::focusUp()
   {
-    if (_widgets.empty())
+    if (_has_touch_support || _widgets.empty())
       return false;
 
     IWidget* item = _widgets[_cur_focus_pos];
@@ -34,7 +112,9 @@ namespace pixeler
         _first_item_index = _widgets.size() - cycles_count;
       }
       else
+      {
         _first_item_index = 0;
+      }
 
       _cur_focus_pos = _widgets.size() - 1;
     }
@@ -49,7 +129,7 @@ namespace pixeler
 
   bool FixedMenu::focusDown()
   {
-    if (_widgets.empty())
+    if (_has_touch_support || _widgets.empty())
       return false;
 
     IWidget* item = _widgets[_cur_focus_pos];
@@ -92,7 +172,7 @@ namespace pixeler
 
   void FixedMenu::setCurrFocusPos(uint16_t focus_pos)
   {
-    if (_widgets.size() < 2 || _cur_focus_pos == focus_pos || focus_pos >= _widgets.size())
+    if (_has_touch_support || _widgets.size() < 2 || _cur_focus_pos == focus_pos || focus_pos >= _widgets.size())
       return;
 
     IWidget* item = _widgets[_cur_focus_pos];
@@ -121,41 +201,55 @@ namespace pixeler
     drawItems(_first_item_index, cycles_count);
   }
 
+  uint16_t FixedMenu::getPagesCount() const
+  {
+    uint16_t capacity = getItemsPerPage();
+    if (capacity == 0 || _widgets.empty())
+      return 0;
+
+    return (_widgets.size() + capacity - 1) / capacity;
+  }
+
+  uint16_t FixedMenu::getPageNum() const
+  {
+    uint16_t capacity = getItemsPerPage();
+    if (capacity == 0 || _widgets.empty())
+      return 0;
+
+    return _first_item_index / capacity;
+  }
+
+  void FixedMenu::setPageNum(uint16_t page_pos)
+  {
+    uint16_t capacity = getItemsPerPage();
+    if (capacity == 0 || _widgets.empty())
+      return;
+
+    uint32_t new_index = static_cast<uint32_t>(page_pos) * capacity;
+
+    if (new_index >= _widgets.size())
+      _first_item_index = ((_widgets.size() - 1) / capacity) * capacity;
+    else
+      _first_item_index = static_cast<uint16_t>(new_index);
+
+    drawItems(_first_item_index, capacity);
+  }
+
+  void FixedMenu::copyTo(IWidget* widget) const
+  {
+    IMenu::copyTo(widget);
+
+    FixedMenu* clone = static_cast<FixedMenu*>(widget);
+    clone->_is_loop_enbl = _is_loop_enbl;
+  }
+
   FixedMenu* FixedMenu::clone(uint16_t id) const
   {
     try
     {
-      FixedMenu* cln = new FixedMenu(id);
-      cln->_has_border = _has_border;
-      cln->_x_pos = _x_pos;
-      cln->_y_pos = _y_pos;
-      cln->_width = _width;
-      cln->_height = _height;
-      cln->_back_color = _back_color;
-      cln->_border_color = _border_color;
-      cln->_corner_radius = _corner_radius;
-      cln->_item_height = _item_height;
-      cln->_item_width = _item_width;
-      cln->_items_spacing = _items_spacing;
-      cln->_is_loop_enbl = _is_loop_enbl;
-      cln->_is_transparent = _is_transparent;
-      cln->_visibility = _visibility;
-      cln->_has_focus = _has_focus;
-      cln->_old_border_state = _old_border_state;
-      cln->_need_clear_border = _need_clear_border;
-      cln->_need_change_border = _need_change_border;
-      cln->_need_change_back = _need_change_back;
-      cln->_focus_border_color = _focus_border_color;
-      cln->_old_border_color = _old_border_color;
-      cln->_focus_back_color = _focus_back_color;
-      cln->_old_back_color = _old_back_color;
-      cln->_parent = _parent;
-
-      // cppcheck-suppress constVariableReference
-      for (const IWidget* widget_ptr : _widgets)
-        cln->addWidget(widget_ptr->clone(widget_ptr->getID()));
-
-      return cln;
+      FixedMenu* clone = new FixedMenu(id);
+      copyTo(clone);
+      return clone;
     }
     catch (const std::bad_alloc& e)
     {

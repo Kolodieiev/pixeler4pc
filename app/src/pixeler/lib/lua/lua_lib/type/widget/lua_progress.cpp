@@ -90,6 +90,13 @@ int lua_progress_reset(lua_State* L)
   return 0;
 }
 
+int lua_progress_unload(lua_State* L)
+{
+  lua_pushnil(L);
+  lua_setfield(L, LUA_REGISTRYINDEX, STR_TYPE_NAME_PROGRESS);
+  return 0;
+}
+
 const struct luaL_Reg TYPE_METH_PROGRESS[] = {
     {"setMax", lua_progress_set_max},
     {"getMax", lua_progress_get_max},
@@ -99,6 +106,7 @@ const struct luaL_Reg TYPE_METH_PROGRESS[] = {
     {"setOrientation", lua_progress_set_orientation},
     {"reset", lua_progress_reset},
     {STR_LUA_WIDGET_CLONE, lua_progress_clone},
+    {STR_LUA_UNLOAD, lua_progress_unload},
     {nullptr, nullptr},
 };
 

@@ -104,6 +104,14 @@ namespace pixeler
      */
     float getValue() const;
 
+  protected:
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const override;
+
   private:
     SpinBox* _spinbox{nullptr};
   };

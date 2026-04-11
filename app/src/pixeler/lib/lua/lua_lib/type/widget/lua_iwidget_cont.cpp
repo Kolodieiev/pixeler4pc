@@ -59,6 +59,16 @@ int lua_cont_get_widget_by_indx(lua_State* L)
   return 1;
 }
 
+int lua_cont_find_touchable_at(lua_State* L)
+{
+  IWidgetContainer* container = *static_cast<IWidgetContainer**>(lua_check_instance(L, 1, STR_TYPE_NAME_IWIDGET_CONT));
+  uint16_t x = luaL_checkinteger(L, 2);
+  uint16_t y = luaL_checkinteger(L, 3);
+  IWidget* widget = container->findTouchableAt(x, y);
+  lua_push_widget_or_nil(L, widget);
+  return 1;
+}
+
 int lua_cont_delete_widgets(lua_State* L)
 {
   IWidgetContainer* container = *static_cast<IWidgetContainer**>(lua_check_instance(L, 1, STR_TYPE_NAME_IWIDGET_CONT));
@@ -88,17 +98,24 @@ int lua_cont_disable(lua_State* L)
   return 0;
 }
 
-// -------------------------------------------------------------------------------------------------------------
+int lua_cont_unload(lua_State* L)
+{
+  lua_pushnil(L);
+  lua_setfield(L, LUA_REGISTRYINDEX, STR_TYPE_NAME_IWIDGET_CONT);
+  return 0;
+}
 
 const struct luaL_Reg TYPE_METH_IWIDGET_CONT[] = {
     {"addWidget", lua_cont_add_widget},
     {"delWidgetByID", lua_cont_delete_widget_by_id},
     {"getWidgetByID", lua_cont_get_widget_by_id},
     {"getWidgetByIndx", lua_cont_get_widget_by_indx},
+    {"findTouchableAt", lua_cont_find_touchable_at},
     {"delWidgets", lua_cont_delete_widgets},
     {"getSize", lua_cont_get_size},
     {"enable", lua_cont_enable},
     {"disable", lua_cont_disable},
+    {STR_LUA_UNLOAD, lua_cont_unload},
     {nullptr, nullptr},
 };
 

@@ -7,7 +7,7 @@ namespace pixeler
 
   ProgressBar::~ProgressBar() {}
 
-  void ProgressBar::setMax(uint16_t max)
+  void ProgressBar::setMax(uint32_t max)
   {
     if (max < 1)
       _max = 1;
@@ -17,7 +17,7 @@ namespace pixeler
     _is_changed = true;
   }
 
-  void ProgressBar::setProgress(uint16_t progress)
+  void ProgressBar::setProgress(uint32_t progress)
   {
     if (progress > _max)
       _progress = _max;
@@ -41,39 +41,25 @@ namespace pixeler
     _is_changed = true;
   }
 
+  void ProgressBar::copyTo(IWidget* widget) const
+  {
+    IWidget::copyTo(widget);
+
+    ProgressBar* clone = static_cast<ProgressBar*>(widget);
+    clone->_progress = _progress;
+    clone->_max = _max;
+    clone->_progress_color = _progress_color;
+    clone->_orientation = _orientation;
+    clone->_prev_progress = _prev_progress;
+  }
+
   ProgressBar* ProgressBar::clone(uint16_t id) const
   {
     try
     {
-      ProgressBar* cln = new ProgressBar(id);
-      cln->_has_border = _has_border;
-      cln->_x_pos = _x_pos;
-      cln->_y_pos = _y_pos;
-      cln->_width = _width;
-      cln->_height = _height;
-      cln->_back_color = _back_color;
-      cln->_border_color = _border_color;
-      cln->_corner_radius = _corner_radius;
-      cln->_is_transparent = _is_transparent;
-      cln->_visibility = _visibility;
-      cln->_has_focus = _has_focus;
-      cln->_old_border_state = _old_border_state;
-      cln->_need_clear_border = _need_clear_border;
-      cln->_need_change_border = _need_change_border;
-      cln->_need_change_back = _need_change_back;
-      cln->_focus_border_color = _focus_border_color;
-      cln->_old_border_color = _old_border_color;
-      cln->_focus_back_color = _focus_back_color;
-      cln->_old_back_color = _old_back_color;
-      cln->_parent = _parent;
-
-      cln->_progress = _progress;
-      cln->_max = _max;
-      cln->_progress_color = _progress_color;
-      cln->_orientation = _orientation;
-      cln->_prev_progress = _prev_progress;
-
-      return cln;
+      ProgressBar* clone = new ProgressBar(id);
+      copyTo(clone);
+      return clone;
     }
     catch (const std::bad_alloc& e)
     {
@@ -106,13 +92,13 @@ namespace pixeler
 
     if (_orientation == HORIZONTAL)
     {
-      uint16_t progressW = ((float)_width / _max) * _progress;
+      uint16_t progressW = static_cast<uint32_t>(_width) * _progress / _max;
       if (progressW < 3)
         progressW = 3;
 
       if (!_is_first_draw)
       {
-        uint16_t next_prgrs_pos = ((float)_width / _max) * _prev_progress;
+        uint16_t next_prgrs_pos = static_cast<uint32_t>(_width) * _prev_progress / _max;
 
         if (_progress > _prev_progress)  // Заливка тільки прогресу
         {
@@ -162,13 +148,13 @@ namespace pixeler
     }
     else  // orientation == vertical
     {
-      uint16_t progressH = ((float)_height / _max) * _progress;
+      uint16_t progressH = static_cast<uint32_t>(_height) * _progress / _max;
       if (progressH < 3)
         progressH = 3;
 
       if (!_is_first_draw)
       {
-        uint16_t next_prgrs_pos = ((float)_height / _max) * _prev_progress;
+        uint16_t next_prgrs_pos = static_cast<uint32_t>(_height) * _prev_progress / _max;
 
         if (_progress > _prev_progress)  // Заливка тільки прогресу
         {
@@ -256,12 +242,38 @@ namespace pixeler
     }
   }
 
-  uint16_t ProgressBar::getProgress() const
+  uint32_t ProgressBar::getProgress() const
   {
     return _progress;
   }
 
-  uint16_t ProgressBar::getMax() const
+  uint32_t ProgressBar::getProgressAt(uint16_t x, uint16_t y) const
+  {
+    if (_max == 1)
+      return 0;
+
+    if (_orientation == HORIZONTAL)
+    {
+      uint16_t x_pos = getXPos();
+
+      if (x >= x_pos + _width || x <= x_pos)
+        return 0;
+
+      uint32_t relative_x = x - x_pos;
+      return relative_x * _max / _width;
+    }
+    else
+    {
+      uint16_t y_pos = getYPos();
+      if (y >= getYPos() + _height || y <= y_pos)
+        return 0;
+
+      uint32_t relative_y = y - y_pos;
+      return relative_y * _max / _height;
+    }
+  }
+
+  uint32_t ProgressBar::getMax() const
   {
     return _max;
   }

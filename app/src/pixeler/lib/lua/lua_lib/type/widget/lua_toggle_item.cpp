@@ -74,6 +74,13 @@ int lua_toggle_item_is_on(lua_State* L)
   return 1;
 }
 
+int lua_toggle_item_unload(lua_State* L)
+{
+  lua_pushnil(L);
+  lua_setfield(L, LUA_REGISTRYINDEX, STR_TYPE_NAME_TOGGLE_ITEM);
+  return 0;
+}
+
 const struct luaL_Reg TYPE_METH_TOGGLE_ITEM[] = {
     {"setToggle", lua_toggle_item_set_toggle},
     {"getToggle", lua_toggle_item_get_toggle},
@@ -81,6 +88,7 @@ const struct luaL_Reg TYPE_METH_TOGGLE_ITEM[] = {
     {"toggle", lua_toggle_item_toggle},
     {"isOn", lua_toggle_item_is_on},
     {STR_LUA_WIDGET_CLONE, lua_toggle_item_clone},
+    {STR_LUA_UNLOAD, lua_toggle_item_unload},
     {nullptr, nullptr},
 };
 

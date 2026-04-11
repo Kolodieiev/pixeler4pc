@@ -32,8 +32,16 @@ int lua_el_clone(lua_State* L)
   return 1;
 }
 
+int lua_el_unload(lua_State* L)
+{
+  lua_pushnil(L);
+  lua_setfield(L, LUA_REGISTRYINDEX, STR_TYPE_NAME_EMPTY_LAYOUT);
+  return 0;
+}
+
 const struct luaL_Reg TYPE_METH_EMPTY_LAYOUT[] = {
     {STR_LUA_WIDGET_CLONE, lua_el_clone},
+    {STR_LUA_UNLOAD, lua_el_unload},
     {nullptr, nullptr},
 };
 

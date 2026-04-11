@@ -7,38 +7,23 @@ namespace pixeler
 {
   KeyboardRow::KeyboardRow(uint16_t widget_ID) : IWidgetContainer(widget_ID, TYPE_KB_ROW) {}
 
+  void KeyboardRow::copyTo(IWidget* widget) const
+  {
+    IWidgetContainer::copyTo(widget);
+
+    KeyboardRow* clone = static_cast<KeyboardRow*>(widget);
+    clone->_cur_focus_pos = _cur_focus_pos;
+    clone->_btn_height = _btn_height;
+    clone->_btn_width = _btn_width;
+  }
+
   KeyboardRow* KeyboardRow::clone(uint16_t id) const
   {
     try
     {
-      KeyboardRow* cln = new KeyboardRow(id);
-      cln->_has_border = _has_border;
-      cln->_x_pos = _x_pos;
-      cln->_y_pos = _y_pos;
-      cln->_width = _width;
-      cln->_height = _height;
-      cln->_back_color = _back_color;
-      cln->_border_color = _border_color;
-      cln->_corner_radius = _corner_radius;
-      cln->_btn_height = _btn_height;
-      cln->_btn_width = _btn_width;
-      cln->_is_transparent = _is_transparent;
-      cln->_visibility = _visibility;
-      cln->_has_focus = _has_focus;
-      cln->_old_border_state = _old_border_state;
-      cln->_need_clear_border = _need_clear_border;
-      cln->_need_change_border = _need_change_border;
-      cln->_need_change_back = _need_change_back;
-      cln->_focus_border_color = _focus_border_color;
-      cln->_old_border_color = _old_border_color;
-      cln->_focus_back_color = _focus_back_color;
-      cln->_old_back_color = _old_back_color;
-      cln->_parent = _parent;
-
-      for (const IWidget* widget_ptr : _widgets)
-        cln->addWidget(widget_ptr->clone(widget_ptr->getID()));
-
-      return cln;
+      KeyboardRow* clone = new KeyboardRow(id);
+      copyTo(clone);
+      return clone;
     }
     catch (const std::bad_alloc& e)
     {
@@ -167,40 +152,57 @@ namespace pixeler
       if (_visibility != INVISIBLE && _is_enabled)
         for (size_t i{0}; i < _widgets.size(); ++i)
           _widgets[i]->onDraw();
+
+      return;
     }
-    else
+
+    _is_changed = false;
+
+    if (_visibility == INVISIBLE)
     {
-      _is_changed = false;
+      hide();
+      return;
+    }
 
-      if (_visibility == INVISIBLE)
+    clear();
+
+    const size_t count = _widgets.size();
+    if (count == 0)
+      return;
+
+    const uint16_t y = (_height > _btn_height) ? (_height - _btn_height) / 2 : 2;
+
+    const uint32_t total_btn_width = _btn_width * count;
+    const uint32_t total_free_space = (_width > total_btn_width) ? (_width - total_btn_width) : 0;
+    const uint16_t num_gaps = count + 1;
+
+    const uint16_t step = total_free_space / num_gaps;
+    const uint16_t extra_pixels = total_free_space % num_gaps;
+
+    uint16_t current_extra = extra_pixels;
+    uint16_t x = step;
+
+    if (current_extra >= num_gaps)
+    {
+      x++;
+      current_extra -= num_gaps;
+    }
+
+    for (size_t i = 0; i < count; ++i)
+    {
+      _widgets[i]->setPos(x, y);
+      _widgets[i]->setWidth(_btn_width);
+      _widgets[i]->setHeight(_btn_height);
+      _widgets[i]->onDraw();
+
+      x += _btn_width + step;
+
+      // Додаємо піксель до наступного проміжку
+      current_extra += extra_pixels;
+      if (current_extra >= num_gaps)
       {
-        hide();
-        return;
-      }
-
-      clear();
-
-      if (_widgets.empty())
-      {
-        return;
-      }
-
-      uint16_t step{0};
-
-      if (_btn_width * _widgets.size() < _width)
-        step = (float)(_width - _btn_width * _widgets.size()) / (_widgets.size() + 1);
-
-      uint16_t x = step;
-      uint16_t y = (float)(_height - _btn_height) / 2;
-
-      for (size_t i{0}; i < _widgets.size(); ++i)
-      {
-        _widgets[i]->setPos(x, y);
-        _widgets[i]->setWidth(_btn_width);
-        _widgets[i]->setHeight(_btn_height);
-        _widgets[i]->onDraw();
-
-        x += _btn_width + step;
+        ++x;
+        current_extra -= num_gaps;
       }
     }
   }

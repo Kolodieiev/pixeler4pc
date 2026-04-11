@@ -4,11 +4,82 @@
 
 namespace pixeler
 {
-  DynamicMenu::DynamicMenu(uint16_t widget_ID) : Menu(widget_ID, TYPE_DYN_MENU) {}
+  DynamicMenu::DynamicMenu(uint16_t widget_ID) : IMenu(widget_ID, TYPE_DYN_MENU) {}
+
+  bool DynamicMenu::pageUp()
+  {
+    if (_widgets.empty())
+      return false;
+
+    if (_prev_items_load_handler)
+    {
+      std::vector<MenuItem*> temp_vec;
+      _prev_items_load_handler(temp_vec, getItemsPerPage(), _widgets[_cur_focus_pos]->getID(), _prev_items_load_arg);
+
+      if (!temp_vec.empty())
+      {
+        delWidgets();
+
+        _widgets.reserve(temp_vec.size());
+        for (size_t i{0}; i < temp_vec.size(); ++i)
+        {
+          temp_vec[i]->setParent(this);
+          _widgets.push_back(temp_vec[i]);
+        }
+
+        drawItems(0, getCyclesCount());
+
+        if (!_has_touch_support && _cur_focus_pos != _first_item_index)
+        {
+          _cur_focus_pos = _widgets.size() - 1;
+          _widgets[_cur_focus_pos]->setFocus();
+        }
+
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool DynamicMenu::pageDown()
+  {
+    if (_widgets.empty())
+      return false;
+
+    if (_next_items_load_handler)
+    {
+      std::vector<MenuItem*> temp_vec;
+      _next_items_load_handler(temp_vec, getItemsPerPage(), _widgets[_widgets.size() - 1]->getID(), _next_items_load_arg);
+
+      if (!temp_vec.empty())
+      {
+        delWidgets();
+
+        _widgets.reserve(temp_vec.size());
+        for (size_t i{0}; i < temp_vec.size(); ++i)
+        {
+          temp_vec[i]->setParent(this);
+          _widgets.push_back(temp_vec[i]);
+        }
+
+        drawItems(0, getCyclesCount());
+
+        if (!_has_touch_support && _cur_focus_pos != _first_item_index)
+        {
+          _cur_focus_pos = 0;
+          _widgets[_cur_focus_pos]->setFocus();
+        }
+
+        return true;
+      }
+    }
+
+    return false;
+  }
 
   bool DynamicMenu::focusUp()
   {
-    if (_widgets.empty())
+    if (_has_touch_support || _widgets.empty())
       return false;
 
     if (_cur_focus_pos > 0)
@@ -34,7 +105,7 @@ namespace pixeler
     else if (_prev_items_load_handler)
     {
       std::vector<MenuItem*> temp_vec;
-      _prev_items_load_handler(temp_vec, getItemsNumOnScreen(), _widgets[_cur_focus_pos]->getID(), _prev_items_load_arg);
+      _prev_items_load_handler(temp_vec, getItemsPerPage(), _widgets[_cur_focus_pos]->getID(), _prev_items_load_arg);
 
       if (!temp_vec.empty())
       {
@@ -60,7 +131,7 @@ namespace pixeler
 
   bool DynamicMenu::focusDown()
   {
-    if (_widgets.empty())
+    if (_has_touch_support || _widgets.empty())
       return false;
 
     if (_cur_focus_pos < _widgets.size() - 1)
@@ -87,7 +158,7 @@ namespace pixeler
     else if (_next_items_load_handler)
     {
       std::vector<MenuItem*> temp_vec;
-      _next_items_load_handler(temp_vec, getItemsNumOnScreen(), _widgets[_cur_focus_pos]->getID(), _next_items_load_arg);
+      _next_items_load_handler(temp_vec, getItemsPerPage(), _widgets[_cur_focus_pos]->getID(), _next_items_load_arg);
 
       if (!temp_vec.empty())
       {
@@ -124,40 +195,24 @@ namespace pixeler
     _prev_items_load_arg = arg;
   }
 
+  void DynamicMenu::copyTo(IWidget* widget) const
+  {
+    IMenu::copyTo(widget);
+
+    DynamicMenu* clone = static_cast<DynamicMenu*>(widget);
+    clone->_next_items_load_handler = _next_items_load_handler;
+    clone->_prev_items_load_handler = _prev_items_load_handler;
+    clone->_next_items_load_arg = _next_items_load_arg;
+    clone->_prev_items_load_arg = _prev_items_load_arg;
+  }
+
   DynamicMenu* DynamicMenu::clone(uint16_t id) const
   {
     try
     {
-      DynamicMenu* cln = new DynamicMenu(id);
-      cln->_has_border = _has_border;
-      cln->_x_pos = _x_pos;
-      cln->_y_pos = _y_pos;
-      cln->_width = _width;
-      cln->_height = _height;
-      cln->_back_color = _back_color;
-      cln->_border_color = _border_color;
-      cln->_corner_radius = _corner_radius;
-      cln->_item_height = _item_height;
-      cln->_item_width = _item_width;
-      cln->_items_spacing = _items_spacing;
-      cln->_is_transparent = _is_transparent;
-      cln->_visibility = _visibility;
-      cln->_has_focus = _has_focus;
-      cln->_old_border_state = _old_border_state;
-      cln->_need_clear_border = _need_clear_border;
-      cln->_need_change_border = _need_change_border;
-      cln->_need_change_back = _need_change_back;
-      cln->_focus_border_color = _focus_border_color;
-      cln->_old_border_color = _old_border_color;
-      cln->_focus_back_color = _focus_back_color;
-      cln->_old_back_color = _old_back_color;
-      cln->_parent = _parent;
-
-      // cppcheck-suppress constVariableReference
-      for (const IWidget* widget_ptr : _widgets)
-        cln->addWidget(widget_ptr->clone(widget_ptr->getID()));
-
-      return cln;
+      DynamicMenu* clone = new DynamicMenu(id);
+      copyTo(clone);
+      return clone;
     }
     catch (const std::bad_alloc& e)
     {

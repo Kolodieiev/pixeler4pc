@@ -95,6 +95,14 @@ namespace pixeler
     String getText() const;
 
   protected:
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const override;
+    
+  protected:
     using IWidget::setVisibility;
 
   protected:

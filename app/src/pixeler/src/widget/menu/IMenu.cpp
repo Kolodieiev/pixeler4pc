@@ -3,16 +3,16 @@
 
 namespace pixeler
 {
-  Menu::Menu(uint16_t widget_ID, TypeID type_ID) : IWidgetContainer(widget_ID, type_ID) {}
+  IMenu::IMenu(uint16_t widget_ID, TypeID type_ID) : IWidgetContainer(widget_ID, type_ID) {}
 
-  void Menu::delWidgets()
+  void IMenu::delWidgets()
   {
     IWidgetContainer::delWidgets();
     _first_item_index = 0;
     _cur_focus_pos = 0;
   }
 
-  bool Menu::delWidgetByID(uint16_t widget_ID)
+  bool IMenu::delWidgetByID(uint16_t widget_ID)
   {
     if (IWidgetContainer::delWidgetByID(widget_ID))
       return false;
@@ -26,13 +26,13 @@ namespace pixeler
     {
       if (_first_item_index >= _widgets.size())
       {
-        if (getItemsNumOnScreen() <= _widgets.size())
+        if (getItemsPerPage() <= _widgets.size())
           _first_item_index = 0;
         else
-          _first_item_index = _widgets.size() - getItemsNumOnScreen();
+          _first_item_index = _widgets.size() - getItemsPerPage();
       }
 
-      if (_cur_focus_pos >= _widgets.size())
+      if (!_has_touch_support && _cur_focus_pos >= _widgets.size())
       {
         _cur_focus_pos = _widgets.size() - 1;
         _widgets[_cur_focus_pos]->setFocus();
@@ -42,90 +42,105 @@ namespace pixeler
     return true;
   }
 
-  void Menu::setItemHeight(uint16_t height)
+  void IMenu::setItemHeight(uint16_t height)
   {
     _item_height = height > 0 ? height : 1;
     _is_changed = true;
   }
 
-  uint16_t Menu::getItemHeight() const
+  uint16_t IMenu::getItemHeight() const
   {
     return _orientation == VERTICAL ? _item_height : _height - 4;
   }
 
-  void Menu::setItemWidth(uint16_t width)
+  void IMenu::setItemWidth(uint16_t width)
   {
     _item_width = width > 0 ? width : 1;
     _is_changed = true;
   }
 
-  uint16_t Menu::getItemWidth() const
+  uint16_t IMenu::getItemWidth() const
   {
     return _orientation == HORIZONTAL ? _item_width : _width - 4;
   }
 
-  void Menu::setOrientation(const Orientation orientation)
+  void IMenu::setOrientation(const Orientation orientation)
   {
     _orientation = orientation;
     _is_changed = true;
   }
 
-  IWidget::Orientation Menu::getOrientation() const
+  IWidget::Orientation IMenu::getOrientation() const
   {
     return _orientation;
   }
 
-  uint16_t Menu::getCurrItemID() const
+  void IMenu::setTouchSupport(bool state)
   {
-    if (_widgets.empty())
+    _has_touch_support = state;
+
+    if (!_widgets.empty())
+    {
+      _widgets[_cur_focus_pos]->removeFocus();
+      _cur_focus_pos = 0;
+      _widgets[_cur_focus_pos]->setFocus();
+      _first_item_index = 0;
+    }
+
+    _is_changed = true;
+  }
+
+  uint16_t IMenu::getCurrItemID() const
+  {
+    if (_has_touch_support || _widgets.empty())
       return 0;
 
     return _widgets[_cur_focus_pos]->getID();
   }
 
-  uint16_t Menu::getCurrFocusPos() const
+  uint16_t IMenu::getCurrFocusPos() const
   {
     return _cur_focus_pos;
   }
 
-  String Menu::getCurrItemText() const
+  String IMenu::getCurrItemText() const
   {
-    if (_widgets.empty())
+    if (_has_touch_support || _widgets.empty())
       return emptyString;
 
     const MenuItem* item = static_cast<MenuItem*>(_widgets[_cur_focus_pos]);
     return item->getText();
   }
 
-  IWidget* Menu::getCurrItem()
+  IWidget* IMenu::getCurrItem()
   {
-    if (_widgets.empty())
+    if (_has_touch_support || _widgets.empty())
       return nullptr;
 
     return _widgets[_cur_focus_pos];
   }
 
-  void Menu::setItemsSpacing(uint16_t items_spacing)
+  void IMenu::setItemsSpacing(uint16_t items_spacing)
   {
     _items_spacing = items_spacing;
   }
 
-  uint16_t Menu::getItemsSpacing() const
+  uint16_t IMenu::getItemsSpacing() const
   {
     return _items_spacing;
   }
 
-  void Menu::addItem(MenuItem* item_ptr)
+  void IMenu::addItem(MenuItem* item_ptr)
   {
     addWidget(item_ptr);
   }
 
-  uint16_t Menu::getItemsNumOnScreen() const
+  uint16_t IMenu::getItemsPerPage() const
   {
-    return (float)_height / _item_height;
+    return static_cast<float>(_height) / _item_height;
   }
 
-  void Menu::onDraw()
+  void IMenu::onDraw()
   {
     if (!_is_changed)
     {
@@ -153,21 +168,38 @@ namespace pixeler
       return;
     }
 
-    uint16_t cyclesCount = getCyclesCount();
+    uint16_t cycles_count = getCyclesCount();
 
     if (_first_item_index >= _widgets.size())
       _first_item_index = _widgets.size() - 1;
 
-    if (_cur_focus_pos >= _widgets.size())
-      _cur_focus_pos = _widgets.size() - 1;
+    if (!_has_touch_support)
+    {
+      if (_cur_focus_pos >= _widgets.size())
+        _cur_focus_pos = _widgets.size() - 1;
 
-    IWidget* item = _widgets[_cur_focus_pos];
-    item->setFocus();
+      IWidget* item = _widgets[_cur_focus_pos];
+      item->setFocus();
+    }
 
-    drawItems(_first_item_index, cyclesCount);
+    drawItems(_first_item_index, cycles_count);
   }
 
-  void Menu::drawItems(uint16_t start, uint16_t count)
+  void IMenu::copyTo(IWidget* widget) const
+  {
+    IWidgetContainer::copyTo(widget);
+
+    IMenu* clone = static_cast<IMenu*>(widget);
+    clone->_first_item_index = _first_item_index;
+    clone->_cur_focus_pos = _cur_focus_pos;
+    clone->_item_height = _item_height;
+    clone->_item_width = _item_width;
+    clone->_items_spacing = _items_spacing;
+    clone->_orientation = _orientation;
+    clone->_has_touch_support = _has_touch_support;
+  }
+
+  void IMenu::drawItems(uint16_t start, uint16_t count)
   {
     clear();
 
@@ -176,8 +208,8 @@ namespace pixeler
 
     uint16_t itemXPos = 2;
     uint16_t itemYPos = 2;
-
-    for (uint16_t i{start}; i < start + count; ++i)
+    size_t container_size = _widgets.size();
+    for (uint16_t i{start}; i < start + count && i < container_size; ++i)
     {
       _widgets[i]->setPos(itemXPos, itemYPos);
 
@@ -198,20 +230,36 @@ namespace pixeler
     }
   }
 
-  uint16_t Menu::getCyclesCount() const
+  IWidget* IMenu::findTouchableAt(uint16_t x, uint16_t y)
   {
-    uint16_t cyclesCount;
+    if (!hitTest(x, y))
+      return nullptr;
+
+    uint16_t last_index = getCyclesCount() + _first_item_index;
+
+    for (int i = _first_item_index; i < last_index; ++i)
+    {
+      if (IWidget* found = _widgets[i]->findTouchableAt(x, y))
+        return found;
+    }
+
+    return _is_touchable ? this : nullptr;
+  }
+
+  uint16_t IMenu::getCyclesCount() const
+  {
+    uint16_t cycles_count;
 
     if (_orientation == VERTICAL)
-      cyclesCount = (float)_height / (_item_height + _items_spacing);
+      cycles_count = static_cast<float>(_height) / (_item_height + _items_spacing);
     else
-      cyclesCount = (float)_width / (_item_width + _items_spacing);
+      cycles_count = static_cast<float>(_width) / (_item_width + _items_spacing);
 
-    uint16_t itemsToEndNum = _widgets.size() - _first_item_index;
+    uint16_t items_to_end_count = _widgets.size() - _first_item_index;
 
-    if (cyclesCount > itemsToEndNum)
-      cyclesCount = itemsToEndNum;
+    if (cycles_count > items_to_end_count)
+      cycles_count = items_to_end_count;
 
-    return cyclesCount;
+    return cycles_count;
   }
 }  // namespace pixeler

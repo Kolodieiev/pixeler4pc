@@ -62,7 +62,23 @@ namespace pixeler
   void TerrainManager::onDraw() const
   {
     if (_back_img)
-      _display.drawBitmap(0, 0, _back_img, VIEW_W, VIEW_H);
+    {
+#if CONFIG_IDF_TARGET_ESP32P4
+      if (VIEW_W * VIEW_H > PPA_IMG_SIZE_TRIGG)
+      {
+        bool old_state = _display.isPPAEnabled();
+
+        _display.setPPAState(true);
+        _display.drawBitmap(0, 0, _back_img, VIEW_W, VIEW_H);
+
+        _display.setPPAState(old_state);
+      }
+      else
+#endif  // #if CONFIG_IDF_TARGET_ESP32P4
+      {
+        _display.drawBitmap(0, 0, _back_img, VIEW_W, VIEW_H);
+      }
+    }
 
     if (_terrain)
     {
@@ -91,7 +107,29 @@ namespace pixeler
         for (uint16_t w = first_tile_x_pos; w < last_tile_x_pos; ++w)
         {
           if (_terrain[h][w]->_type != TILE_TYPE_NONE)
-            _display.drawBitmap(temp_x_draw_pos, y_draw_pos, _terrain[h][w]->_img_ptr, _tile_side_len, _tile_side_len);
+          {
+            if (!_terrain[h][w]->_has_transparency)
+            {
+#if CONFIG_IDF_TARGET_ESP32P4
+              if (_tile_side_len * _tile_side_len > PPA_IMG_SIZE_TRIGG)
+              {
+                bool old_state = _display.isPPAEnabled();
+
+                _display.setPPAState(true);
+                _display.drawBitmap(temp_x_draw_pos, y_draw_pos, _terrain[h][w]->_img_ptr, _tile_side_len, _tile_side_len);
+                _display.setPPAState(old_state);
+              }
+              else
+#endif  // #if CONFIG_IDF_TARGET_ESP32P4
+              {
+                _display.drawBitmap(temp_x_draw_pos, y_draw_pos, _terrain[h][w]->_img_ptr, _tile_side_len, _tile_side_len);
+              }
+            }
+            else
+            {
+              _display.drawBitmapTransp(temp_x_draw_pos, y_draw_pos, _terrain[h][w]->_img_ptr, _tile_side_len, _tile_side_len);
+            }
+          }
 
           temp_x_draw_pos += _tile_side_len;
         }

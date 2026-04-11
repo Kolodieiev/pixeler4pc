@@ -112,6 +112,14 @@ namespace pixeler
      */
     uint16_t getMax() const;
 
+  protected:
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const override;
+
   private:
     using IWidget::isTransparent;
     using IWidget::setTransparency;

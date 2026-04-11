@@ -41,5 +41,13 @@ namespace pixeler
     {
       return TypeID::TYPE_EMPTY_LAYOUT;
     }
+
+  protected:
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const override;
   };
 }  // namespace pixeler

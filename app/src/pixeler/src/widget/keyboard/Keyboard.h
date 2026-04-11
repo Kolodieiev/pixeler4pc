@@ -108,9 +108,18 @@ namespace pixeler
      */
     void setFocusPos(uint16_t x, uint16_t y);
 
+  protected:
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const override;
+
   private:
     KeyboardRow* getFocusRow() const;
 
+  private:
     uint16_t _cur_focus_row_pos{0};
 
     bool _first_drawing{true};

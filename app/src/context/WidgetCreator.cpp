@@ -6,8 +6,8 @@ EmptyLayout* WidgetCreator::getEmptyLayout()
   {
     EmptyLayout* layout = new EmptyLayout(1);
     layout->setBackColor(COLOR_MAIN_BACK);
-    layout->setWidth(TFT_WIDTH);
-    layout->setHeight(TFT_HEIGHT);
+    layout->setWidth(UI_WIDTH);
+    layout->setHeight(UI_HEIGHT);
     return layout;
   }
   catch (const std::bad_alloc& e)
@@ -62,8 +62,8 @@ DynamicMenu* WidgetCreator::getDynamicMenu(uint16_t id)
   {
     DynamicMenu* menu = new DynamicMenu(id);
     menu->setBackColor(COLOR_BLACK);
-    menu->setWidth(TFT_WIDTH);
-    menu->setHeight(TFT_HEIGHT * 2 - 2);
+    menu->setWidth(UI_WIDTH);
+    menu->setHeight(UI_HEIGHT * 2 - 2);
     return menu;
   }
   catch (const std::bad_alloc& e)
@@ -81,8 +81,8 @@ Label* WidgetCreator::getStatusMsgLable(uint16_t id, const char* text, uint8_t t
   lbl->setAlign(IWidget::ALIGN_CENTER);
   lbl->setGravity(IWidget::GRAVITY_CENTER);
   lbl->setBackColor(COLOR_MAIN_BACK);
-  lbl->setWidth(TFT_WIDTH);
-  lbl->setHeight(TFT_HEIGHT);
+  lbl->setWidth(UI_WIDTH);
+  lbl->setHeight(UI_HEIGHT);
   lbl->setAutoscroll(true);
   lbl->setFullAutoscroll(false);
 
@@ -92,8 +92,8 @@ Label* WidgetCreator::getStatusMsgLable(uint16_t id, const char* text, uint8_t t
 Keyboard* WidgetCreator::getStandardEnKeyboard(uint16_t id)
 {
   Keyboard* _keyboard = new Keyboard(id);
-  _keyboard->setWidth(TFT_WIDTH);
-  _keyboard->setHeight(TFT_HEIGHT - 50 * 2);
+  _keyboard->setWidth(UI_WIDTH);
+  _keyboard->setHeight(UI_HEIGHT - 50 * 2);
   _keyboard->setPos(0, 50);
   _keyboard->setCornerRadius(5);
 
@@ -299,8 +299,8 @@ Keyboard* WidgetCreator::getStandardEnKeyboard(uint16_t id)
 Keyboard* WidgetCreator::getCapsdEnKeyboard(uint16_t id)
 {
   Keyboard* _keyboard = new Keyboard(id);
-  _keyboard->setWidth(TFT_WIDTH);
-  _keyboard->setHeight(TFT_HEIGHT - 50 * 2);
+  _keyboard->setWidth(UI_WIDTH);
+  _keyboard->setHeight(UI_HEIGHT - 50 * 2);
   _keyboard->setPos(0, 50);
   _keyboard->setCornerRadius(5);
 

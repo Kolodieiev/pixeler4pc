@@ -42,7 +42,7 @@ namespace pixeler
 
   bool IWidgetContainer::delWidgetByID(uint16_t widget_ID)
   {
-    for (auto i_b = _widgets.begin(), i_e = _widgets.end(); i_b < i_e; ++i_b)
+    for (auto i_b = _widgets.begin(), i_e = _widgets.end(); i_b != i_e; ++i_b)
     {
       if ((*i_b)->getID() == widget_ID)
       {
@@ -57,9 +57,9 @@ namespace pixeler
     return false;
   }
 
-  IWidget* IWidgetContainer::getWidgetByID(uint16_t widget_ID) const
+  IWidget* IWidgetContainer::getWidgetByID(uint16_t widget_ID)
   {
-    for (const auto& widget_ptr : _widgets)
+    for (auto& widget_ptr : _widgets)
     {
       if (widget_ptr->getID() == widget_ID)
       {
@@ -70,7 +70,7 @@ namespace pixeler
     return nullptr;
   }
 
-  IWidget* IWidgetContainer::getWidgetByIndx(uint16_t widget_indx) const
+  IWidget* IWidgetContainer::getWidgetByIndx(uint16_t widget_indx)
   {
     IWidget* result{nullptr};
 
@@ -78,6 +78,20 @@ namespace pixeler
       result = _widgets[widget_indx];
 
     return result;
+  }
+
+  IWidget* IWidgetContainer::findTouchableAt(uint16_t x, uint16_t y)
+  {
+    if (!hitTest(x, y))
+      return nullptr;
+
+    for (auto i_b = _widgets.rbegin(), i_e = _widgets.rend(); i_b != i_e; ++i_b)
+    {
+      if (IWidget* found = (*i_b)->findTouchableAt(x, y))
+        return found;
+    }
+
+    return _is_touchable ? this : nullptr;
   }
 
   void IWidgetContainer::delWidgets()
@@ -108,5 +122,16 @@ namespace pixeler
   bool IWidgetContainer::isEnabled() const
   {
     return _is_enabled;
+  }
+
+  void IWidgetContainer::copyTo(IWidget* widget) const
+  {
+    IWidget::copyTo(widget);
+
+    IWidgetContainer* clone = static_cast<IWidgetContainer*>(widget);
+    clone->_is_enabled = _is_enabled;
+
+    for (const auto& widget_ptr : _widgets)
+      clone->addWidget(widget_ptr->clone(widget_ptr->getID()));
   }
 }  // namespace pixeler

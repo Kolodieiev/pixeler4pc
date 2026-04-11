@@ -1,28 +1,92 @@
 #pragma GCC optimize("O3")
 #include "LuaContext.h"
 
-#include "../lua_lib/custom_register.h"
-#include "../lua_lib/custom_searcher.h"
-#include "../lua_lib/custom_type_initializer.h"
+//
 #include "../lua_lib/helper/lua_helper.h"
+#include "../lua_lib/type/widget/lua_empty_layout.h"
+#include "../lua_lib/type/widget/lua_image.h"
+#include "../lua_lib/type/widget/lua_iwidget.h"
 #include "../lua_lib/type/widget/lua_iwidget_cont.h"
+#include "../lua_lib/type/widget/lua_label.h"
+#include "../lua_lib/type/widget/lua_menu.h"
+#include "../lua_lib/type/widget/lua_menu_item.h"
+#include "../lua_lib/type/widget/lua_progress.h"
+#include "../lua_lib/type/widget/lua_toggle_item.h"
+#include "../lua_lib/type/widget/lua_toggle_switch.h"
+
+//---------------------------------------------------------------------------------- Бібліотеки, що будуть доступні в скриптах завжди
+#include "../lua_lib/register/lua_gl.h"
+#include "../lua_lib/register/lua_mcu.h"
+//---------------------------------------------------------------------------------- Бібліотеки, які можна підключати та відключати
+#include "../lua_lib/require/lua_sd.h"
+
+//---------------------------------------------------------------------------------- Реєстрація користувацьких типів
+#include "../lua_lib/type/widget/lua_empty_layout.h"
+#include "../lua_lib/type/widget/lua_image.h"
+#include "../lua_lib/type/widget/lua_iwidget.h"
+#include "../lua_lib/type/widget/lua_iwidget_cont.h"
+#include "../lua_lib/type/widget/lua_label.h"
+#include "../lua_lib/type/widget/lua_menu.h"
+#include "../lua_lib/type/widget/lua_menu_item.h"
+#include "../lua_lib/type/widget/lua_progress.h"
+#include "../lua_lib/type/widget/lua_toggle_item.h"
+#include "../lua_lib/type/widget/lua_toggle_switch.h"
+//
 #include "pixeler/src/manager/ResManager.h"
 #include "pixeler/src/widget/layout/EmptyLayout.h"
 
-const char STR_NOTIFICATION[] = "Повідомлення";
-const char STR_OK[] = "OK";
-const char STR_NOT_ENOUGH_RAM[] = "Недостатньо RAM для роботи LuaVM";
-const char STR_LUA_START[] = "LuaVM стартувала";
-const char STR_LUA_STOP[] = "LuaVM зупинено";
-//
-const char STR_UPDATE_NAME[] = "update";
+static const char STR_NOTIFICATION[] = "Повідомлення";
+static const char STR_OK[] = "OK";
+static const char STR_NOT_ENOUGH_RAM[] = "Недостатньо RAM для роботи LuaVM";
+static const char STR_LUA_START[] = "LuaVM стартувала";
+static const char STR_LUA_STOP[] = "LuaVM зупинено";
+
+static const char STR_UPDATE_NAME[] = "update";
 //
 namespace pixeler
 {
-  const LuaRegisterFunc LuaContext::LIB_REGISTER_FUNCS[] = {
+
+  //---------------------------------------------------------------------------------- Бібліотеки, що будуть доступні в скриптах завжди
+
+  // Додай сюди функції для глобальної реєстрації бібліотек
+  const LuaRegisterFunc LuaContext::LIB_REGULAR_MODULE[] = {
       LuaContext::lua_register_context,
       LuaContext::lua_register_input,
+      lua_register_mcu,
+      lua_register_gl,
   };
+
+  //---------------------------------------------------------------------------------- Бібліотеки, які можна підключати та відключати
+
+  // Додай сюди функції для підключення бібліотек з допомогою require
+  int LuaContext::registerRequire(lua_State* L)
+  {
+    const char* lib_name = luaL_checkstring(L, 1);
+    if (strcmp(lib_name, STR_LIB_NAME_SD) == 0)
+      lua_pushcfunction(L, lua_open_sd);
+    else
+      luaL_error(L, "Відсутній завантажувач для модуля: %s", lib_name);
+
+    return 1;
+  }
+
+  //---------------------------------------------------------------------------------- Реєстрація користувацьких типів
+  /* Назва типу в луа, {список імен типів-залежностей}, функція-ініціалізатор типу */
+  const LuaContext::LuaCustomType LuaContext::LIB_CUSTOM_TYPE[] = {
+      {STR_TYPE_NAME_IWIDGET, {}, lua_init_iwidget},
+      {STR_TYPE_NAME_IWIDGET_CONT, {STR_TYPE_NAME_IWIDGET}, lua_init_iwidget_cont},
+      {STR_TYPE_NAME_LABEL, {STR_TYPE_NAME_IWIDGET}, lua_init_label},
+      {STR_TYPE_NAME_IMAGE, {STR_TYPE_NAME_IWIDGET}, lua_init_image},
+      {STR_TYPE_NAME_EMPTY_LAYOUT, {STR_TYPE_NAME_IWIDGET, STR_TYPE_NAME_IWIDGET_CONT}, lua_init_empty_layout},
+      {STR_TYPE_NAME_MENU, {STR_TYPE_NAME_IWIDGET_CONT}, lua_init_menu},
+      {STR_TYPE_NAME_MENU_ITEM, {STR_TYPE_NAME_LABEL, STR_TYPE_NAME_IMAGE}, lua_init_menu_item},
+      {STR_TYPE_NAME_TOGGLE_ITEM, {STR_TYPE_NAME_MENU_ITEM, STR_TYPE_NAME_TOGGLE_SWITCH}, lua_init_toggle_item},
+      {STR_TYPE_NAME_TOGGLE_SWITCH, {STR_TYPE_NAME_IWIDGET}, lua_init_toggle_switch},
+      {STR_TYPE_NAME_PROGRESS, {STR_TYPE_NAME_IWIDGET}, lua_init_progress},
+      {nullptr, {}, nullptr},
+  };
+
+  //----------------------------------------------------------------------------------
 
   const struct luaL_Reg LuaContext::LIB_CONTEXT[] = {
       {"manageWidget", LuaContext::lua_context_manage_widget},
@@ -38,6 +102,11 @@ namespace pixeler
       {"is_pressed", lua_input_is_pressed},
       {"is_released", lua_input_is_released},
       {"lock", lua_input_lock},
+#ifdef TOUCHSCREEN_SUPPORT
+      {"getSwipe", lua_input_get_swipe},
+      {"getTouchX", lua_input_get_x},
+      {"getTouchY", lua_input_get_y},
+#endif  // #ifdef TOUCHSCREEN_SUPPORT
       {nullptr, nullptr},
   };
 
@@ -48,8 +117,8 @@ namespace pixeler
 #ifdef GRAPHICS_ENABLED
     EmptyLayout* layout = new EmptyLayout(1);
     layout->setBackColor(COLOR_BLUE);
-    layout->setWidth(TFT_WIDTH);
-    layout->setHeight(TFT_HEIGHT);
+    layout->setWidth(UI_WIDTH);
+    layout->setHeight(UI_HEIGHT);
     setLayout(layout);
 
     _notification = new Notification(1);
@@ -61,7 +130,6 @@ namespace pixeler
   LuaContext::~LuaContext()
   {
     lua_close(_lua);
-    reset_custom_initializer();
     delete _notification;
 
     for (size_t i = 0; i < _loaded_img_id.size(); ++i)
@@ -90,12 +158,8 @@ namespace pixeler
     luaL_openlibs(_lua);
     lua_sethook(_lua, luaHook, LUA_MASKCOUNT, 10000);
 
-    const size_t funcs_num = sizeof(LIB_REGISTER_FUNCS) / sizeof(LuaRegisterFunc);
-    for (size_t i = 0; i < funcs_num; ++i)
-      LIB_REGISTER_FUNCS[i](_lua);
-
-    register_custom_modules(_lua);
-    register_custom_searcher(_lua);
+    regRegularModule(_lua);
+    regRequireModule(_lua);
 
     lua_register(_lua, "initType", lua_init_type);
     lua_register(_lua, "unrequire", lua_unrequire);
@@ -106,6 +170,19 @@ namespace pixeler
 
     lua_register(_lua, "loadImg", lua_load_img);
     lua_register(_lua, "deleteImg", lua_delete_img);
+
+#ifdef TOUCHSCREEN_SUPPORT
+    lua_pushinteger(_lua, ITouchscreen::SWIPE_NONE);
+    lua_setglobal(_lua, "SWIPE_NONE");
+    lua_pushinteger(_lua, ITouchscreen::SWIPE_L);
+    lua_setglobal(_lua, "SWIPE_L");
+    lua_pushinteger(_lua, ITouchscreen::SWIPE_R);
+    lua_setglobal(_lua, "SWIPE_R");
+    lua_pushinteger(_lua, ITouchscreen::SWIPE_U);
+    lua_setglobal(_lua, "SWIPE_U");
+    lua_pushinteger(_lua, ITouchscreen::SWIPE_D);
+    lua_setglobal(_lua, "SWIPE_D");
+#endif  // #ifdef TOUCHSCREEN_SUPPORT
 
     _msg = "";
     return true;
@@ -256,6 +333,9 @@ namespace pixeler
 
   int LuaContext::lua_context_get_layout(lua_State* L)
   {
+#ifndef GRAPHICS_ENABLED
+    lua_pushnil(L);
+#else   // GRAPHICS_ENABLED
     IWidgetContainer* layout = _self->getLayout();
     if (!layout)
     {
@@ -269,7 +349,7 @@ namespace pixeler
       luaL_getmetatable(L, STR_TYPE_NAME_IWIDGET_CONT);
       lua_setmetatable(L, -2);
     }
-
+#endif  // #ifdef GRAPHICS_ENABLED
     return 1;
   }
 
@@ -285,91 +365,119 @@ namespace pixeler
   int LuaContext::lua_input_enable_btn(lua_State* L)
   {
     int btn = luaL_checkinteger(L, 1);
-    _input.enableBtn((BtnID)btn);
+    _input.enableBtn(static_cast<BtnID>(btn));
     return 0;
   }
 
   int LuaContext::lua_input_disable_btn(lua_State* L)
   {
     int btn = luaL_checkinteger(L, 1);
-    _input.disableBtn((BtnID)btn);
+    _input.disableBtn(static_cast<BtnID>(btn));
     return 0;
   }
 
   int LuaContext::lua_input_is_holded(lua_State* L)
   {
-    int btn = luaL_checkinteger(L, 1);
-    lua_pushboolean(L, _input.isHolded((BtnID)btn));
+#ifdef TOUCHSCREEN_SUPPORT
+    int args_num = lua_gettop(L);
+
+    if (args_num == 0)
+    {
+      lua_pushboolean(L, _input.isHolded());
+    }
+    else
+    {
+#endif  // #ifdef TOUCHSCREEN_SUPPORT
+      int btn = luaL_checkinteger(L, 1);
+      lua_pushboolean(L, _input.isHolded(static_cast<BtnID>(btn)));
+#ifdef TOUCHSCREEN_SUPPORT
+    }
+#endif  // #ifdef TOUCHSCREEN_SUPPORT
+
     return 1;
   }
 
   int LuaContext::lua_input_is_pressed(lua_State* L)
   {
-    int btn = luaL_checkinteger(L, 1);
-    lua_pushboolean(L, _input.isPressed((BtnID)btn));
+#ifdef TOUCHSCREEN_SUPPORT
+    int args_num = lua_gettop(L);
+
+    if (args_num == 0)
+    {
+      lua_pushboolean(L, _input.isPressed());
+    }
+    else
+    {
+#endif  // #ifdef TOUCHSCREEN_SUPPORT
+      int btn = luaL_checkinteger(L, 1);
+      lua_pushboolean(L, _input.isPressed(static_cast<BtnID>(btn)));
+#ifdef TOUCHSCREEN_SUPPORT
+    }
+#endif  // #ifdef TOUCHSCREEN_SUPPORT
     return 1;
   }
 
   int LuaContext::lua_input_is_released(lua_State* L)
   {
-    int btn = luaL_checkinteger(L, 1);
-    lua_pushboolean(L, _input.isReleased((BtnID)btn));
+#ifdef TOUCHSCREEN_SUPPORT
+    int args_num = lua_gettop(L);
+
+    if (args_num == 0)
+    {
+      lua_pushboolean(L, _input.isReleased());
+    }
+    else
+    {
+#endif  // #ifdef TOUCHSCREEN_SUPPORT
+      int btn = luaL_checkinteger(L, 1);
+      lua_pushboolean(L, _input.isReleased(static_cast<BtnID>(btn)));
+#ifdef TOUCHSCREEN_SUPPORT
+    }
+#endif  // #ifdef TOUCHSCREEN_SUPPORT
     return 1;
   }
 
   int LuaContext::lua_input_lock(lua_State* L)
   {
-    int btn = luaL_checkinteger(L, 1);
-    int lock_time = luaL_checkinteger(L, 2);
-    _input.lock((BtnID)btn, lock_time);
-    return 0;
-  }
+#ifdef TOUCHSCREEN_SUPPORT
+    int args_num = lua_gettop(L);
 
-  int LuaContext::lua_init_type(lua_State* L)
-  {
-    init_custom_type(L);
-    return 0;
-  }
-
-  int LuaContext::lua_unrequire(lua_State* L)
-  {
-    const char* module_name = luaL_checkstring(L, 1);
-
-    lua_getglobal(L, "package");
-    lua_getfield(L, -1, "loaded");
-    lua_getfield(L, -1, module_name);  // stack: package, loaded, module
-
-    if (!lua_isnil(L, -1))
+    if (args_num == 1)
     {
-      lua_getfield(L, -1, "__unload");
-      if (!lua_isfunction(L, -1))
-      {
-        lua_pop(L, 1);
-      }
-      else
-      {
-        lua_pushvalue(L, -2);
-        if (lua_pcall(L, 1, 0, 0) != LUA_OK)
-        {
-          const char* err = lua_tostring(L, -1);
-          log_e("Error in __unload: %s\n", err);
-          lua_pop(L, 1);
-        }
-      }
+      int lock_time = luaL_checkinteger(L, 1);
+      _input.lock(lock_time);
     }
-
-    lua_pop(L, 1);
-
-    lua_pushnil(L);
-    lua_setfield(L, -2, module_name);
-
-    lua_pop(L, 2);
-
-    lua_pushnil(L);
-    lua_setglobal(L, module_name);
-
+    else
+    {
+#endif  // #ifdef TOUCHSCREEN_SUPPORT
+      int btn = luaL_checkinteger(L, 1);
+      int lock_time = luaL_checkinteger(L, 2);
+      _input.lock(static_cast<BtnID>(btn), lock_time);
+#ifdef TOUCHSCREEN_SUPPORT
+    }
+#endif  // #ifdef TOUCHSCREEN_SUPPORT
     return 0;
   }
+
+#ifdef TOUCHSCREEN_SUPPORT
+  int LuaContext::lua_input_get_swipe(lua_State* L)
+  {
+    lua_pushinteger(L, _input.getSwipe());
+    return 1;
+  }
+
+  int LuaContext::lua_input_get_x(lua_State* L)
+  {
+    lua_pushinteger(L, _input.getTouchX());
+    return 1;
+  }
+
+  int LuaContext::lua_input_get_y(lua_State* L)
+  {
+    lua_pushinteger(L, _input.getTouchY());
+    return 1;
+  }
+#endif  // #ifdef TOUCHSCREEN_SUPPORT
 
   int LuaContext::lua_show_toast(lua_State* L)
   {
@@ -425,21 +533,21 @@ namespace pixeler
     _self->showNotification(_self->_notification);
 
 #else
-    int stack_msg_pos = 1;
+    int stack_msg_pos{0};
     if (arg_num == 1)
     {
-      lua_stack_pos = 1;
+      stack_msg_pos = 1;
     }
     else if (arg_num == 4)
     {
-      lua_stack_pos = 2;
+      stack_msg_pos = 2;
     }
     else
     {
       return 0;
     }
 
-    const char* notification_msg = luaL_checkstring(L, lua_stack_pos);
+    const char* notification_msg = luaL_checkstring(L, stack_msg_pos);
     log_i("%s", notification_msg);
 
 #endif
@@ -449,7 +557,9 @@ namespace pixeler
 
   int LuaContext::lua_hide_notification(lua_State* L)
   {
+#ifdef GRAPHICS_ENABLED
     _self->hideNotification();
+#endif
     return 0;
   }
 
@@ -481,4 +591,125 @@ namespace pixeler
 
     return 0;
   }
+
+  void LuaContext::regRequireModule(lua_State* L)
+  {
+    lua_getglobal(L, "package");
+    lua_getfield(L, -1, "searchers");
+    int searchers_len = lua_rawlen(L, -1);
+    lua_pushinteger(L, searchers_len + 1);
+    lua_pushcfunction(L, registerRequire);
+    lua_rawset(L, -3);
+    lua_pop(L, 2);
+  }
+
+  void LuaContext::regRegularModule(lua_State* L)
+  {
+    const size_t funcs_num = sizeof(LIB_REGULAR_MODULE) / sizeof(LuaRegisterFunc);
+    for (size_t i = 0; i < funcs_num; ++i)
+      LIB_REGULAR_MODULE[i](L);
+  }
+
+  bool LuaContext::initType(lua_State* L, const char* type_name)
+  {
+    if (isTypeInited(type_name))
+      return true;
+
+    for (const auto& type : LIB_CUSTOM_TYPE)
+    {
+      if (type.name && strcmp(type.name, type_name) == 0)
+      {
+        for (const char* dep_name : type.deps)
+        {
+          if (!initType(L, dep_name))
+            return false;  // Неможливо ініціалізувати одну із залежностей
+        }
+
+        if (type.initializer)
+        {
+          type.initializer(L);                 // Реєструємо основний тип
+          _inited_types.push_back(type_name);  // Запам'ятали реєстрацію
+          return true;
+        }
+      }
+    }
+
+    luaL_error(L, "Відсутній ініціалізатор для типу: %s", type_name);
+    return false;
+  }
+
+  void LuaContext::clearInitialization(const char* type_name)
+  {
+    for (auto it_b = _inited_types.begin(), it_e = _inited_types.end(); it_b != it_e; ++it_b)
+    {
+      if (strcmp(*it_b, type_name) == 0)
+      {
+        _inited_types.erase(it_b);
+        return;
+      }
+    }
+  }
+
+  int LuaContext::lua_init_type(lua_State* L)
+  {
+    const char* type_name = luaL_checkstring(L, 1);
+    _self->initType(L, type_name);
+    return 0;
+  }
+
+  int LuaContext::lua_unrequire(lua_State* L)
+  {
+    const char* module_name = luaL_checkstring(L, 1);
+
+    lua_getglobal(L, "package");
+    lua_getfield(L, -1, "loaded");
+    lua_getfield(L, -1, module_name);  // stack: package, loaded, module
+
+    if (!lua_isnil(L, -1))
+    {
+      lua_getfield(L, -1, "__unload");
+      if (!lua_isfunction(L, -1))
+      {
+        lua_pop(L, 1);
+      }
+      else
+      {
+        lua_pushvalue(L, -2);
+        if (lua_pcall(L, 1, 0, 0) != LUA_OK)
+        {
+          const char* err = lua_tostring(L, -1);
+          log_e("Error in __unload: %s\n", err);
+          lua_pop(L, 1);
+        }
+      }
+    }
+
+    lua_pop(L, 1);
+
+    lua_pushnil(L);
+    lua_setfield(L, -2, module_name);
+
+    lua_pop(L, 2);
+
+    lua_pushnil(L);
+    lua_setglobal(L, module_name);
+
+    _self->clearInitialization(module_name);  // Забули реєстрацію
+
+    return 0;
+  }
+
+  bool LuaContext::isTypeInited(const char* type_name)
+  {
+    for (const char* t_name : _inited_types)
+    {
+      if (strcmp(t_name, type_name) == 0)
+        return true;
+    }
+
+    return false;
+  }
+
+  //----------------------------------------------------------------------------------
+
 }  // namespace pixeler

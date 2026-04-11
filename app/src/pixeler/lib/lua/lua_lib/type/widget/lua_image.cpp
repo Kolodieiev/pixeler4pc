@@ -2,8 +2,8 @@
 #include "lua_image.h"
 
 #include "./lua_iwidget.h"
-#include "pixeler/src/manager/ResManager.h"
 #include "pixeler/lib/lua/res/lua_strs.h"
+#include "pixeler/src/manager/ResManager.h"
 #include "pixeler/src/widget/image/Image.h"
 
 using namespace pixeler;
@@ -53,9 +53,17 @@ int lua_image_set_src(lua_State* L)
   return 0;
 }
 
+int lua_image_unload(lua_State* L)
+{
+  lua_pushnil(L);
+  lua_setfield(L, LUA_REGISTRYINDEX, STR_TYPE_NAME_IMAGE);
+  return 0;
+}
+
 const struct luaL_Reg TYPE_METH_IMAGE[] = {
     {"setSrc", lua_image_set_src},
     {STR_LUA_WIDGET_CLONE, lua_image_clone},
+    {STR_LUA_UNLOAD, lua_image_unload},
     {nullptr, nullptr},
 };
 

@@ -89,15 +89,15 @@ namespace sokoban
     _lvl_menu = new FixedMenu(ID_LVL_LIST);
     layout->addWidget(_lvl_menu);
     _lvl_menu->setBackColor(COLOR_MENU_ITEM);
-    _lvl_menu->setWidth(TFT_WIDTH - SCROLLBAR_WIDTH);
-    _lvl_menu->setHeight(TFT_HEIGHT);
-    _lvl_menu->setItemHeight((TFT_HEIGHT - 2) / MENU_ITEMS_NUM);
+    _lvl_menu->setWidth(UI_WIDTH - SCROLLBAR_WIDTH);
+    _lvl_menu->setHeight(UI_HEIGHT);
+    _lvl_menu->setItemHeight((UI_HEIGHT - 2) / MENU_ITEMS_NUM);
 
     _scrollbar = new ScrollBar(ID_SCROLL);
     layout->addWidget(_scrollbar);
     _scrollbar->setWidth(SCROLLBAR_WIDTH);
-    _scrollbar->setHeight(TFT_HEIGHT);
-    _scrollbar->setPos(TFT_WIDTH - SCROLLBAR_WIDTH, 0);
+    _scrollbar->setHeight(UI_HEIGHT);
+    _scrollbar->setPos(UI_WIDTH - SCROLLBAR_WIDTH, 0);
     _scrollbar->setBackColor(COLOR_MAIN_BACK);
 
     for (uint8_t i{1}; i <= LEVEL_NUM; ++i)

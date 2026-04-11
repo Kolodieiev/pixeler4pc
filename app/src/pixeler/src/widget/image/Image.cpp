@@ -11,36 +11,22 @@ namespace pixeler
     _is_changed = true;
   }
 
+  void Image::copyTo(IWidget* widget) const
+  {
+    IWidget::copyTo(widget);
+
+    Image* clone = static_cast<Image*>(widget);
+    clone->_img_ptr = _img_ptr;
+    clone->_has_transparency = _has_transparency;
+  }
+
   Image* Image::clone(uint16_t id) const
   {
     try
     {
-      Image* cln = new Image(id);
-      cln->_has_border = _has_border;
-      cln->_x_pos = _x_pos;
-      cln->_y_pos = _y_pos;
-      cln->_back_color = _back_color;
-      cln->_border_color = _border_color;
-      cln->_corner_radius = _corner_radius;
-      cln->_is_transparent = _is_transparent;
-      cln->_has_transparency = _has_transparency;
-      cln->_visibility = _visibility;
-      cln->_has_focus = _has_focus;
-      cln->_old_border_state = _old_border_state;
-      cln->_need_clear_border = _need_clear_border;
-      cln->_need_change_border = _need_change_border;
-      cln->_need_change_back = _need_change_back;
-      cln->_focus_border_color = _focus_border_color;
-      cln->_old_border_color = _old_border_color;
-      cln->_focus_back_color = _focus_back_color;
-      cln->_old_back_color = _old_back_color;
-      cln->_parent = _parent;
-
-      cln->_width = _width;
-      cln->_height = _height;
-      cln->_img_ptr = _img_ptr;
-
-      return cln;
+      Image* clone = new Image(id);
+      copyTo(clone);
+      return clone;
     }
     catch (const std::bad_alloc& e)
     {
@@ -84,9 +70,26 @@ namespace pixeler
     if (_img_ptr)
     {
       if (!_has_transparency)
-        _display.drawBitmap(_x_pos + x_offset, _y_pos + y_offset, _img_ptr, _width, _height);
+      {
+#if CONFIG_IDF_TARGET_ESP32P4
+        if (_width * _height > PPA_IMG_SIZE_TRIGG)
+        {
+          bool old_state = _display.isPPAEnabled();
+
+          _display.setPPAState(true);
+          _display.drawBitmap(_x_pos + x_offset, _y_pos + y_offset, _img_ptr, _width, _height);
+          _display.setPPAState(old_state);
+        }
+        else
+#endif  // #if CONFIG_IDF_TARGET_ESP32P4
+        {
+          _display.drawBitmap(_x_pos + x_offset, _y_pos + y_offset, _img_ptr, _width, _height);
+        }
+      }
       else
+      {
         _display.drawBitmapTransp(_x_pos + x_offset, _y_pos + y_offset, _img_ptr, _width, _height);
+      }
     }
     else
     {

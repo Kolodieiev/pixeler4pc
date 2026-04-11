@@ -5,8 +5,8 @@
 
 #include <cstring>
 
-#include "pixeler/src/driver/graphics/DisplayWrapper.h"
 #include "pixeler/lib/lua/lua_lib/helper/lua_helper.h"
+#include "pixeler/src/driver/graphics/DisplayWrapper.h"
 
 using namespace pixeler;
 
@@ -14,13 +14,21 @@ const char STR_LIB_NAME_GL[] = "gl";
 
 int lua_gl_width(lua_State* L)
 {
-  lua_pushinteger(L, TFT_WIDTH);
+#ifdef GRAPHICS_ENABLED
+  lua_pushinteger(L, UI_WIDTH);
+#else
+  lua_pushinteger(L, 0);
+#endif  // #ifdef GRAPHICS_ENABLED
   return 1;
 }
 
 int lua_gl_height(lua_State* L)
 {
-  lua_pushinteger(L, TFT_HEIGHT);
+#ifdef GRAPHICS_ENABLED
+  lua_pushinteger(L, UI_HEIGHT);
+#else
+  lua_pushinteger(L, 0);
+#endif  // #ifdef GRAPHICS_ENABLED
   return 1;
 }
 

@@ -42,7 +42,7 @@ namespace pixeler
     /**
      * @brief Повертає ідентифікатор контексту, який було встановлено методом openContextByID.
      *
-     * @return ContextID - унікальний ідентифікатор дисплею.
+     * @return ContextID - унікальний ідентифікатор дисплея.
      */
     ContextID getNextContextID() const;
 
@@ -79,20 +79,6 @@ namespace pixeler
     virtual bool loop() = 0;
 
     /**
-     * @brief Встановлює віджет, який буде слугувати макетом GUI для поточного контексту. Віджет буде автоматично видалений разом з контекстом.
-     *
-     * @param layout Вказівник на віджет макету.
-     */
-    void setLayout(IWidgetContainer* layout);
-
-    /**
-     * @brief Повертає вказівник на поточний віджет макету контексту.
-     *
-     * @return IWidgetContainer*
-     */
-    IWidgetContainer* getLayout() const;
-
-    /**
      * @brief Встановлює стан поточного контексту в такий, що повинен бути звільнений.
      * Також встановлює ідентифікатор контексту, в який повинен виконатися перехід.
      *
@@ -105,6 +91,22 @@ namespace pixeler
      *
      */
     void release();
+
+#ifdef GRAPHICS_ENABLED
+
+    /**
+     * @brief Встановлює віджет, який буде слугувати макетом GUI для поточного контексту. Віджет буде автоматично видалений разом з контекстом.
+     *
+     * @param layout Вказівник на віджет макету.
+     */
+    void setLayout(IWidgetContainer* layout);
+
+    /**
+     * @brief Повертає вказівник на поточний віджет макету контексту.
+     *
+     * @return IWidgetContainer*
+     */
+    IWidgetContainer* getLayout() const;
 
     /**
      * @brief Виводить коротке повідомлення-підказку в межах поточного контексту.
@@ -162,16 +164,20 @@ namespace pixeler
   private:
     void removeToast();
 
+#endif  // #ifdef GRAPHICS_ENABLED
+
   private:
+#ifdef GRAPHICS_ENABLED
     SemaphoreHandle_t _layout_mutex{nullptr};
 
     IWidgetContainer* _layout{nullptr};
     Label* _toast_label{nullptr};
     Notification* _notification{nullptr};
     //
-    unsigned long _upd_time{0};
     unsigned long _toast_lifetime{0};
     unsigned long _toast_birthtime{0};
+#endif  // #ifdef GRAPHICS_ENABLED
+    unsigned long _upd_time{0};
 
     ContextID _next_context_ID{0};
 

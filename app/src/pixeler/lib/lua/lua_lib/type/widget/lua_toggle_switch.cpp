@@ -89,6 +89,13 @@ int lua_toggle_switch_set_orientation(lua_State* L)
   return 0;
 }
 
+int lua_toggle_switch_unload(lua_State* L)
+{
+  lua_pushnil(L);
+  lua_setfield(L, LUA_REGISTRYINDEX, STR_TYPE_NAME_TOGGLE_SWITCH);
+  return 0;
+}
+
 const struct luaL_Reg TYPE_METH_TOGGLE_SWITCH[] = {
     {"isOn", lua_toggle_switch_is_on},
     {"setOn", lua_toggle_set_on},
@@ -98,6 +105,7 @@ const struct luaL_Reg TYPE_METH_TOGGLE_SWITCH[] = {
     {"setOffColor", lua_toggle_switch_set_off_color},
     {"setOrientation", lua_toggle_switch_set_orientation},
     {STR_LUA_WIDGET_CLONE, lua_toggle_switch_clone},
+    {STR_LUA_UNLOAD, lua_toggle_switch_unload},
     {nullptr, nullptr},
 };
 

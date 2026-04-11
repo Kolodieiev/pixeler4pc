@@ -5,36 +5,25 @@ namespace pixeler
 {
   Keyboard::Keyboard(uint16_t widget_ID) : IWidgetContainer(widget_ID, TYPE_KEYBOARD) {}
 
+  void Keyboard::copyTo(IWidget* widget) const
+  {
+    IWidgetContainer::copyTo(widget);
+
+    Keyboard* clone = static_cast<Keyboard*>(widget);
+    clone->_cur_focus_row_pos = _cur_focus_row_pos;
+
+    // Інші параметри лишаємо по замовченню, щоб не зламати малювання
+    // clone->_first_drawing = _first_drawing;
+    // clone->_has_manual_settings = _has_manual_settings;
+  }
+
   Keyboard* Keyboard::clone(uint16_t id) const
   {
     try
     {
-      Keyboard* cln = new Keyboard(id);
-      cln->_has_border = _has_border;
-      cln->_x_pos = _x_pos;
-      cln->_y_pos = _y_pos;
-      cln->_width = _width;
-      cln->_height = _height;
-      cln->_back_color = _back_color;
-      cln->_border_color = _border_color;
-      cln->_corner_radius = _corner_radius;
-      cln->_is_transparent = _is_transparent;
-      cln->_visibility = _visibility;
-      cln->_has_focus = _has_focus;
-      cln->_old_border_state = _old_border_state;
-      cln->_need_clear_border = _need_clear_border;
-      cln->_need_change_border = _need_change_border;
-      cln->_need_change_back = _need_change_back;
-      cln->_focus_border_color = _focus_border_color;
-      cln->_old_border_color = _old_border_color;
-      cln->_focus_back_color = _focus_back_color;
-      cln->_old_back_color = _old_back_color;
-      cln->_parent = _parent;
-
-      for (const IWidget* widget_ptr : _widgets)
-        cln->addWidget(widget_ptr->clone(widget_ptr->getID()));
-
-      return cln;
+      Keyboard* clone = new Keyboard(id);
+      copyTo(clone);
+      return clone;
     }
     catch (const std::bad_alloc& e)
     {

@@ -1,7 +1,7 @@
 /**
  * @file ToggleSwitch.h
  * @brief Віджет для відображення перемикача стану
- * @details Дозволяє перемикати булеве значення між станами 
+ * @details Дозволяє перемикати булеве значення між станами
  * увімкнено/вимкнено з візуальною індикацією поточного стану.
  */
 
@@ -116,6 +116,14 @@ namespace pixeler
      * @return Orientation
      */
     Orientation getOrientation() const;
+
+  protected:
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const override;
 
   private:
     using IWidget::getBackColor;

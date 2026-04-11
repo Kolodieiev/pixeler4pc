@@ -13,7 +13,7 @@
 
 namespace pixeler
 {
-  class FixedMenu final : public Menu
+  class FixedMenu final : public IMenu
   {
   public:
     explicit FixedMenu(uint16_t widget_ID);
@@ -37,6 +37,22 @@ namespace pixeler
     {
       return TypeID::TYPE_FIX_MENU;
     }
+
+    /**
+     * @brief Рендерить попередню сторінку меню.
+     *
+     * @return true - Якщо операцію виконано успішно.
+     * @return false - Інакше.
+     */
+    virtual bool pageUp() override;
+
+    /**
+     * @brief Рендерить наступну сторінку меню.
+     *
+     * @return true - Якщо операцію виконано успішно.
+     * @return false - Інакше.
+     */
+    virtual bool pageDown() override;
 
     /**
      * @brief Переміщує фокус на попередній віджет у контейнері.
@@ -70,7 +86,36 @@ namespace pixeler
      */
     void setCurrFocusPos(uint16_t focus_pos);
 
+    /**
+     * @brief Повертає кількість сторінок, які містить меню з поточною кількістю елементів.
+     * 
+     * @return uint16_t 
+     */
+    uint16_t getPagesCount() const;
+
+    /**
+     * @brief Повертає номер поточної сторінки меню.
+     * 
+     * @return uint16_t 
+     */
+    uint16_t getPageNum() const;
+
+    /**
+     * @brief Встановлює номер поточної сторінки меню.
+     * 
+     * @param page_pos 
+     */
+    void setPageNum(uint16_t page_pos);
+
   protected:
-    bool _is_loop_enbl = false;
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const override;
+
+  protected:
+    bool _is_loop_enbl{false};
   };
 }  // namespace pixeler

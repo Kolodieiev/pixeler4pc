@@ -49,14 +49,14 @@ namespace pixeler
      *
      * @param max
      */
-    void setMax(uint16_t max);
+    void setMax(uint32_t max);
 
     /**
      * @brief Встановлює поточне значення прогресу.
      *
      * @param progress
      */
-    void setProgress(uint16_t progress);
+    void setProgress(uint32_t progress);
 
     /**
      * @brief Встановлює колір фону смужки прогресу.
@@ -89,26 +89,44 @@ namespace pixeler
     /**
      * @brief Повертає поточне значення прогресу.
      *
-     * @return uint16_t
+     * @return uint32_t
      */
-    uint16_t getProgress() const;
+    uint32_t getProgress() const;
+
+    /**
+     * @brief Повертає прогрес віджета відносно координат.
+     *
+     * @param x Координата.
+     * @param y Координата.
+     * @return uint32_t - Прогрес відносно координат.
+     * @return 0 - Якщо параметри некоректні.
+     */
+    uint32_t getProgressAt(uint16_t x, uint16_t y) const;
 
     /**
      * @brief Повертає максимально можливе значення прогресу.
      *
-     * @return uint16_t
+     * @return uint32_t
      */
-    uint16_t getMax() const;
+    uint32_t getMax() const;
+
+  protected:
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const override;
 
   private:
     using IWidget::isTransparent;
     using IWidget::setTransparency;
 
   private:
-    uint16_t _progress{1};
-    uint16_t _max{1};
+    uint32_t _progress{1};
+    uint32_t _max{1};
+    uint32_t _prev_progress{1};
     uint16_t _progress_color{COLOR_WHITE};
-    uint16_t _prev_progress{1};
     //
     Orientation _orientation{HORIZONTAL};
     // opt

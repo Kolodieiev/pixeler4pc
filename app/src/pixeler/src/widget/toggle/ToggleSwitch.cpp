@@ -133,39 +133,26 @@ namespace pixeler
     }
   }
 
+  void ToggleSwitch::copyTo(IWidget* widget) const
+  {
+    IWidget::copyTo(widget);
+
+    ToggleSwitch* clone = static_cast<ToggleSwitch*>(widget);
+
+    clone->_lever_color = _lever_color;
+    clone->_on_color = _on_color;
+    clone->_off_color = _off_color;
+    clone->_orientation = _orientation;
+    clone->_is_on = _is_on;
+  }
+
   ToggleSwitch* ToggleSwitch::clone(uint16_t id) const
   {
     try
     {
-      ToggleSwitch* cln = new ToggleSwitch(id);
-      cln->_has_border = _has_border;
-      cln->_x_pos = _x_pos;
-      cln->_y_pos = _y_pos;
-      cln->_width = _width;
-      cln->_height = _height;
-      cln->_back_color = _back_color;
-      cln->_border_color = _border_color;
-      cln->_corner_radius = _corner_radius;
-      cln->_is_transparent = _is_transparent;
-      cln->_visibility = _visibility;
-      cln->_has_focus = _has_focus;
-      cln->_old_border_state = _old_border_state;
-      cln->_need_clear_border = _need_clear_border;
-      cln->_need_change_border = _need_change_border;
-      cln->_need_change_back = _need_change_back;
-      cln->_focus_border_color = _focus_border_color;
-      cln->_old_border_color = _old_border_color;
-      cln->_focus_back_color = _focus_back_color;
-      cln->_old_back_color = _old_back_color;
-      cln->_parent = _parent;
-
-      cln->_orientation = _orientation;
-      cln->_is_on = _is_on;
-      cln->_lever_color = _lever_color;
-      cln->_on_color = _on_color;
-      cln->_off_color = _off_color;
-
-      return cln;
+      ToggleSwitch* clone = new ToggleSwitch(id);
+      copyTo(clone);
+      return clone;
     }
     catch (const std::bad_alloc& e)
     {

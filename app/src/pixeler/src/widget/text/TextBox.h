@@ -86,6 +86,14 @@ namespace pixeler
      */
     void addChars(const char* ch);
 
+  protected:
+    /**
+     * @brief Копіює поля до іншого віджета.
+     *
+     * @param widget
+     */
+    virtual void copyTo(IWidget* widget) const override;
+
   private:
     using Label::getAutoscrollDelay;
     using Label::hasAutoscroll;
@@ -99,6 +107,8 @@ namespace pixeler
     using Label::updateWidthToFit;
 
     uint16_t getFitStr(String& ret_str) const;
+
+  private:
     FieldType _type{TYPE_TEXT};
   };
 

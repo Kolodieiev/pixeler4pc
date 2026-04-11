@@ -40,9 +40,9 @@ namespace rpg
     _game_menu = new FixedMenu(ID_MENU_GAME);
     layout->addWidget(_game_menu);
     _game_menu->setBackColor(COLOR_MAIN_RPG_BACK);
-    _game_menu->setWidth(TFT_WIDTH - GAME_MENU_H_PADDINGS * 2);
-    _game_menu->setHeight(TFT_HEIGHT / 2 - GAME_MENU_V_PADDINGS * 2);
-    _game_menu->setPos(GAME_MENU_H_PADDINGS, TFT_HEIGHT / 2 + GAME_MENU_V_PADDINGS);
+    _game_menu->setWidth(UI_WIDTH - GAME_MENU_H_PADDINGS * 2);
+    _game_menu->setHeight(UI_HEIGHT / 2 - GAME_MENU_V_PADDINGS * 2);
+    _game_menu->setPos(GAME_MENU_H_PADDINGS, UI_HEIGHT / 2 + GAME_MENU_V_PADDINGS);
     _game_menu->setItemsSpacing(GAME_MENU_ITEM_SPACING);
     _game_menu->setLoopState(true);
 

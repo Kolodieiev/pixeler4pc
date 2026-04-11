@@ -11,41 +11,25 @@ namespace pixeler
   {
   }
 
+  void ComboItem::copyTo(IWidget* widget) const
+  {
+    MenuItem::copyTo(widget);
+
+    ComboItem* clone = static_cast<ComboItem*>(widget);
+    clone->setLbl(_label->clone(_label->getID()));
+    clone->_range = _range;
+    clone->_selected_pos = _selected_pos;
+    if (_img)
+      clone->setImg(_img->clone(_img->getID()));
+  }
+
   ComboItem* ComboItem::clone(uint16_t id) const
   {
     try
     {
-      ComboItem* cln = new ComboItem(id);
-      cln->_has_border = _has_border;
-      cln->_x_pos = _x_pos;
-      cln->_y_pos = _y_pos;
-      cln->_width = _width;
-      cln->_height = _height;
-      cln->_back_color = _back_color;
-      cln->_border_color = _border_color;
-      cln->_corner_radius = _corner_radius;
-      cln->_is_transparent = _is_transparent;
-      cln->_visibility = _visibility;
-      cln->_has_focus = _has_focus;
-      cln->_old_border_state = _old_border_state;
-      cln->_need_clear_border = _need_clear_border;
-      cln->_need_change_border = _need_change_border;
-      cln->_need_change_back = _need_change_back;
-      cln->_focus_border_color = _focus_border_color;
-      cln->_old_border_color = _old_border_color;
-      cln->_focus_back_color = _focus_back_color;
-      cln->_old_back_color = _old_back_color;
-      cln->_parent = _parent;
-
-      if (_img)
-        cln->setImg(_img->clone(_img->getID()));
-
-      cln->setLbl(_label->clone(_label->getID()));
-
-      cln->_range = _range;
-      cln->_curr_pos = _curr_pos;
-
-      return cln;
+      ComboItem* clone = new ComboItem(id);
+      copyTo(clone);
+      return clone;
     }
     catch (const std::bad_alloc& e)
     {
@@ -63,7 +47,7 @@ namespace pixeler
     }
 
     _range = range;
-    _curr_pos = 0;
+    _selected_pos = 0;
     _label->setText(range[0]);
   }
 
@@ -75,13 +59,13 @@ namespace pixeler
     if (pos >= _range.size())
       pos = _range.size() - 1;
 
-    _curr_pos = pos;
-    _label->setText(_range[_curr_pos]);
+    _selected_pos = pos;
+    _label->setText(_range[_selected_pos]);
   }
 
   uint16_t ComboItem::getPos() const
   {
-    return _curr_pos;
+    return _selected_pos;
   }
 
   void ComboItem::scrollUp()
@@ -89,12 +73,12 @@ namespace pixeler
     if (_range.empty())
       return;
 
-    if (_curr_pos == 0)
-      _curr_pos = _range.size() - 1;
+    if (_selected_pos == 0)
+      _selected_pos = _range.size() - 1;
     else
-      --_curr_pos;
+      --_selected_pos;
 
-    _label->setText(_range[_curr_pos]);
+    _label->setText(_range[_selected_pos]);
   }
 
   void ComboItem::scrollDown()
@@ -102,11 +86,11 @@ namespace pixeler
     if (_range.empty())
       return;
 
-    if (_curr_pos < _range.size() - 1)
-      ++_curr_pos;
+    if (_selected_pos < _range.size() - 1)
+      ++_selected_pos;
     else
-      _curr_pos = 0;
+      _selected_pos = 0;
 
-    _label->setText(_range[_curr_pos]);
+    _label->setText(_range[_selected_pos]);
   }
 }  // namespace pixeler

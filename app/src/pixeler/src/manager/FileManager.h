@@ -1,7 +1,8 @@
 /**
  * @file FileManager.h
- * @brief Абстракція для взаємодії з картою пам'яті по шині SPI
- * @details Не потребує додаткової реалізації. Доступ до методів можна отримати через глобальний об'єкт "_fs".
+ * @brief Абстракція для взаємодії з картою пам'яті
+ * @details Не потребує додаткової реалізації.
+ * Доступ до методів можна отримати через глобальний об'єкт "_fs".
  */
 
 #pragma once
@@ -83,7 +84,7 @@ namespace pixeler
      * @param dir_path Шлях до папки, в якій повинна бути виконана індексація, вказаний без точки монтування.
      * @param file_ext Розширення бінарних файлів, які повинні бути проіндексовані.
      */
-    void indexFilesExt(std::vector<FileInfo>& out_vec, const char* dir_path, const char* file_ext);
+    void indexFilesExt(std::vector<FileInfo>& out_vec, const char* dir_path, const std::vector<String>& file_ext);
 
     /**
      * @brief Індексує усі бінарні файли у вказаній папці без обходу вкладених директорій.
@@ -127,7 +128,7 @@ namespace pixeler
      * @return true - якщо задачу було успішно створено та запущено.
      * @return false - якщо вже працює будь-яка інша задача файлового менеджера або не вдалося створити нову задачу за будь-якої причини.
      */
-    bool startCopyFile(const char* from, const char* to);
+    bool startCopyingFile(const char* from, const char* to);
 
     /**
      * @brief Відміняє будь-яку запущену поточну задачу файлового менеджера.
@@ -207,6 +208,16 @@ namespace pixeler
      * @return size_t - Кількість успішно прочитаних байтів.
      */
     size_t readFromFile(FILE* file, void* out_buffer, size_t len = 1, size_t seek_pos = 0);
+
+    /**
+     * @brief Читає вміст файла до рядка.
+     * 
+     * @param path Шлях до бінарного файла, вказаний без точки монтування.
+     * @return String - Вміст файла, якщо читання відбулось успішно.
+     * @return Порожній рядок - інакше.
+     * 
+     */
+    String readFileToStr(String path);
 
     /**
      * @brief Створює або перезаписує бінарний файл, та записує до нього вказану кількість байтів із буфера.
@@ -320,12 +331,13 @@ namespace pixeler
     String makeUniqueFilename(const String& file_path);
 
     /**
-     * @brief Монтує карту пам'яті до, вказаної в налаштуваннях Pixeler, шини SPI.
+     * @brief  Монтує карту пам'яті до, вказаної в налаштуваннях Pixeler, шини SPI.
      *
+     * @param bus_mutex Мютекс шини SPI.
      * @return true - Якщо карту пам'яті було успішно примонтовано зараз або раніше.
      * @return false - Якщо під час монтування виникла помилка.
      */
-    bool mount();
+    bool mount(SemaphoreHandle_t bus_mutex = nullptr);
 
     /**
      * @brief Відмонтовує примонтовану раніше карту пам'яті.
@@ -359,7 +371,7 @@ namespace pixeler
 
     uint8_t getEntryTypeUnlocked(const char* path, dirent* entry = nullptr);
     //
-    void index(std::vector<FileInfo>& out_vec, const char* dir_path, IndexMode mode, const char* file_ext = "");
+    void index(std::vector<FileInfo>& out_vec, const char* dir_path, IndexMode mode, const std::vector<String>& file_ext);
     //
     void rm();
     void copyFile();
@@ -371,22 +383,29 @@ namespace pixeler
     //
     size_t writeOptimalUnlocked(int file_desc, const void* buffer, size_t len);
     bool rmFileUnlocked(const char* path, bool make_full = false);
-    bool rmDirUnlocked(const char* path, bool make_full = false);
+    bool rmDirRecursively(const char* path, bool& was_mutex_taken, bool make_full = false);
     size_t getFileSizeUnlocked(const char* path);
     size_t availableUnlocked(FILE* file, size_t file_size);
-    bool copyFileUnlocked(const String& from, const String& to);
+    bool createFileCopy(const String& from, const String& to);
     void closeFileUnlocked(FILE*& file);
     bool isMountedUnlocked() const;
 
-  private:
-    SemaphoreHandle_t _sd_mutex;
-    TaskDoneHandler _doneHandler{nullptr};
+    void enableSdPower();
 
+  private:
     String _rm_path;
     String _copy_from_path;
     String _copy_to_path;
 
+    TaskDoneHandler _doneHandler{nullptr};
     void* _doneArg{nullptr};
+    SemaphoreHandle_t _sd_mutex{nullptr};
+
+#ifdef SD_TYPE_MMC
+    sdmmc_card_t* _card{nullptr};
+#endif  // #ifdef SD_TYPE_MMC
+
+    unsigned long _ts{0};
 
     const uint32_t TASK_SIZE{(1024 / 2) * 30};
 
@@ -396,7 +415,8 @@ namespace pixeler
 
     bool _is_working{false};
     bool _is_canceled{false};
-    bool _last_task_result = true;
+    bool _last_task_result{true};
+    bool _is_ext_lock{false};
   };
 
   /**
