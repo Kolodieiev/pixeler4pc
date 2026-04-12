@@ -561,7 +561,7 @@ namespace pixeler
       _has_autoscroll = false;
       _has_autoscroll_in_focus = false;
       uint16_t txt_x_pos = calcXStrOffset(str_pix_num);
-      _display.setCursor(_x_pos + x_offset + txt_x_pos, _y_pos + y_offset + txtYPos + _char_hgt);
+      _display.setCursor(_x_pos + x_offset + txt_x_pos, _y_pos + y_offset + txtYPos - _y_char_offset);
       _display.print(_text.c_str());
     }
     else

@@ -115,7 +115,7 @@ namespace pixeler
 
       if (_type == TYPE_TEXT)
       {
-        _display.setCursor(_x_pos + x_offset + txt_x_pos, _y_pos + y_offset + txtYPos + _char_hgt);
+        _display.setCursor(_x_pos + x_offset + txt_x_pos, _y_pos + y_offset + txtYPos - _y_char_offset);
         _display.print(_text.c_str());
       }
       else  // pwd
@@ -127,7 +127,7 @@ namespace pixeler
         for (uint32_t i = 0; i < txt_len; ++i)
           pwd_str += "*";
 
-        _display.setCursor(_x_pos + x_offset + txt_x_pos, _y_pos + y_offset + txtYPos + _char_hgt);
+        _display.setCursor(_x_pos + x_offset + txt_x_pos, _y_pos + y_offset + txtYPos - _y_char_offset);
         _display.print(pwd_str.c_str());
       }
     }
@@ -139,7 +139,7 @@ namespace pixeler
 
       if (_type == TYPE_TEXT)
       {
-        _display.setCursor(_x_pos + x_offset + txt_x_pos, _y_pos + y_offset + txtYPos + _char_hgt);
+        _display.setCursor(_x_pos + x_offset + txt_x_pos, _y_pos + y_offset + txtYPos - _y_char_offset);
         _display.print(sub_str.c_str());
       }
       else  // pwd
@@ -151,7 +151,7 @@ namespace pixeler
         for (uint32_t i = 0; i < txt_len; ++i)
           pwd_str += "*";
 
-        _display.setCursor(_x_pos + x_offset + txt_x_pos, _y_pos + y_offset + txtYPos + _char_hgt);
+        _display.setCursor(_x_pos + x_offset + txt_x_pos, _y_pos + y_offset + txtYPos - _y_char_offset);
         _display.print(pwd_str.c_str());
       }
     }
