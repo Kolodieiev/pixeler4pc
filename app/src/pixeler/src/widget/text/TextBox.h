@@ -14,9 +14,6 @@
 
 namespace pixeler
 {
-  // TODO add multiline
-  // TODO add hint
-
   class TextBox : public Label
   {
   public:

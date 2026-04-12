@@ -1,6 +1,8 @@
 #pragma GCC optimize("O3")
 #include "TextBox.h"
 
+#define H_PADDINGS (_h_padding * 2 - 2)
+
 namespace pixeler
 {
   TextBox::TextBox(uint16_t widget_ID, TypeID type_ID) : Label(widget_ID, type_ID)
@@ -36,6 +38,7 @@ namespace pixeler
   void TextBox::setType(FieldType type)
   {
     _type = type;
+    _is_changed = true;
   }
 
   TextBox::FieldType TextBox::getType() const
@@ -72,13 +75,13 @@ namespace pixeler
     {
       uint16_t pix_num = calcTextPixels(first_char_pos);
 
-      if (pix_num < _width - _h_padding * 2 - 2)  // TODO
+      if (pix_num < _width - H_PADDINGS)
       {
         ret_str = getSubStr(ch_str, first_char_pos, calcRealStrLen(ch_str) - 1);
         return pix_num;
       }
 
-      first_char_pos++;
+      ++first_char_pos;
     }
 
     return 0;
@@ -109,7 +112,7 @@ namespace pixeler
       y_offset = _parent->getYPos();
     }
 
-    if (str_pix_num + _h_padding * 2 - 2 < _width)
+    if (str_pix_num + H_PADDINGS < _width)
     {
       uint16_t txt_x_pos = calcXStrOffset(str_pix_num);
 
@@ -156,5 +159,4 @@ namespace pixeler
       }
     }
   }
-
 }  // namespace pixeler
