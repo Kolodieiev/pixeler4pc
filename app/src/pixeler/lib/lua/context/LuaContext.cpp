@@ -271,7 +271,7 @@ namespace pixeler
     const char* err_msg = lua_tostring(_lua, -1);
     if (err_msg)
     {
-      _msg = "Помилка в скрипті Lua: ";
+      _msg = "Помилка Lua: ";
       _msg += err_msg;
     }
   }

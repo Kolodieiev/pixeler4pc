@@ -615,8 +615,8 @@ namespace pixeler
         _has_autoscroll_in_focus = false;
 
         _display.setTextWrap(true);
-        _display.setTextBound(x_offset + 1, _y_pos + y_offset + 1, _width - 1, _height - 1);
-        _display.setCursor(x_offset, _y_pos + y_offset + _char_hgt + 2);
+        _display.setTextBound(_x_pos + x_offset + 1, _y_pos + y_offset + 1, _width - 1, _height - 1);
+        _display.setCursor(_x_pos + x_offset + 1, _y_pos + y_offset + _char_hgt + 2);
         _display.print(_text.c_str());
         _display.resetTextBound();
         _display.setTextWrap(false);

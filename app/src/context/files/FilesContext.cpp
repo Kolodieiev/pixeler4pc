@@ -880,9 +880,20 @@ void FilesContext::showResultToast(bool result)
 
 void FilesContext::createNotificationObj()
 {
+  const uint8_t V_MARGIN{40};
+  const uint8_t H_MARGIN{100};
+
   _notification = new Notification(1);
-  _notification->setLeftBackColor(COLOR_DARKCYAN);
-  _notification->setRightBackColor(COLOR_DARKCYAN);
+  _notification->setWidth(UI_WIDTH - V_MARGIN);
+  _notification->setHeight(UI_HEIGHT - H_MARGIN);
+  _notification->setPos((UI_WIDTH - _notification->getWidth()) / 2, (UI_HEIGHT - _notification->getHeight()) / 2);
+  _notification->setBackColor(COLOR_DARKCYAN);
+
+  _notification->getLeftLbl()->setBackColor(COLOR_DARKCYAN);
+  _notification->getRightLbl()->setBackColor(COLOR_DARKCYAN);
+  _notification->getTitleLbl()->setBackColor(COLOR_DARKCYAN);
+  _notification->getMsgLbl()->setBackColor(COLOR_DARKCYAN);
+
   _notification->setTitleText(STR_NOTIFICATION);
   _notification->setRightText(STR_OK);
 }

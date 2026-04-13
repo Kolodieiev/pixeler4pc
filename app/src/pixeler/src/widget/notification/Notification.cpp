@@ -8,44 +8,21 @@ namespace pixeler
     setBorderColor(COLOR_ORANGE);
     setBorder(true);
 
-    _title_lbl = new Label(1);
-    _msg_lbl = new Label(1);
     _left_lbl = new Label(1);
-    _right_lbl = new Label(1);
-
-    _title_lbl->setAlign(ALIGN_CENTER);
-    _title_lbl->setGravity(GRAVITY_CENTER);
-
+    _left_lbl->setParent(this);
     _left_lbl->setAlign(ALIGN_CENTER);
     _left_lbl->setGravity(GRAVITY_CENTER);
-
-    _right_lbl->setAlign(ALIGN_CENTER);
-    _right_lbl->setGravity(GRAVITY_CENTER);
     //
-    _title_lbl->setAutoscroll(true);
+    _right_lbl = _left_lbl->clone(1);
+    //
+    _msg_lbl = _left_lbl->clone(1);
     _msg_lbl->setMultiline(true);
-    _msg_lbl->setHPadding(5);
     //
-    uint16_t title_padding = 8;
-    //
-    _title_lbl->setHeight(_title_lbl->getHeight() + title_padding);
-    _left_lbl->setHeight(_left_lbl->getHeight() + title_padding);
-    _right_lbl->setHeight(_left_lbl->getHeight());
-    _msg_lbl->setHeight(_height - _h_margin * 2 - _title_lbl->getHeight() - _left_lbl->getHeight());
-    //
-    _title_lbl->setWidth(_width - 4);
-    _msg_lbl->setWidth(_title_lbl->getWidth());
-    _left_lbl->setWidth(_title_lbl->getWidth() / 2);
-    _right_lbl->setWidth(_left_lbl->getWidth());
-    //
-    _x_pos = 0;
-    _y_pos = _h_margin;
-    _title_lbl->setPos(2, _h_margin + 2);
-    _msg_lbl->setPos(_title_lbl->getXPos(), _title_lbl->getYPos() + _title_lbl->getHeight());
-    _left_lbl->setPos(_title_lbl->getXPos(), _msg_lbl->getYPos() + _msg_lbl->getHeight());
-    _right_lbl->setPos(_left_lbl->getXPos() + _left_lbl->getWidth(), _left_lbl->getYPos());
+    _title_lbl = _left_lbl->clone(1);
+    _title_lbl->setAutoscroll(true);
 
-    _height = _title_lbl->getHeight() + _msg_lbl->getHeight() + _right_lbl->getHeight() + 4;
+    _width = 10;
+    _height = 10;
   }
 
   Notification::~Notification()
@@ -60,10 +37,25 @@ namespace pixeler
   {
     clear();
 
-    _title_lbl->drawForced();
-    _msg_lbl->drawForced();
-    _left_lbl->drawForced();
-    _right_lbl->drawForced();
+    // Заголовок
+    _title_lbl->setPos(1, 1);
+    _title_lbl->setWidth(_width - 2);
+    // Ліва кнопка
+    _left_lbl->setPos(1, _height - _left_lbl->getHeight() - 1);
+    _left_lbl->setWidth((_width - 2) / 2);
+    // Права кнопка
+    _right_lbl->setPos(_left_lbl->getXPosLoc() + _left_lbl->getWidth(), _left_lbl->getYPosLoc());
+    _right_lbl->setWidth(_left_lbl->getWidth());
+    // Основне повідомлення
+    const uint8_t V_PADDING{10};
+    _msg_lbl->setPos(V_PADDING, _title_lbl->getHeight() + 2);
+    _msg_lbl->setWidth(_width - V_PADDING * 2);
+    _msg_lbl->setHeight(_height - _title_lbl->getHeight() - _left_lbl->getHeight() - 6);
+    //
+    _title_lbl->onDraw();
+    _msg_lbl->onDraw();
+    _left_lbl->onDraw();
+    _right_lbl->onDraw();
   }
 
   Notification* Notification::clone(uint16_t id) const
@@ -73,92 +65,44 @@ namespace pixeler
     return nullptr;
   }
 
-  void Notification::setInfoFont(const uint8_t* font_ptr)
-  {
-    _title_lbl->setFont(font_ptr);
-    _left_lbl->setFont(font_ptr);
-    _right_lbl->setFont(font_ptr);
-  }
-
-  void Notification::setInfoTextSize(uint16_t size)
-  {
-    _title_lbl->setTextSize(size);
-    _left_lbl->setTextSize(size);
-    _right_lbl->setTextSize(size);
-  }
-
-  void Notification::setTitleText(const String& str)
+  void Notification::setTitleText(const String &str)
   {
     _title_lbl->setText(str);
   }
 
-  void Notification::setTitleBackColor(uint16_t color)
-  {
-    _title_lbl->setBackColor(color);
-  }
-
-  void Notification::setTitleTextColor(uint16_t color)
-  {
-    _title_lbl->setTextColor(color);
-  }
-
-  void Notification::setMsgText(const String& str)
+  void Notification::setMsgText(const String &str)
   {
     _msg_lbl->setText(str);
   }
 
-  void Notification::setMsgBackColor(uint16_t color)
-  {
-    _msg_lbl->setBackColor(color);
-  }
-
-  void Notification::setMsgTextColor(uint16_t color)
-  {
-    _msg_lbl->setTextColor(color);
-  }
-
-  void Notification::setMsgFont(const uint8_t* font_ptr)
-  {
-    _msg_lbl->setFont(font_ptr);
-  }
-
-  void Notification::setMsgTextSize(uint16_t size)
-  {
-    _msg_lbl->setTextSize(size);
-  }
-
-  void Notification::setHMargin(uint16_t margin)
-  {
-    _h_margin = margin;
-  }
-
-  void Notification::setLeftText(const String& str)
+  void Notification::setLeftText(const String &str)
   {
     _left_lbl->setText(str);
   }
 
-  void Notification::setLeftBackColor(uint16_t color)
-  {
-    _left_lbl->setBackColor(color);
-  }
-
-  void Notification::setLeftTextColor(uint16_t color)
-  {
-    _left_lbl->setTextColor(color);
-  }
-
-  void Notification::setRightText(const String& str)
+  void Notification::setRightText(const String &str)
   {
     _right_lbl->setText(str);
   }
 
-  void Notification::setRightBackColor(uint16_t color)
+  Label* Notification::getTitleLbl()
   {
-    _right_lbl->setBackColor(color);
+    return _title_lbl;
   }
 
-  void Notification::setRightTextColor(uint16_t color)
+  Label* Notification::getMsgLbl()
   {
-    _right_lbl->setTextColor(color);
+    return _msg_lbl;
   }
+
+  Label* Notification::getLeftLbl()
+  {
+    return _left_lbl;
+  }
+
+  Label* Notification::getRightLbl()
+  {
+    return _right_lbl;
+  }
+
 }  // namespace pixeler

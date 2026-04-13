@@ -46,20 +46,6 @@ namespace pixeler
     }
 
     /**
-     * @brief Встановлює шрифт заголовка та кнопок.
-     *
-     * @param font_ptr
-     */
-    void setInfoFont(const uint8_t* font_ptr);
-
-    /**
-     * @brief Встановлює розмір шрифту заголовка та кнопок.
-     *
-     * @param size
-     */
-    void setInfoTextSize(uint16_t size);
-
-    /**
      * @brief Встановлює текст заголовка повідомлення.
      *
      * @param str
@@ -67,18 +53,11 @@ namespace pixeler
     void setTitleText(const String& str);
 
     /**
-     * @brief Встановлює колір фону заголовка.
+     * @brief Встановлює основний текст повідомлення.
      *
-     * @param color
+     * @param str
      */
-    void setTitleBackColor(uint16_t color);
-
-    /**
-     * @brief Встановлює колір тексту заголовка.
-     *
-     * @param color
-     */
-    void setTitleTextColor(uint16_t color);
+    void setMsgText(const String& str);
 
     /**
      * @brief Встановлює текст лівої кнопки повідомлення.
@@ -88,20 +67,6 @@ namespace pixeler
     void setLeftText(const String& str);
 
     /**
-     * @brief Встановлює колір фону лівої кнопки повідомлення.
-     *
-     * @param color
-     */
-    void setLeftBackColor(uint16_t color);
-
-    /**
-     * @brief Встановлює колір тексту лівої кнопки повідомлення.
-     *
-     * @param color
-     */
-    void setLeftTextColor(uint16_t color);
-
-    /**
      * @brief Встановлює текст правої кнопки повідомлення.
      *
      * @param str
@@ -109,61 +74,32 @@ namespace pixeler
     void setRightText(const String& str);
 
     /**
-     * @brief Встановлює колір фону правої кнопки повідомлення.
+     * @brief Повертає вказівник на віджет заголовка повідомлення.
      *
-     * @param color
+     * @return Label*
      */
-    void setRightBackColor(uint16_t color);
+    Label* getTitleLbl();
 
     /**
-     * @brief Встановлює колір тексту правої кнопки повідомлення.
+     * @brief Повертає вказівник на віджет освного тексту повідомлення.
      *
-     * @param color
+     * @return Label*
      */
-    void setRightTextColor(uint16_t color);
+    Label* getMsgLbl();
 
     /**
-     * @brief Встановлює текст тіла повідомлення.
+     * @brief Повертає вказівник на віджет лівої кнопки повідомлення.
      *
-     * @param str
+     * @return Label*
      */
-    void setMsgText(const String& str);
+    Label* getLeftLbl();
 
     /**
-     * @brief Встановлює колір фону тіла повідомлення.
+     * @brief Повертає вказівник на віджет правої кнопки повідомлення.
      *
-     * @param color
+     * @return Label*
      */
-    void setMsgBackColor(uint16_t color);
-
-    /**
-     * @brief Встановлює колір тексту тіла повідомлення.
-     *
-     * @param color
-     */
-    void setMsgTextColor(uint16_t color);
-
-    /**
-     * @brief Встановлює шрифт тіла повідомлення.
-     *
-     * @param font_ptr
-     */
-    void setMsgFont(const uint8_t* font_ptr);
-
-    /**
-     * @brief Встановлює розмір шрифту тіла повідомлення.
-     *
-     * @param size
-     */
-    void setMsgTextSize(uint16_t size);
-
-    /**
-     * @brief Встановлює відступ для віджета від країв дисплея по вертикалі.
-     * Значення не коригується автоматично, якщо відступ перевищує висоту дисплея.
-     *
-     * @param margin
-     */
-    void setHMargin(uint16_t margin);
+    Label* getRightLbl();
 
   private:
     using IWidget::getFocusBackColor;
@@ -172,14 +108,11 @@ namespace pixeler
     using IWidget::setCornerRadius;
     using IWidget::setFocus;
     using IWidget::setFocusBackColor;
-    using IWidget::setHeight;
     using IWidget::setVisibility;
 
     Label* _title_lbl{nullptr};
     Label* _msg_lbl{nullptr};
     Label* _left_lbl{nullptr};
     Label* _right_lbl{nullptr};
-
-    uint16_t _h_margin{30};
   };
 }  // namespace pixeler
