@@ -84,7 +84,7 @@ namespace pixeler
      * @param dir_path Шлях до папки, в якій повинна бути виконана індексація, вказаний без точки монтування.
      * @param file_ext Розширення бінарних файлів, які повинні бути проіндексовані.
      */
-    void indexFilesExt(std::vector<FileInfo>& out_vec, const char* dir_path, const std::vector<String>& file_ext);
+    void indexFilesByExt(std::vector<FileInfo>& out_vec, const char* dir_path, const std::vector<String>& file_ext);
 
     /**
      * @brief Індексує усі бінарні файли у вказаній папці без обходу вкладених директорій.

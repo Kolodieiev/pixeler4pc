@@ -5,10 +5,11 @@
 
 namespace sokoban
 {
-  enum ClassID : uint8_t
+  enum TypeID : uint16_t
   {
-    CLASS_HERO = 0,
-    CLASS_BOX,
-    CLASS_BOX_POINT
+    TYPE_NONE = 0,
+    TYPE_HERO,
+    TYPE_BOX,
+    TYPE_BOX_POINT
   };
 }

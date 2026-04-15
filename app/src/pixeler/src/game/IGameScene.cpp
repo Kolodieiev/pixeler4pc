@@ -4,6 +4,8 @@
 
 namespace pixeler
 {
+  uint32_t IGameScene::_obj_id_counter = 0;
+
   IGameScene::IGameScene(DataStream& stored_objs) : _terrain{TerrainManager()},
                                                     _stored_objs{stored_objs},
                                                     _obj_mutex{xSemaphoreCreateMutex()}
@@ -14,7 +16,7 @@ namespace pixeler
       esp_restart();
     }
 
-    IGameObject::_global_obj_id_counter = 0;
+    _obj_id_counter = 0;
   }
 
   IGameScene::~IGameScene()
@@ -37,7 +39,10 @@ namespace pixeler
     }
 
     if (!_main_obj)
-      return;
+    {
+      log_e("Не встановлено головний ігровий об'єкт");
+      esp_restart();
+    }
 
     takeLock();
 
@@ -53,13 +58,13 @@ namespace pixeler
 
       if (!obj->isDestroyed())
       {
-        obj->update();
+        obj->__update();
 
         if (obj->_is_triggered)
         {
           obj->_is_triggered = false;
           giveLock();
-          onTrigger(obj->_trigger_ID);
+          onTriggered(obj->_trigger_ID);
           takeLock();
         }
 
@@ -106,12 +111,37 @@ namespace pixeler
                             return a->_y_global + a->_sprite.height < b->_y_global + b->_sprite.height; });
 
     for (auto it = view_obj.begin(), last_it = view_obj.end(); it != last_it; ++it)
-      (*it)->onDraw();
+      (*it)->__onDraw();
 
     giveLock();
 
     if (_game_UI)
       _game_UI->onDraw();
+  }
+
+  bool IGameScene::isFinished() const
+  {
+    return _is_finished;
+  }
+
+  bool IGameScene::isReleased() const
+  {
+    return _is_released;
+  }
+
+  uint8_t IGameScene::getNextSceneID() const
+  {
+    return _next_scene_ID;
+  }
+
+  void IGameScene::takeLock()
+  {
+    xSemaphoreTake(_obj_mutex, portMAX_DELAY);
+  }
+
+  void IGameScene::giveLock()
+  {
+    xSemaphoreGive(_obj_mutex);
   }
 
   void IGameScene::openSceneByID(uint16_t scene_ID)
@@ -139,5 +169,133 @@ namespace pixeler
     giveLock();
 
     ds.flush();
+  }
+
+  std::vector<IGameObject*> IGameScene::getObjByType(std::span<const uint16_t> type_ID, const IGameObject* exclude)
+  {
+    std::vector<IGameObject*> ret_objs;
+    ret_objs.reserve(10);
+
+    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
+    {
+      IGameObject* obj = it->second;
+
+      if (obj != exclude)
+      {
+        for (const uint16_t id : type_ID)
+        {
+          if (obj->_type_ID == id)
+          {
+            ret_objs.push_back(obj);
+            break;
+          }
+        }
+      }
+    }
+
+    return ret_objs;
+  }
+
+  std::vector<IGameObject*> IGameScene::getObjByTypeAt(std::span<const uint16_t> type_ID, uint16_t x, uint16_t y, const IGameObject* exclude)
+  {
+    std::vector<IGameObject*> ret_objs;
+    ret_objs.reserve(10);
+
+    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
+    {
+      IGameObject* obj = it->second;
+
+      if (obj != exclude)
+      {
+        for (const uint16_t id : type_ID)
+        {
+          if (obj->_type_ID == id && obj->hasIntersectWithPoint(x, y))
+          {
+            ret_objs.push_back(obj);
+            break;
+          }
+        }
+      }
+    }
+
+    return ret_objs;
+  }
+
+  std::vector<IGameObject*> IGameScene::getObjByTypeInRect(std::span<const uint16_t> type_ID, uint16_t x, uint16_t y, uint16_t width, uint16_t height, const IGameObject* exclude)
+  {
+    std::vector<IGameObject*> ret_objs;
+    ret_objs.reserve(10);
+
+    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
+    {
+      IGameObject* obj = it->second;
+
+      if (obj != exclude)
+      {
+        for (const uint16_t id : type_ID)
+        {
+          if (obj->_type_ID == id && obj->hasIntersectWithRect(x, y, width, height))
+          {
+            ret_objs.push_back(obj);
+            break;
+          }
+        }
+      }
+    }
+
+    return ret_objs;
+  }
+
+  std::vector<IGameObject*> IGameScene::getObjByTypeInCircle(std::span<const uint16_t> type_ID, uint16_t x, uint16_t y, uint16_t radius, const IGameObject* exclude)
+  {
+    std::vector<IGameObject*> ret_objs;
+    ret_objs.reserve(10);
+
+    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
+    {
+      IGameObject* obj = it->second;
+
+      if (obj != exclude)
+      {
+        for (const uint16_t id : type_ID)
+        {
+          if (obj->_type_ID == id && obj->hasIntersectWithCircle(x, y, radius))
+          {
+            ret_objs.push_back(obj);
+            break;
+          }
+        }
+      }
+    }
+
+    return ret_objs;
+  }
+
+  bool IGameScene::hasCollisionAt(uint16_t x, uint16_t y, const IGameObject* exclude)
+  {
+    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
+    {
+      const IGameObject* obj = it->second;
+
+      if (obj != exclude && obj->_sprite.is_rigid && obj->hasIntersectWithPoint(x, y))
+        return true;
+    }
+
+    return false;
+  }
+
+  bool IGameScene::canPass(const IGameObject& caller, uint16_t x_to, uint16_t y_to)
+  {
+    return _terrain.canPass(caller._x_global, caller._y_global, x_to, y_to, caller._sprite);
+  }
+
+  void IGameScene::addObject(IGameObject& obj)
+  {
+    _game_objs.emplace(obj.getID(), &obj);
+  }
+
+  void IGameScene::onTriggered(uint16_t trigg_id)
+  {
+    log_i("Викликано тригер: %u", trigg_id);
   }
 }  // namespace pixeler

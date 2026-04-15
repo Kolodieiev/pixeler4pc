@@ -5,122 +5,34 @@
 
 namespace pixeler
 {
-  uint32_t IGameObject::_global_obj_id_counter{0};
-
-  IGameObject::IGameObject(WavManager& audio,
-                           TerrainManager& terrain,
-                           std::unordered_map<uint32_t, IGameObject*>& game_objs)
-      : _audio{audio},
-        _terrain{terrain},
-        _game_objs{game_objs},
-        _obj_ID{++_global_obj_id_counter}
+  IGameObject::IGameObject(uint32_t id, uint16_t type_id, IGameScene& game_scene, WavManager& audio)
+      : _obj_ID{id},
+        _type_ID{type_id},
+        _scene{game_scene},
+        _audio{audio}
   {
-  }
-
-  std::list<IGameObject*> IGameObject::getObjByClass(uint8_t type_ID)
-  {
-    std::list<IGameObject*> objs;
-
-    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
-    {
-      if (it->second->_type_ID == type_ID &&
-          it->second != this)
-        objs.push_back(it->second);
-    }
-
-    return objs;
-  }
-
-  std::list<IGameObject*> IGameObject::getObjByClassAt(uint8_t type_ID, uint16_t x, uint16_t y)
-  {
-    std::list<IGameObject*> objs;
-
-    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
-    {
-      if (it->second->_type_ID == type_ID &&
-          it->second != this &&
-          it->second->hasIntersectWithPoint(x, y))
-        objs.push_back(it->second);
-    }
-
-    return objs;
-  }
-
-  std::list<IGameObject*> IGameObject::getObjByClassInRect(uint8_t type_ID, uint16_t x_start, uint16_t y_start, uint16_t rect_width, uint16_t rect_height)
-  {
-    std::list<IGameObject*> objs;
-
-    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
-    {
-      if (it->second->_type_ID == type_ID &&
-          it->second != this &&
-          it->second->hasIntersectWithRect(x_start, y_start, rect_width, rect_height))
-        objs.push_back(it->second);
-    }
-
-    return objs;
-  }
-
-  std::list<IGameObject*> IGameObject::getObjByClassInRadius(uint8_t type_ID, uint16_t radius)
-  {
-    std::list<IGameObject*> objs;
-
-    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
-    {
-      if (it->second->_type_ID == type_ID &&
-          it->second != this &&
-          it->second->hasIntersectWithCircle(_x_global, _y_global, radius))
-        objs.push_back(it->second);
-    }
-
-    return objs;
-  }
-
-  std::list<IGameObject*> IGameObject::getObjAt(uint16_t x, uint16_t y, bool rigid_only)
-  {
-    std::list<IGameObject*> objs;
-
-    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
-    {
-      if (it->second != this &&
-          it->second->hasIntersectWithPoint(x, y, rigid_only))
-        objs.push_back(it->second);
-    }
-
-    return objs;
-  }
-
-  std::list<IGameObject*> IGameObject::getObjInCircle(uint16_t x_mid, uint16_t y_mid, uint16_t radius, bool rigid_only)
-  {
-    std::list<IGameObject*> objs;
-    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
-    {
-      if (it->second != this &&
-          it->second->hasIntersectWithCircle(x_mid, y_mid, radius, rigid_only))
-        objs.push_back(it->second);
-    }
-
-    return objs;
-  }
-
-  std::list<IGameObject*> IGameObject::getObjInRect(uint16_t x_start, uint16_t y_start, uint16_t rect_width, uint16_t rect_height, bool rigid_only)
-  {
-    std::list<IGameObject*> objs;
-    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
-    {
-      if (it->second != this &&
-          it->second->hasIntersectWithRect(x_start, y_start, rect_width, rect_height, rigid_only))
-        objs.push_back(it->second);
-    }
-
-    return objs;
   }
 
   IGameObject::~IGameObject()
   {
   }
 
-  void IGameObject::onDraw()
+  uint32_t IGameObject::getID() const
+  {
+    return _obj_ID;
+  }
+
+  uint16_t IGameObject::getTypeID() const
+  {
+    return _type_ID;
+  }
+
+  const char* IGameObject::getName() const
+  {
+    return _name.c_str();
+  }
+
+  void IGameObject::__onDraw()
   {
     if (_sprite.has_animation)
     {
@@ -167,6 +79,21 @@ namespace pixeler
   {
     _x_global = x_pos;
     _y_global = y_pos;
+  }
+
+  uint16_t IGameObject::getGlobalX() const
+  {
+    return _x_global;
+  }
+
+  uint16_t IGameObject::getGlobalY() const
+  {
+    return _y_global;
+  }
+
+  bool IGameObject::isDestroyed() const
+  {
+    return _is_destroyed;
   }
 
   uint16_t IGameObject::calcAngleToPoint(uint16_t x, uint16_t y)
@@ -323,24 +250,4 @@ namespace pixeler
     return true;
   }
 
-  bool IGameObject::hasCollisionAt(uint16_t x_to, uint16_t y_to)
-  {
-    if (!_sprite.is_rigid)
-      return false;
-
-    x_to += _sprite.rigid_offsets.left;
-    y_to += _sprite.rigid_offsets.top;
-    uint16_t body_w = _sprite.width - _sprite.rigid_offsets.left - _sprite.rigid_offsets.right - 1;
-    uint16_t body_h = _sprite.height - _sprite.rigid_offsets.top - _sprite.rigid_offsets.bottom - 1;
-
-    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
-    {
-      const IGameObject* obj = it->second;
-
-      if (obj != this && obj->hasIntersectWithRect(x_to, y_to, body_w, body_h, true))
-        return true;
-    }
-
-    return false;
-  }
 }  // namespace pixeler

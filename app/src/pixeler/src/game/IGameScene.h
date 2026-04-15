@@ -2,6 +2,8 @@
 #pragma GCC optimize("O3")
 #include "pixeler/src/defines.h"
 //
+#include <array>
+#include <span>
 #include <unordered_map>
 #include <vector>
 //
@@ -41,10 +43,7 @@ namespace pixeler
      *
      * @return true - Якщо гра повинна бути завершена. false - Інакше.
      */
-    bool isFinished() const
-    {
-      return _is_finished;
-    }
+    bool isFinished() const;
 
     /**
      * @brief Повертає стан прапору, який вказує на те, чи повинен бути зміненений поточний ігровий рівень.
@@ -52,10 +51,7 @@ namespace pixeler
      *
      * @return true - Якщо ігровий рівень повинен бути змінений. false - Інакше.
      */
-    bool isReleased() const
-    {
-      return _is_released;
-    }
+    bool isReleased() const;
 
     /**
      * @brief Повертає ідентифікатор ігрового рівня, який повинен бути запущений наступним.
@@ -63,29 +59,127 @@ namespace pixeler
      *
      * @return uint8_t
      */
-    uint8_t getNextSceneID() const
+    uint8_t getNextSceneID() const;
+
+    /**
+     * @brief Повертає список усіх об'єктів на сцені з заданими ідентифікаторами класів.
+     *
+     * @param type_ID Ідентифікатори типу.
+     * @param exclude Вказівник на об'єкт, який буде пропущено під час вибірки.
+     * @return std::vector<IGameObject*>
+     */
+    std::vector<IGameObject*> getObjByType(std::span<const uint16_t> type_ID, const IGameObject* exclude = nullptr);
+
+    /**
+     * @brief Повертає список усіх об'єктів, що знаходяться в указаній точці і мають відповідний ідентифікатор класу.
+     *
+     * @param type_ID Ідентифікатори типу.
+     * @param x Координата точки.
+     * @param y Координата точки.
+     * @param exclude Вказівник на об'єкт, який буде пропущено під час вибірки.
+     * @return std::vector<IGameObject*>
+     */
+    std::vector<IGameObject*> getObjByTypeAt(std::span<const uint16_t> type_ID, uint16_t x, uint16_t y, const IGameObject* exclude = nullptr);
+
+    /**
+     * @brief Повертає список усіх об'єктів, що пересікаються з заданим прямокутним і мають відповідний ідентифікатор класу.
+     *
+     * @param type_ID Ідентифікатори типу.
+     * @param x Координата верхнього лівого кута прямокутника.
+     * @param y Координата верхнього лівого кута прямокутника.
+     * @param width Ширина прямокутника.
+     * @param height Висота прямокутника.
+     * @param exclude Вказівник на об'єкт, який буде пропущено під час вибірки.
+     * @return std::vector<IGameObject*>
+     */
+    std::vector<IGameObject*> getObjByTypeInRect(std::span<const uint16_t> type_ID,
+                                                 uint16_t x,
+                                                 uint16_t y,
+                                                 uint16_t width,
+                                                 uint16_t height,
+                                                 const IGameObject* exclude = nullptr);
+
+    /**
+     * @brief Повертає список усіх об'єктів, що пересікаються з заданим колом і мають відповідний ідентифікатор класу.
+     *
+     * @param type_ID Ідентифікатори типу.
+     * @param x Координата центральної точки кола.
+     * @param y Координата центральної точки кола.
+     * @param radius Радіус кола, що обмежує вибірку.
+     * @param exclude Вказівник на об'єкт, який буде пропущено під час вибірки.
+     * @return std::vector<IGameObject*>
+     */
+    std::vector<IGameObject*> getObjByTypeInCircle(std::span<const uint16_t> type_ID, uint16_t x, uint16_t y, uint16_t radius, const IGameObject* exclude = nullptr);
+
+    /**
+     * @brief Перевіряє чи є у вказаних координатах будь-який об'єкт з твердим тілом.
+     *
+     * @param exclude
+     * @param x Координата.
+     * @param y Координата.
+     * @return true - Якщо об'єкт матиме пересічення.
+     * @return false - Інакше.
+     */
+    bool hasCollisionAt(uint16_t x, uint16_t y, const IGameObject* exclude = nullptr);
+
+    /**
+     * @brief Перевіряє, чи може об'єкт з вказаним спрайтом бути переміщеним в указані координати ігрового рівня.
+     *
+     * @param caller Об'єкт, для якого буде виконана перевірка.
+     * @param x_to Х-координата точки, куди повинне виконуватися переміщення.
+     * @param y_to Y-координата точки, куди повинне виконуватися переміщення.
+     * @return true - Якщо об'єкт має право переміщуватися в указану точку.
+     * @return false - Інакше.
+     */
+    bool canPass(const IGameObject& caller, uint16_t x_to, uint16_t y_to);
+
+    /**
+     * @brief Додає ігровий об'єкт до контейнера об'єктів сцени.
+     *
+     * @param obj Адреса ігрового об'єкта.
+     */
+    void addObject(IGameObject& obj);
+
+    /**
+     * @brief Створює об'єкт вказаного типу.
+     *
+     * @tparam T Тип об'єкта, який потрібно створити.
+     * @return T* Вказівник на створений об'єкт.
+     */
+    template <typename T>
+    T* createObject()
     {
-      return _next_scene_ID;
+      try
+      {
+        return new T(++_obj_id_counter, *this, _audio);
+      }
+      catch (const std::bad_alloc& e)
+      {
+        log_e("%s", e.what());
+        esp_restart();
+      }
     }
 
   protected:
     /**
+     * @brief Якщо не перевантажено, слугує заглушкою для тригерів об'єктів.
+     * Інакше буде викликано у об'єкта спадкоємця.
+     *
+     * @param id Ідентифікатор тригера.
+     */
+    virtual void onTriggered(uint16_t trigg_id);
+
+    /**
      * @brief Блокує мютекс доступу до ігрових об'єктів.
      *
      */
-    void takeLock()
-    {
-      xSemaphoreTake(_obj_mutex, portMAX_DELAY);
-    }
+    void takeLock();
 
     /**
      * @brief Відпускає мютекс доступу до ігрових об'єктів.
      *
      */
-    void giveLock()
-    {
-      xSemaphoreGive(_obj_mutex);
-    }
+    void giveLock();
 
     /**
      * @brief Піднімає прапор, який вказує, що поточний ігровий рівень повинен бути змінений.
@@ -94,26 +188,6 @@ namespace pixeler
      * @param scene_ID Ідентифікатор ігрового рівня, що повинен бути створений наступним.
      */
     void openSceneByID(uint16_t scene_ID);
-
-    /**
-     * @brief Створює об'єкт вказаного типу.
-     *
-     * @tparam T Тип об'єкта, який потрібно створити.
-     * @return T* Вказівний на створений об'єкт.
-     */
-    template <typename T>
-    T* createObject()
-    {
-      try
-      {
-        return new T(_audio, _terrain, _game_objs);
-      }
-      catch (const std::bad_alloc& e)
-      {
-        log_e("%s", e.what());
-        esp_restart();
-      }
-    }
 
     /**
      * @brief Повертає загальний розмір даних ігрових об'єктів, які можуть бути серіалізовані.
@@ -129,34 +203,25 @@ namespace pixeler
      */
     void serialize(DataStream& ds);
 
-    /**
-     * @brief Якщо не перевантажено, слугує заглушкою для тригерів об'єктів.
-     * Інакше буде викликано у об'єкта спадкоємця.
-     *
-     * @param id Ідентифікатор тригера.
-     */
-    virtual void onTrigger(uint8_t trigg_id)
-    {
-      log_i("Викликано тригер: %d", trigg_id);
-    }
-
   protected:
     ResManager _res_manager;  // Менеджер ресурсів
-
     TerrainManager _terrain;  // Самий нижній шар сцени
+    WavManager _audio;        // Звуковий менеджер
 
-    WavManager _audio;  // Звуковий менеджер
-
+  private:
     std::unordered_map<uint32_t, IGameObject*> _game_objs;  // Список усіх ігрових об'єктів на сцені, які повинні взаємодіяти один з одним
-
-    DataStream& _stored_objs;  // Контейнер для перенесення відбитків об'єктів до наступної сцени
-
-    SemaphoreHandle_t _obj_mutex;  // Мютекс для синхронізації доступу до об'єктів
-
+    
+  protected:
+    DataStream& _stored_objs;         // Контейнер для перенесення відбитків об'єктів до наступної сцени
+    SemaphoreHandle_t _obj_mutex;     // Мютекс для синхронізації доступу до об'єктів
     IGameUI* _game_UI{nullptr};       // Шар ігрового UI. Тут можуть виводитися графічні елементи інтерфейса
     IGameMenu* _game_menu{nullptr};   // Шар ігрового меню, якщо в ньому є необхідність
     IGameObject* _main_obj{nullptr};  // Об'єкт, за яким завжди слідує камера
 
+  private:
+    static uint32_t _obj_id_counter;  // Глобальний лічильник ідентифікаторів об'єктів.
+
+  protected:
     uint8_t _next_scene_ID{0};  // Ідентифікатор наступної сцени
 
     bool _is_paused{false};    // Прапор встановлення сцени на паузу

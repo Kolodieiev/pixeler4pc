@@ -1040,7 +1040,7 @@ namespace pixeler
       closedir(dir);
   }
 
-  void FileManager::indexFilesExt(std::vector<FileInfo>& out_vec, const char* dir_path, const std::vector<String>& file_ext)
+  void FileManager::indexFilesByExt(std::vector<FileInfo>& out_vec, const char* dir_path, const std::vector<String>& file_ext)
   {
     return index(out_vec, dir_path, INDX_MODE_FILES_EXT, file_ext);
   }

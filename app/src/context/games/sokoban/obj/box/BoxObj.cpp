@@ -3,14 +3,14 @@
 #include "../../../common_res/box_img/sprite_box.h"
 #include "../../../common_res/box_img/sprite_box_ok.h"
 #include "../../ResID.h"
-#include "../ClassID.h"
+#include "../TypeID.h"
+#include "pixeler/src/game/IGameScene.h"
 
 namespace sokoban
 {
-  void BoxObj::init()
+  BoxObj::BoxObj(uint32_t id, IGameScene& game_scene, WavManager& audio) : IGameObject(id, TYPE_BOX, game_scene, audio)
   {
-    _type_ID = ClassID::CLASS_BOX;
-    _layer = 1;  // Об'єкт повинен бути вище об'єктів точок
+    _layer = 1;  // Об'єкт повинен бути вище об'єктів точок щоб перекривати їх
     _sprite.img_ptr = SPRITE_BOX;
     _sprite.has_img = true;
     _sprite.width = 32;
@@ -18,7 +18,7 @@ namespace sokoban
     _sprite.pass_abillity_mask = TILE_TYPE_GROUND;
   }
 
-  void BoxObj::update()
+  void BoxObj::__update()
   {
   }
 
@@ -39,37 +39,37 @@ namespace sokoban
   {
     bool has_point = false;  // Прапор який вказує, чи маємо ключову точку в координатах переміщення
 
-    std::list<IGameObject*> objs = getObjAt(x, y);  // Вибрати всі об'єкти на плитці куди повинен бути встановлений ящик
+    const std::array types = {(uint16_t)TYPE_BOX, (uint16_t)TYPE_BOX_POINT};
+
+    // Вибрати об'єкти ящиків та ключових точок на плитці куди повинен бути встановлений ящик
+    std::vector<IGameObject*> objs = _scene.getObjByTypeAt(types, x, y, this);
+
     for (auto it = objs.begin(), last_it = objs.end(); it != last_it; ++it)
     {
-      if ((*it)->getObjTypeID() == ClassID::CLASS_BOX)  // Якщо знайдено об'єкт ящика, рух продовжувати не можна
+      if ((*it)->getTypeID() == TYPE_BOX)  // Якщо знайдено об'єкт ящика, рух продовжувати не можна
         return false;
 
-      if ((*it)->getObjTypeID() == ClassID::CLASS_BOX_POINT)  // Якщо об'єкт належить до типу BoxPointObj
-        has_point = true;                                  // Підіймаємо прапор
+      if ((*it)->getTypeID() == TYPE_BOX_POINT)  // Якщо об'єкт належить до типу BoxPointObj
+        has_point = true;                        // Підіймаємо прапор, але не перериваємо цикл, щоб переконатися у відсутності ящика
     }
 
-    // Якщо ящик не знайдено, перевірити, чи не вприємося в стіну за ящиком
-    if (!_terrain.canPass(_x_global, _y_global, x, y, _sprite))
-    {
-      // Якщо впираємося в стіну, рух продовжувати не можна
-      return false;
-    }
-
-    // Якщо всі перевірки пройдено
-    _x_global = x;  //  переміщуємо об'єкт ящика
-    _y_global = y;
-
-    if (!has_point)
+    if (!has_point)  // Якщо точку не знайдено значить далі або прохід або стіна.
     {
       _is_ok = false;
       _sprite.img_ptr = SPRITE_BOX;
+      // Перевіряємо чи не впираємося в стіну за ящиком
+      if (!_scene.canPass(*this, x, y))
+        return false;  // Якщо впираємося в стіну, рух продовжувати не можна
     }
     else
     {
       _is_ok = true;                    // Підняти прапор, який вказує, що ящик встановлено в потрібному місці
       _sprite.img_ptr = SPRITE_BOX_OK;  // Змінити спрайт об'єкта
     }
+
+    // Якщо всі перевірки пройдено переміщуємо цей об'єкт ящика на нову плитку
+    _x_global = x;
+    _y_global = y;
 
     // Відтворення звуку по його ідентфікатору //TODO переписати відповідно до нового менеджера ресурсів
 

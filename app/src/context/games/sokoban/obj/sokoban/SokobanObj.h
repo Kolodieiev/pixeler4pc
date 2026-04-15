@@ -10,18 +10,15 @@ namespace sokoban
   class SokobanObj : public IGameObject
   {
   public:
-    SokobanObj(WavManager& audio,
-               TerrainManager& terrain,
-               std::unordered_map<uint32_t, IGameObject*>& game_objs) : IGameObject(audio, terrain, game_objs) {}
+    SokobanObj(uint32_t id, IGameScene& game_scene, WavManager& audio);
     virtual ~SokobanObj() {}
 
-    virtual void init() override;
-    virtual void update() override;
+    virtual void __update() override;
     virtual void serialize(DataStream& ds) override;
     virtual void deserialize(DataStream& ds) override;
     virtual size_t getDataSize() const override;
 
-    virtual void onDraw() override;  // Необов'язковий метод
+    virtual void __onDraw() override;  // Необов'язковий метод
 
     void move(MovingDirection direction);
 

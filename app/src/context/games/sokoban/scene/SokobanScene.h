@@ -20,7 +20,7 @@ namespace sokoban
 
   protected:
     // Метод який буде викликано, якщо будь-який об'єкт повідомить про свій тригер. В параметр буде передано id тригера
-    virtual void onTrigger(uint8_t id) override;
+    virtual void onTriggered(uint16_t id) override;
 
   private:
     // ----------------------------------------

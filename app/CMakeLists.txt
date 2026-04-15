@@ -43,7 +43,8 @@ add_executable(main ${CPP_SOURCES} ${C_SOURCES})
 set_source_files_properties(${C_SOURCES} PROPERTIES LANGUAGE C)
 
 target_include_directories(main PUBLIC  ${CMAKE_SOURCE_DIR}/src)
-target_compile_features(main PRIVATE cxx_std_17)
+target_compile_features(main PRIVATE cxx_std_20)
+set_target_properties(main PROPERTIES CXX_EXTENSIONS ON)
 target_compile_options(main PRIVATE -Wno-unknown-pragmas)
 
 target_link_libraries(main PRIVATE SFML::Graphics)

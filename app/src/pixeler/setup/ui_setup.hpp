@@ -10,7 +10,7 @@
 #include "context/3d/ThreeDContext.h"
 #include "context/files/FilesContext.h"
 #include "context/games/GameListContext.h"
-#include "context/games/rpg/RpgContext.h"
+// #include "context/games/rpg/RpgContext.h"
 #include "context/games/sokoban/SokobanContext.h"
 #include "context/home/HomeContext.h"
 #include "context/menu/MenuContext.h"
@@ -29,8 +29,8 @@ namespace pixeler
        { return new GameListContext(); }},
       {ContextID::ID_CONTEXT_SOKOBAN, []()
        { return new sokoban::SokobanContext(); }},
-      {ContextID::ID_CONTEXT_RPG, []()
-       { return new rpg::RpgContext(); }},
+      // {ContextID::ID_CONTEXT_RPG, []()
+      //  { return new rpg::RpgContext(); }},
       {ContextID::ID_CONTEXT_3D, []()
        { return new ThreeDContext(); }},
   };

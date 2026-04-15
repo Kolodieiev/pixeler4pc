@@ -1,14 +1,12 @@
 #include "BoxPointObj.h"
-//
-#include "../ClassID.h"
-//
+
+#include "../TypeID.h"
 #include "./res/sprite_box_point.h"
 
 namespace sokoban
 {
-  void BoxPointObj::init()
+  BoxPointObj::BoxPointObj(uint32_t id, IGameScene& game_scene, WavManager& audio) : IGameObject(id, TYPE_BOX_POINT, game_scene, audio)
   {
-    _type_ID = ClassID::CLASS_BOX_POINT;
     _sprite.img_ptr = SPRITE_BOX_POIN;
     _sprite.has_img = true;
     _sprite.width = 32;
@@ -17,7 +15,7 @@ namespace sokoban
     _sprite.is_rigid = false;
   }
 
-  void BoxPointObj::update()
+  void BoxPointObj::__update()
   {
   }
 

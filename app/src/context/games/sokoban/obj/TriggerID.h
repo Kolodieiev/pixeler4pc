@@ -5,7 +5,7 @@
 
 namespace sokoban
 {
-  enum TriggerID : int16_t
+  enum TriggerID : uint16_t
   {
     TRIGGER_NEXT_SCENE = 0,
     TRIGGER_GAME_FINISHED,
