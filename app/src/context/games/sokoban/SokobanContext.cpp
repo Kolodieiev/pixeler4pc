@@ -13,7 +13,7 @@ namespace sokoban
 {
   SokobanContext::SokobanContext()
   {
-    
+    setCpuFrequencyMhz(MAX_CPU_FREQ_MHZ);
     EmptyLayout* layout = WidgetCreator::getEmptyLayout();
     setLayout(layout);
     showLvlMenu();
@@ -21,6 +21,7 @@ namespace sokoban
 
   SokobanContext::~SokobanContext()
   {
+    setCpuFrequencyMhz(BASE_CPU_FREQ_MHZ);
   }
 
   bool SokobanContext::loop()
@@ -83,7 +84,6 @@ namespace sokoban
 
   void SokobanContext::showLvlMenu()
   {
-    
     EmptyLayout* layout = getLayout()->castTo<EmptyLayout>();
 
     _lvl_menu = new FixedMenu(ID_LVL_LIST);

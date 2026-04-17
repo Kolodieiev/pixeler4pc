@@ -122,7 +122,7 @@ namespace pixeler
   private:
     String _msg;
     std::vector<const char*> _inited_types;
-    std::vector<uint16_t> _loaded_img_id;
+    std::vector<uint32_t> _loaded_img_id;
     std::vector<IWidget*> _managed_widgets;
 
     static LuaContext* _self;

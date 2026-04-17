@@ -1,67 +1,34 @@
+/**
+ * @file WavManager.h
+ * @brief Менеджер відтворення wav-доріжок
+ * @details Підтримує додавання/видалення wav-доріжки з міксу.
+ * Автоматично міксує всі додані wav-доріжки та надсилає дані до i2s виводу.
+ */
+
 #pragma once
 #pragma GCC optimize("O3")
 #include <list>
 #include <unordered_map>
 
-#include "../defines.h"
+#include "SFX.h"
+#include "pixeler/src/defines.h"
 
 namespace pixeler
 {
-  class WavTrack
+  class SfxPlayer
   {
   public:
-    WavTrack(uint8_t* data_buf, uint32_t data_size) {}
-
-    void play();
-
-    void stop()
-    {
-    }
-    int16_t getNextSample();
-
-    void setOnRepeat(bool repeate)
-    {
-    }
-
-    bool isPlaying() const
-    {
-      return false;
-    };
-
-    void setVolume(uint8_t volume);
-
-    uint8_t getVolume() const
-    {
-      return 0;
-    }
-
-    // Встановити коефіцієнт фільтрації шуму. По замовченню встановлено 1. Без фільтрації.
-    void setFiltrationLvl(uint16_t lvl)
-    {
-    }
-
-    WavTrack* clone();
-
-  private:
-    WavTrack() {}
-
-  private:
-  };
-
-  class WavManager
-  {
-  public:
-    ~WavManager();
+    ~SfxPlayer();
 
     /*!
      * @brief
      *      Додати звукову доріжку до списку міксування. Ресурси зі списку міксування звільняються автоматично.
-     * @param  track
+     * @param  sfx
      *      Вказівник на передзавантажену доріжку.
      * @return
      *      Ідентифікатор на доріжку в списку міксування.
      */
-    uint16_t addToMix(WavTrack* track);
+    uint16_t addSFX(SFX* sfx);
 
     /*!
      * @brief
@@ -69,11 +36,10 @@ namespace pixeler
      * @param  id
      *     Ідентифікатор, який було присвоєно доріжці, під час додавання до міксу.
      */
-    void removeFromMix(uint16_t id);
+    void removeSFX(uint16_t id);
 
     /*!
-     * @brief
-     *     Стартувати задачу відтворення міксу.
+     * @brief Стартувати задачу відтворення міксу.
      */
     void startMix();
 
@@ -87,5 +53,22 @@ namespace pixeler
     static void mixTask(void* params);
 
   private:
+    std::unordered_map<uint16_t, SFX*> _mix;
+    uint64_t _track_id{0};
+    // TaskHandle_t _task_handle{nullptr};
+
+    struct TaskParams
+    {
+      enum CMD : uint8_t
+      {
+        CMD_NONE = 0,
+        CMD_PAUSE,
+        CMD_STOP
+      };
+
+      CMD cmd{CMD_NONE};
+    } _params;
+
+    bool _is_playing{false};
   };
 }  // namespace pixeler

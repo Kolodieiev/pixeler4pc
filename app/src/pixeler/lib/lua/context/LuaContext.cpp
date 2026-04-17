@@ -133,7 +133,7 @@ namespace pixeler
     delete _notification;
 
     for (size_t i = 0; i < _loaded_img_id.size(); ++i)
-      _res.deleteBmpRes(_loaded_img_id[i]);
+      _res.deleteResByID(_loaded_img_id[i]);
 
     for (size_t i = 0; i < _managed_widgets.size(); ++i)
       delete _managed_widgets[i];
@@ -566,7 +566,7 @@ namespace pixeler
   int LuaContext::lua_load_img(lua_State* L)
   {
     const char* path = luaL_checkstring(L, 1);
-    uint16_t id = _res.loadBmpRes(path);
+    uint32_t id = _res.load(path);
 
     if (id > 0)
       _self->_loaded_img_id.push_back(id);
@@ -577,14 +577,14 @@ namespace pixeler
 
   int LuaContext::lua_delete_img(lua_State* L)
   {
-    uint16_t id = luaL_checkinteger(L, 1);
+    uint32_t id = luaL_checkinteger(L, 1);
 
     for (auto it_b = _self->_loaded_img_id.begin(), it_e = _self->_loaded_img_id.end(); it_b != it_e; ++it_b)
     {
       if (*it_b == id)
       {
         _self->_loaded_img_id.erase(it_b);
-        _res.deleteBmpRes(id);
+        _res.deleteResByID(id);
         break;
       }
     }

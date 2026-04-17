@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pixeler/src/game/object/IGameObject.h"
+#include "pixeler/src/game/IGameObject.h"
 
 using namespace pixeler;
 
@@ -9,7 +9,7 @@ namespace sokoban
   class BoxPointObj : public IGameObject
   {
   public:
-    BoxPointObj(uint32_t id, IGameScene& game_scene, WavManager& audio);
+    BoxPointObj(uint32_t id, IGameScene& game_scene, SfxPlayer& audio);
     virtual ~BoxPointObj() {}
 
     virtual void __update() override;

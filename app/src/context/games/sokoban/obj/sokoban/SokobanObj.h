@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../box/BoxObj.h"
-#include "pixeler/src/game/object/IGameObject.h"
+#include "pixeler/src/game/IGameObject.h"
 
 using namespace pixeler;
 
@@ -10,7 +10,7 @@ namespace sokoban
   class SokobanObj : public IGameObject
   {
   public:
-    SokobanObj(uint32_t id, IGameScene& game_scene, WavManager& audio);
+    SokobanObj(uint32_t id, IGameScene& game_scene, SfxPlayer& audio);
     virtual ~SokobanObj() {}
 
     virtual void __update() override;

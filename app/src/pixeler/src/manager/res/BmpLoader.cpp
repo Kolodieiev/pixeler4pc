@@ -1,48 +1,39 @@
 #pragma GCC optimize("O3")
-#include "BmpUtil.h"
+#include "BmpLoader.h"
 
 #include "pixeler/src/manager/FileManager.h"
 
+static const uint16_t BMP_FILE_TYPE{0x4D42};
+static const uint8_t BMP_HEADER_SIZE{54};
+static const uint8_t BMP_HEADER_MASKS_SIZE{12};
+static const uint8_t COMPRESS_BI_BITFIELDS{3};
+static const uint8_t SUPORTED_BPP{16};
+static const uint8_t DEFAULT_INFO_SIZE{40};
+
 namespace pixeler
 {
-  bool BmpUtil::checkBmpFile(FILE* bmp_file, BmpHeader& out_bmp_header)
+  ImageResource* BmpLoader::load(const char* path, const char* name)
   {
-    if (!_fs.readFromFileExact(bmp_file, &out_bmp_header, sizeof(BmpHeader)))
-      return false;
+    if (!_fs.fileExist(path))
+      return nullptr;
 
-    if (!validateHeader(out_bmp_header))
-    {
-      log_e("Помилка валідації bmp файлу");
-      return false;
-    }
-
-    return true;
-  }
-
-  ImgData BmpUtil::loadBmp(const char* path_to_bmp)
-  {
-    ImgData empty_bmp_data;
-
-    if (!_fs.fileExist(path_to_bmp))
-      return empty_bmp_data;
-
-    FILE* bmp_file = _fs.openFile(path_to_bmp, "rb");
+    FILE* bmp_file = _fs.openFile(path, "rb");
     if (!bmp_file)
-      return empty_bmp_data;
+      return nullptr;
 
     BmpHeader bmp_header;
 
     if (!checkBmpFile(bmp_file, bmp_header))
     {
       _fs.closeFile(bmp_file);
-      return empty_bmp_data;
+      return nullptr;
     }
 
     if (!psramInit())
     {
       _fs.closeFile(bmp_file);
       log_e("Помилка ініціалізації PSRAM");
-      return empty_bmp_data;
+      return nullptr;
     }
     //
     bool is_flipped = bmp_header.height > 0;
@@ -57,15 +48,15 @@ namespace pixeler
     {
       _fs.closeFile(bmp_file);
       log_e("Помилка виділення %zu байтів PSRAM", data_size);
-      return empty_bmp_data;
+      return nullptr;
     }
 
     if (!_fs.readFromFileExact(bmp_file, data, data_size, bmp_header.data_offset))
     {
-      log_e("Помилка читання файлу: %s", path_to_bmp);
+      log_e("Помилка читання файла: %s", path);
       free(data);
       _fs.closeFile(bmp_file);
-      return empty_bmp_data;
+      return nullptr;
     }
 
     _fs.closeFile(bmp_file);
@@ -95,39 +86,18 @@ namespace pixeler
       }
     }
 
-    ImgData bmp_data;
-    bmp_data.width = width;
-    bmp_data.height = height;
-    bmp_data.data_ptr = reinterpret_cast<uint16_t*>(data);
-
-    return bmp_data;
+    const char* res_name = name ? name : path;
+    return new ImageResource(res_name, data, width, height);
   }
 
-  bool BmpUtil::validateHeader(const BmpHeader& bmp_header)
+  bool BmpLoader::saveBmp(BmpHeader& header, const uint16_t* buff, const char* path_to_bmp, bool swap_data_bytes)
   {
-    if ((bmp_header.file_type != BMP_FILE_TYPE))
+    if (!psramInit())
     {
-      log_e("Не bmp файл");
+      log_e("Помилка ініціалізації PSRAM");
       return false;
     }
 
-    if ((bmp_header.bit_pp != SUPORTED_BPP) || bmp_header.compression != COMPRESS_BI_BITFIELDS)
-    {
-      log_e("Зображення повинне мати 16bpp в форматі 565");
-      return false;
-    }
-
-    if ((bmp_header.width == 0 || bmp_header.height == 0))
-    {
-      log_e("Зображення містить некоректний заголовок");
-      return false;
-    }
-
-    return true;
-  }
-
-  bool BmpUtil::saveBmp(BmpHeader& header, const uint16_t* buff, const char* path_to_bmp, bool swap_data_bytes)
-  {
     header.image_size = header.width * header.height * 2;
     header.file_size = header.data_offset + header.image_size;
     uint32_t buf_size = header.width * header.height;
@@ -158,5 +128,52 @@ namespace pixeler
     free(data);
 
     return written_bytes == header.file_size;
+  }
+
+  BmpLoader::BmpHeader BmpLoader::getDefaultHeader()
+  {
+    return BmpHeader{
+        .file_type = BMP_FILE_TYPE,
+        .data_offset = BMP_HEADER_SIZE + BMP_HEADER_MASKS_SIZE,
+        .info_size = DEFAULT_INFO_SIZE,
+        .bit_pp = SUPORTED_BPP,
+        .compression = COMPRESS_BI_BITFIELDS};
+  }
+
+  bool BmpLoader::checkBmpFile(FILE* bmp_file, BmpHeader& out_bmp_header)
+  {
+    if (!_fs.readFromFileExact(bmp_file, &out_bmp_header, sizeof(BmpHeader)))
+      return false;
+
+    if (!validateHeader(out_bmp_header))
+    {
+      log_e("Помилка валідації bmp файлу");
+      return false;
+    }
+
+    return true;
+  }
+
+  bool BmpLoader::validateHeader(const BmpHeader& bmp_header)
+  {
+    if ((bmp_header.file_type != 0x4D42))
+    {
+      log_e("Зображення не є bmp файлом");
+      return false;
+    }
+
+    if ((bmp_header.bit_pp != SUPORTED_BPP) || bmp_header.compression != COMPRESS_BI_BITFIELDS)
+    {
+      log_e("Зображення повинне мати 16bpp в форматі 565");
+      return false;
+    }
+
+    if ((bmp_header.width == 0 || bmp_header.height == 0))
+    {
+      log_e("Зображення містить некоректний заголовок");
+      return false;
+    }
+
+    return true;
   }
 }  // namespace pixeler

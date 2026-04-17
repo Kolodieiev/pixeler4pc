@@ -2,7 +2,6 @@
 #pragma GCC optimize("O3")
 
 #include "pixeler/src/manager/FileManager.h"
-#include "pixeler/src/context/IContext.h"
 //
 #include "pixeler/lib/lua/context/LuaContext.h"
 #include "pixeler/src/widget/notification/Notification.h"
@@ -129,8 +128,6 @@ private:
   std::vector<FileInfo> _files;
   std::vector<String> _breadcrumbs;
 
-  volatile SemaphoreHandle_t _sync_task_mutex{nullptr};
-
   LuaContext* _lua_context{nullptr};
   Notification* _notification{nullptr};
   Image* _lua_img{nullptr};
@@ -149,7 +146,11 @@ private:
 
   Mode _mode{MODE_NAVIGATION};
   uint8_t _upd_counter{0};
+  bool _is_dir{false};
   bool _has_moving_file{false};
   bool _has_copying_file{false};
   bool _dialog_success_res{false};
+  bool _task_runnning{false};
+  bool _task_done{false};
+  bool _task_done_result{false};
 };

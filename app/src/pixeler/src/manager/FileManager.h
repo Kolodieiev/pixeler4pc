@@ -12,7 +12,7 @@
 
 #include "pixeler/setup/sd_setup.hpp"
 #include "pixeler/src/defines.h"
-#include "pixeler/src/util/file/FileInfo.h"
+#include "file/FileInfo.h"
 
 namespace pixeler
 {

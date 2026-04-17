@@ -7,7 +7,7 @@
 
 namespace sokoban
 {
-  SokobanObj::SokobanObj(uint32_t id, IGameScene& game_scene, WavManager& audio) : IGameObject(id, TYPE_HERO, game_scene, audio)
+  SokobanObj::SokobanObj(uint32_t id, IGameScene& game_scene, SfxPlayer& audio) : IGameObject(id, TYPE_HERO, game_scene, audio)
   {
     _layer = 1;                        // Об'єкт повинен бути вище об'єктів точок
     _sprite.img_ptr = SPRITE_SOKOBAN;  // Встановити зображення спрайта

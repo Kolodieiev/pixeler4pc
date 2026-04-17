@@ -11,7 +11,7 @@ namespace pixeler
     explicit MutexGuard(SemaphoreHandle_t mutex)
         : _mutex(mutex)
     {
-      if (!mutex)
+      if (!_mutex)
       {
         log_e("Спроба взяти nullptr-мютекс");
         esp_restart();

@@ -1,13 +1,13 @@
 #pragma once
 #pragma GCC optimize("O3")
 
-#include "../DataStream.h"
-#include "../terrain/TileType.h"
+#include "DataStream.h"
 #include "SpriteDescription.h"
 #include "pixeler/src/defines.h"
 #include "pixeler/src/driver/graphics/DisplayWrapper.h"
 #include "pixeler/src/manager/ResManager.h"
-#include "pixeler/src/manager/WavManager.h"
+#include "sound/SfxPlayer.h"
+#include "terrain/TileType.h"
 
 namespace pixeler
 {
@@ -28,7 +28,7 @@ namespace pixeler
     IGameObject(const IGameObject& rhs) = delete;
     IGameObject& operator=(const IGameObject& rhs) = delete;
 
-    IGameObject(uint32_t id, uint16_t type_id, IGameScene& game_scene, WavManager& audio);
+    IGameObject(uint32_t id, uint16_t type_id, IGameScene& game_scene, SfxPlayer& audio);
     virtual ~IGameObject() = 0;
 
     /**
@@ -164,7 +164,7 @@ namespace pixeler
     uint16_t calcAngleToPoint(uint16_t x, uint16_t y);
 
     /**
-     * @brief Розраховує відстань від pivot об'єкта до вказаної точки
+     * @brief Розраховує відстань від pivot об'єкта до вказаної точки.
      *
      * @param x Координата точки.
      * @param y Координата точки.
@@ -186,7 +186,7 @@ namespace pixeler
 
   protected:
     IGameScene& _scene;
-    WavManager& _audio;           // Менеджер аудіо
+    SfxPlayer& _sfx_player;       // Плеєр звукових ефектів
     SpriteDescription _sprite{};  // Об'єкт структури, яка описує спрайт об'єкта та його стани
 
     String _name;  // Ім'я об'єкта, може не використовуватися

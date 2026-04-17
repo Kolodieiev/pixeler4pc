@@ -4,6 +4,7 @@
 #include "./lua_iwidget.h"
 #include "pixeler/lib/lua/res/lua_strs.h"
 #include "pixeler/src/manager/ResManager.h"
+#include "pixeler/src/manager/res/ImageResource.h"
 #include "pixeler/src/widget/image/Image.h"
 
 using namespace pixeler;
@@ -36,19 +37,21 @@ int lua_image_clone(lua_State* L)
 int lua_image_set_src(lua_State* L)
 {
   Image* image = *static_cast<Image**>(luaL_checkudata(L, 1, STR_TYPE_NAME_IMAGE));
-  uint16_t res_id = luaL_checkinteger(L, 2);
+  uint32_t res_id = luaL_checkinteger(L, 2);
 
   if (res_id == 0)
     return 0;
 
-  ImgData img_data = _res.getBmpRes(res_id);
+  const IResource* raw_res = _res.getResByID(res_id);
 
-  if (img_data.width == 0 || img_data.height == 0)
+  if (!raw_res)
     return 0;
 
-  image->setSrc(img_data.data_ptr);
-  image->setWidth(img_data.width);
-  image->setHeight(img_data.height);
+  const ImageResource* img_res = static_cast<const ImageResource*>(raw_res);
+
+  image->setSrc(static_cast<const uint16_t*>(img_res->getData()));
+  image->setWidth(img_res->getWidth());
+  image->setHeight(img_res->getHeight());
 
   return 0;
 }

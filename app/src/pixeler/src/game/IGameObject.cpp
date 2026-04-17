@@ -5,11 +5,11 @@
 
 namespace pixeler
 {
-  IGameObject::IGameObject(uint32_t id, uint16_t type_id, IGameScene& game_scene, WavManager& audio)
+  IGameObject::IGameObject(uint32_t id, uint16_t type_id, IGameScene& game_scene, SfxPlayer& audio)
       : _obj_ID{id},
         _type_ID{type_id},
         _scene{game_scene},
-        _audio{audio}
+        _sfx_player{audio}
   {
   }
 

@@ -10,65 +10,24 @@
 
 #pragma once
 #pragma GCC optimize("O3")
+#include <memory>
 #include <unordered_map>
 
 #include "../defines.h"
-#include "../util/img/ImgData.h"
+#include "res/IResLoader.h"
+#include "res/IResource.h"
 
 namespace pixeler
 {
   class ResManager
   {
   public:
-    /**
-     * @brief Завантажує bmp із карти пам'яті до PSRAM.
-     *
-     * @param path_to_bmp Шлях до ресурсу на карті пам'яті.
-     * @return uint16_t - Унікальний ідентифікатор ресурсу, який буде більшим за 0, якщо завантаження успішне, інакаше - 0.
-     */
-    uint16_t loadBmpRes(const char* path_to_bmp);
-
-    /**
-     * @brief Завантажує wav із карти пам'яті до PSRAM.
-     *
-     * @param path_to_wav Шлях до ресурсу на карті пам'яті
-     * @return uint16_t - Унікальний ідентифікатор ресурсу, який буде більшим за 0, якщо завантаження успішне, інакаше - 0.
-     */
-    uint16_t loadWavRes(const char* path_to_wav);
-
-    /**
-     * @brief Повертає структуру, що містить інформацію про завантажене зображення.
-     *
-     * @param res_id Ідентифікатор ресурсу.
-     * @return ImgData - структура, що містить інформацію про зображення, або порожня структура, якщо ресурс відсутній у списку.
-     */
-    ImgData getBmpRes(uint16_t res_id);
-
-    /**
-     * @brief Видаляє зі списку ресурсів структуру, що містить інформацію про зображення, та звільняє пам'ять, яку зображення займало.
-     *
-     * @param res_id
-     */
-    void deleteBmpRes(uint16_t res_id);
-
-    /**
-     * @brief Видаляє зі списку ресурсів структуру, що містить інформацію про звукову доріжку, та звільняє пам'ять, яку вона займала.
-     *
-     * @param res_id
-     */
-    void deleteWavRes(uint16_t res_id);
-
-    /**
-     * @brief Очищує список ресурсів зображень та звільняє пам'ять, яку вони займали.
-     *
-     */
-    void clearBmpRes();
-
-    /**
-     * @brief Очищує список ресурсів звукових доріжок та звільняє пам'ять, яку вони займали.
-     *
-     */
-    void clearWavRes();
+    uint32_t load(const char* path, const char* res_name = nullptr);
+    const IResource* getResByName(const char* res_name, uint32_t& out_id) const;
+    const IResource* getResByID(uint32_t res_id) const;
+    void deleteResByName(const char* res_name);
+    void deleteResByID(uint32_t res_id);
+    void freeRes();
 
     ResManager() {}
     ResManager(const ResManager&) = delete;
@@ -77,16 +36,15 @@ namespace pixeler
     ResManager& operator=(ResManager&&) = delete;
 
   private:
-    std::unordered_map<uint16_t, ImgData> _bmp_res;
+    std::unique_ptr<IResLoader> getLoaderByExt(const char* path);
 
-    ImgData _empty_img;
-
-    uint16_t _img_res_id_i{1};
-    uint16_t _audio_res_id_i{1};
+  private:
+    std::unordered_map<uint32_t, IResource*> _resources;  // <res_id, res_ptr>
+    uint32_t _res_id_counter{0};
   };
 
   /**
-   * @brief Глобальний об'єкт для керування завантаженими ресурсами.
+   * @brief Глобальний об'єкт для завантаження ресурсів та керування ними.
    *
    */
   extern ResManager _res;

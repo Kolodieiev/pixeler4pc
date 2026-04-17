@@ -2,7 +2,6 @@
 
 #include "../WidgetCreator.h"
 #include "pixeler/src/manager/SettingsManager.h"
-#include "pixeler/src/util/img/BmpUtil.h"
 
 ThreeDContext::ThreeDContext()
 {

@@ -65,8 +65,8 @@ namespace pixeler
       return nullptr;
     }
 
-    uint16_t res_id = bmp_data_it->second;
-    return _res_manager.getBmpRes(res_id).data_ptr;
+    uint32_t res_id = bmp_data_it->second;
+    return static_cast<const uint16_t*>(_res_manager.getResByID(res_id)->getData());
   }
 
   void TerrainLoader::clearTerrainData()
@@ -77,7 +77,7 @@ namespace pixeler
     _tile_type_data.clear();
 
     for (auto it_b = _terr_bmp_data.begin(), it_e = _terr_bmp_data.end(); it_b != it_e; ++it_b)
-      _res_manager.deleteBmpRes(it_b->second);
+      _res_manager.deleteResByID(it_b->second);
 
     _terr_bmp_data.clear();
 
@@ -325,7 +325,7 @@ namespace pixeler
       cur_file_name += tile_id;
       cur_file_name += ".bmp";
 
-      uint16_t res_id = _res_manager.loadBmpRes(cur_file_name.c_str());
+      uint32_t res_id = _res_manager.load(cur_file_name.c_str());
 
       if (res_id == 0)
         return false;

@@ -57,7 +57,7 @@ namespace pixeler
     ResManager _res_manager;
 
     std::unordered_map<uint16_t, TileType> _tile_type_data;
-    std::unordered_map<uint16_t, uint16_t> _terr_bmp_data;
+    std::unordered_map<uint16_t, uint32_t> _terr_bmp_data;
 
     uint16_t* _terrain_tmpl{nullptr};
     uint16_t _terrain_width{0};

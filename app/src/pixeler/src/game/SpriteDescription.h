@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "../../driver/graphics/DisplayWrapper.h"
+#include "pixeler/src/driver/graphics/DisplayWrapper.h"
 
 namespace pixeler
 {

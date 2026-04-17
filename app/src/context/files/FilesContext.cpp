@@ -1,13 +1,16 @@
 #pragma GCC optimize("O3")
 #include "FilesContext.h"
 
+#include "pixeler/lib/qr/QR_Gen.h"
+#include "pixeler/src/manager/FileManager.h"
 #include "pixeler/src/manager/SettingsManager.h"
-#include "pixeler/src/util/img/BmpUtil.h"
+#include "pixeler/src/manager/res/BmpLoader.h"
 //
 #include "../WidgetCreator.h"
 #include "./res/folder.h"
 #include "./res/lua.h"
 #include "pixeler/src/widget/menu/item/MenuItem.h"
+#include "pixeler/src/widget/menu/item/ToggleItem.h"
 #include "pixeler/src/widget/progress/ProgressBar.h"
 
 #define UPD_TRACK_INF_INTERVAL 1000UL
@@ -31,6 +34,7 @@ bool FilesContext::loop()
         _mode = MODE_NOTIFICATION;
         _notification->setMsgText(msg);
         showNotification(_notification);
+        getLayout()->drawForced();
       }
       else
       {
@@ -50,8 +54,9 @@ bool FilesContext::loop()
   return true;
 }
 
-FilesContext::FilesContext() : _sync_task_mutex{xSemaphoreCreateMutex()}
+FilesContext::FilesContext()
 {
+  setCpuFrequencyMhz(MAX_CPU_FREQ_MHZ);
   _dir_img = new Image(1);
   _dir_img->setTransparency(true);
   _dir_img->setWidth(16);
@@ -80,7 +85,6 @@ FilesContext::~FilesContext()
   delete _lua_img;
   delete _lua_context;
   delete _notification;
-  vSemaphoreDelete(_sync_task_mutex);
 }
 
 //-------------------------------------------------------------------------------------------
@@ -150,7 +154,7 @@ void FilesContext::showFilesTmpl()
   size_title_lbl->setText(STR_SIZE);
   size_title_lbl->setTextColor(COLOR_WHITE);
   size_title_lbl->initWidthToFit();
-  size_title_lbl->setPos(0, UI_HEIGHT - size_title_lbl->getHeight() * 2 - 7);
+  size_title_lbl->setPos(0, UI_HEIGHT - size_title_lbl->getHeight() * 2 - 2);
 
   _file_size_lbl = new Label(ID_SIZE_LBL);
   layout->addWidget(_file_size_lbl);
@@ -168,7 +172,7 @@ void FilesContext::showFilesTmpl()
 
   _files_list = WidgetCreator::getDynamicMenu(ID_DYNAMIC_MENU);
   layout->addWidget(_files_list);
-  _files_list->setHeight(UI_HEIGHT - (UI_HEIGHT - _file_size_lbl->getYPos()));
+  _files_list->setHeight(UI_HEIGHT - (UI_HEIGHT - _file_size_lbl->getYPos()) - 2);
   _files_list->setItemHeight((_files_list->getHeight() - 2) / MENU_ITEMS_NUM);
   _files_list->setWidth(UI_WIDTH - SCROLLBAR_WIDTH);
 
@@ -251,8 +255,8 @@ void FilesContext::showContextMenu()
         FILE* bmp_file = _fs.openFile(path_to_bmp.c_str(), "rb");
         if (bmp_file)
         {
-          BmpHeader bmp_header;
-          if (BmpUtil::checkBmpFile(bmp_file, bmp_header))
+          BmpLoader::BmpHeader bmp_header;
+          if (BmpLoader::checkBmpFile(bmp_file, bmp_header))
           {
             MenuItem* set_wall_item = WidgetCreator::getMenuItem(ID_ITEM_SET_WALLPP);
             _context_menu->addItem(set_wall_item);
@@ -450,23 +454,14 @@ void FilesContext::pasteFile()
   }
   else if (_has_copying_file)
   {
-    if (!_fs.fileExist(old_file_path.c_str()) || !_fs.startCopyingFile(old_file_path.c_str(), new_file_path.c_str()))
+    if (!_fs.startCopyingFile(old_file_path.c_str(), new_file_path.c_str()))
     {
       showResultToast(false);
     }
     else
     {
-      if (old_file_path.equals(new_file_path))
-      {
-        new_file_path += "_copy";
-
-        while (_fs.fileExist(new_file_path.c_str(), true))
-          new_file_path += "_copy";
-      }
-
-      _copy_to_path = new_file_path;
-
       showCopyingTmpl();
+      _task_runnning = true;
     }
   }
 
@@ -483,8 +478,15 @@ void FilesContext::removeFile()
   filename += "/";
   filename += _files_list->getCurrItemText();
 
-  if (_fs.startRemoving(filename.c_str()))
+  if (!_fs.startRemoving(filename.c_str()))
+  {
+    showResultToast(false);
+  }
+  else
+  {
     showRemovingTmpl();
+    _task_runnning = true;
+  }
 }
 
 //-------------------------------------------------------------------------------------------
@@ -543,46 +545,50 @@ void FilesContext::update()
 
   if (_fs.isWorking())
   {
-    xSemaphoreTake(_sync_task_mutex, portMAX_DELAY);
-
-    if (_fs.isWorking())
+    if ((millis() - _upd_msg_time) > UPD_TRACK_INF_INTERVAL)
     {
-      if ((millis() - _upd_msg_time) > UPD_TRACK_INF_INTERVAL)
+      String upd_txt;
+      String upd_progress;
+
+      if (_upd_counter > 2)
+        _upd_counter = 0;
+      else
+        ++_upd_counter;
+
+      for (uint8_t i{0}; i < _upd_counter; ++i)
+        upd_progress += ".";
+
+      if (_mode == MODE_CANCELING)
       {
-        String upd_txt;
-        String upd_progress;
-
-        if (_upd_counter > 2)
-          _upd_counter = 0;
-        else
-          ++_upd_counter;
-
-        for (uint8_t i{0}; i < _upd_counter; ++i)
-          upd_progress += ".";
-
-        if (_mode == MODE_CANCELING)
-        {
-          upd_txt = STR_CANCELING;
-          upd_txt += upd_progress;
-          _msg_lbl->setText(upd_txt);
-        }
-        else if (_mode == MODE_COPYING)
-        {
-          _task_progress->setProgress(_fs.getCopyProgress());
-          _upd_msg_time = millis();
-        }
-        else if (_mode == MODE_REMOVING)
-        {
-          upd_txt = STR_REMOVING;
-          upd_txt += upd_progress;
-          _msg_lbl->setText(upd_txt);
-        }
-
+        upd_txt = STR_CANCELING;
+        upd_txt += upd_progress;
+        _msg_lbl->setText(upd_txt);
+      }
+      else if (_mode == MODE_COPYING)
+      {
+        _task_progress->setProgress(_fs.getCopyProgress());
         _upd_msg_time = millis();
       }
-    }
+      else if (_mode == MODE_REMOVING)
+      {
+        upd_txt = STR_REMOVING;
+        upd_txt += upd_progress;
+        _msg_lbl->setText(upd_txt);
+      }
 
-    xSemaphoreGive(_sync_task_mutex);
+      _upd_msg_time = millis();
+    }
+  }
+  else if (_task_runnning && _task_done)
+  {
+    _task_runnning = false;
+    _task_done = false;
+
+    showResultToast(_task_done_result);
+
+    indexCurDir();
+    showFilesTmpl();
+    fillFilesTmpl();
   }
 }
 
@@ -770,13 +776,8 @@ void FilesContext::fillFilesTmpl()
 
 void FilesContext::taskDoneHandler(bool result)
 {
-  xSemaphoreTake(_sync_task_mutex, portMAX_DELAY);
-  showResultToast(result);
-
-  indexCurDir();
-  showFilesTmpl();
-  fillFilesTmpl();
-  xSemaphoreGive(_sync_task_mutex);
+  _task_done = true;
+  _task_done_result = result;
 }
 
 void FilesContext::taskDone(bool result, void* arg)

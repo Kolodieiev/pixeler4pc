@@ -8,7 +8,7 @@
 
 namespace sokoban
 {
-  BoxObj::BoxObj(uint32_t id, IGameScene& game_scene, WavManager& audio) : IGameObject(id, TYPE_BOX, game_scene, audio)
+  BoxObj::BoxObj(uint32_t id, IGameScene& game_scene, SfxPlayer& audio) : IGameObject(id, TYPE_BOX, game_scene, audio)
   {
     _layer = 1;  // Об'єкт повинен бути вище об'єктів точок щоб перекривати їх
     _sprite.img_ptr = SPRITE_BOX;
@@ -82,7 +82,7 @@ namespace sokoban
 
     // if (s_data && s_data->size > 0)
     // {
-    //     WavTrack *track = new WavTrack(s_data->data_ptr, s_data->size);
+    //     SFX *track = new SFX(s_data->data_ptr, s_data->size);
     //     track->setVolume(4);
 
     //     if (!track)
@@ -91,7 +91,7 @@ namespace sokoban
     //         esp_restart();
     //     }
 
-    //     _audio.addToMix(track);
+    //     _sfx_player.addSFX(track);
     // }
     // else
     // {

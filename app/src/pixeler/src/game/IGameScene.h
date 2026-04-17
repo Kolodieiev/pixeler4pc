@@ -10,14 +10,14 @@
 #include "../driver/graphics/DisplayWrapper.h"
 #include "../driver/input/Input.h"
 #include "../manager/ResManager.h"
-#include "../manager/WavManager.h"
+#include "sound/SfxPlayer.h"
 
 //
-#include "./IGameMenu.h"
-#include "./IGameUI.h"
-#include "./object/IGameObject.h"
-#include "./terrain/TerrainLoader.h"
-#include "./terrain/TerrainManager.h"
+#include "terrain/TerrainLoader.h"
+#include "terrain/TerrainManager.h"
+#include "IGameObject.h"
+#include "ui/IGameMenu.h"
+#include "ui/IGameUI.h"
 
 namespace pixeler
 {
@@ -151,7 +151,7 @@ namespace pixeler
     {
       try
       {
-        return new T(++_obj_id_counter, *this, _audio);
+        return new T(++_obj_id_counter, *this, _sfx_player);
       }
       catch (const std::bad_alloc& e)
       {
@@ -206,11 +206,11 @@ namespace pixeler
   protected:
     ResManager _res_manager;  // Менеджер ресурсів
     TerrainManager _terrain;  // Самий нижній шар сцени
-    WavManager _audio;        // Звуковий менеджер
+    SfxPlayer _sfx_player;    // Плеєр звукових ефектів
 
   private:
     std::unordered_map<uint32_t, IGameObject*> _game_objs;  // Список усіх ігрових об'єктів на сцені, які повинні взаємодіяти один з одним
-    
+
   protected:
     DataStream& _stored_objs;         // Контейнер для перенесення відбитків об'єктів до наступної сцени
     SemaphoreHandle_t _obj_mutex;     // Мютекс для синхронізації доступу до об'єктів

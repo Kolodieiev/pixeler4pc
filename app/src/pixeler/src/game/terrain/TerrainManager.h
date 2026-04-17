@@ -4,12 +4,10 @@
 #include <unordered_map>
 
 #include "../../defines.h"
-
-//
 #include "../../driver/graphics/DisplayWrapper.h"
-//
-#include "../object/SpriteDescription.h"
+#include "../SpriteDescription.h"
 #include "Tile.h"
+
 
 namespace pixeler
 {

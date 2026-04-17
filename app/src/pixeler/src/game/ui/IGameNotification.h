@@ -1,7 +1,7 @@
 #pragma once
 #include "pixeler/src/defines.h"
-#include "../driver/graphics/DisplayWrapper.h"
-#include "../widget/notification/Notification.h"
+#include "pixeler/src/driver/graphics/DisplayWrapper.h"
+#include "pixeler/src/widget/notification/Notification.h"
 
 namespace pixeler
 {
