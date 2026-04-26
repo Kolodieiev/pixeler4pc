@@ -120,7 +120,7 @@ namespace pixeler
     {
       uint16_t* data_p16 = reinterpret_cast<uint16_t*>(data + header.data_offset);
       for (int i = 0; i < buf_size; ++i)
-        data_p16[i] = __bswap16(buff[i]);
+        data_p16[i] = __builtin_bswap16(buff[i]);
     }
 
     size_t written_bytes = _fs.writeFile(path_to_bmp, data, header.file_size);

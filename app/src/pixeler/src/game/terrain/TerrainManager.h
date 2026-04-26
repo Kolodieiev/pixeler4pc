@@ -8,7 +8,6 @@
 #include "../SpriteDescription.h"
 #include "Tile.h"
 
-
 namespace pixeler
 {
   class TerrainManager
@@ -34,40 +33,28 @@ namespace pixeler
      *
      * @return uint16_t
      */
-    uint16_t getWidth() const
-    {
-      return _terrain_w;
-    }
+    uint16_t getWidth() const;
 
     /**
      * @brief  Повертає висоту ігрового рівня в пікселях.
      *
      * @return uint16_t
      */
-    uint16_t getHeight() const
-    {
-      return _terrain_h;
-    }
+    uint16_t getHeight() const;
 
     /**
      * @brief Повертає X-координату верхнього лівого кута view-порта.
      *
      * @return uint16_t
      */
-    uint16_t getViewX() const
-    {
-      return _view_x;
-    }
+    uint16_t getViewX() const;
 
     /**
      * @brief Повертає Y-координату верхнього лівого кута view-порта.
      *
      * @return uint16_t
      */
-    uint16_t getViewY() const
-    {
-      return _view_y;
-    }
+    uint16_t getViewY() const;
 
     /**
      * @brief Малює частину ігрового рівня з указаних координат, якщо можливо.
@@ -79,14 +66,15 @@ namespace pixeler
     /**
      * @brief Встановлює вказівник на фонове зображення ігрового рівня.
      * Дані за вказівником не будуть видалені автоматично разом з ігровим рівнем.
-     * Очікується, що розмір зображення буде не меншим за розмір дисплея.
      *
      * @param img_ptr Вказівник на фонове зображення.
+     * @param img_width Ширина зображення.
+     * @param img_height Висота зображення.
+     * @param back_color Колір фону навколо зображення.
+     * @param x_offset Зміщення зліва.
+     * @param y_offset Зміщення зверху.
      */
-    void setBackImgPtr(const uint16_t* img_ptr)
-    {
-      _back_img = img_ptr;
-    }
+    void setBackImg(const uint16_t* img_ptr, uint16_t img_width, uint16_t img_height, uint16_t back_color = COLOR_BLACK, uint16_t x_offset = 0, uint16_t y_offset = 0);
 
     /**
      * @brief Додає опис окремої плитки.
@@ -103,10 +91,7 @@ namespace pixeler
      * Необхідно викликати перед додаванням нових плиток, якщо потрібно перемалювати ігровий рівень в межах однії сцени.
      *
      */
-    void clearTilesDesc()
-    {
-      freeTilesDescriptionData();
-    }
+    void clearTilesDesc();
 
     /**
      * @brief Створює поверхню ігрового рівня на основі опису плиток та таблиці розміщення плиток.
@@ -179,6 +164,11 @@ namespace pixeler
     const uint16_t HALF_VIEW_H;  // Використовується для позиціонування об'єктів
 
   private:
+    uint16_t _back_img_w{0};
+    uint16_t _back_img_h{0};
+    uint16_t _back_img_x_off{0};
+    uint16_t _back_img_y_off{0};
+    uint16_t _back_color{0};
     uint16_t _view_x{0};      // X верхнього лівого кута view-порта
     uint16_t _view_y{0};      // Y верхнього лівого кута view-порта
     uint16_t _terrain_w{0};   // Ширина ігрового рівня в пікселях

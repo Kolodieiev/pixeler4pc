@@ -23,7 +23,6 @@
 
 #if defined(_WIN32)
 #include <stdlib.h>
-#define __bswap16(x) _byteswap_ushort(x)
 #define fsync(fd) _commit(fd)
 
 #else

@@ -291,6 +291,36 @@ public:
 
   uint16_t* getFramebuffer();
 
+  void drawBitmapToFramebufferRotate1(
+      const uint16_t* from_bitmap,
+      int16_t bitmap_w,
+      int16_t bitmap_h,
+      uint16_t* framebuffer,
+      int16_t x,
+      int16_t y,
+      int16_t framebuffer_w,
+      int16_t framebuffer_h);
+
+  void drawBitmapToFramebufferRotate2(
+      const uint16_t* from_bitmap,
+      int16_t bitmap_w,
+      int16_t bitmap_h,
+      uint16_t* framebuffer,
+      int16_t x,
+      int16_t y,
+      int16_t framebuffer_w,
+      int16_t framebuffer_h);
+
+  void drawBitmapToFramebufferRotate3(
+      const uint16_t* from_bitmap,
+      int16_t bitmap_w,
+      int16_t bitmap_h,
+      uint16_t* framebuffer,
+      int16_t x,
+      int16_t y,
+      int16_t framebuffer_w,
+      int16_t framebuffer_h);
+
 private:
   uint16_t u8g2_font_get_word(const uint8_t* font, uint8_t offset);
   uint8_t u8g2_font_decode_get_unsigned_bits(uint8_t cnt);

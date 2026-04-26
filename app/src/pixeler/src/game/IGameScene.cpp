@@ -21,8 +21,8 @@ namespace pixeler
 
   IGameScene::~IGameScene()
   {
-    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
-      delete it->second;
+    for (auto const& obj : _game_objs)
+      delete obj;
 
     delete _game_UI;
     delete _game_menu;
@@ -49,12 +49,13 @@ namespace pixeler
     _terrain.setCameraPos(_main_obj->_x_global, _main_obj->_y_global);
     _terrain.onDraw();
 
-    std::list<IGameObject*> view_obj;
+    std::vector<IGameObject*> view_obj;
+    view_obj.reserve(_game_objs.size());
     IGameObject* obj;
 
     for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it;)
     {
-      obj = it->second;
+      obj = *it;
 
       if (!obj->isDestroyed())
       {
@@ -98,20 +99,19 @@ namespace pixeler
       }
       else
       {
-        delete it->second;
+        delete obj;
         it = _game_objs.erase(it);
       }
     }
 
-    view_obj.sort([](IGameObject* a, IGameObject* b)
-                  { 
-                        if(a->_layer < b->_layer)
-                            return true;
-                        else
-                            return a->_y_global + a->_sprite.height < b->_y_global + b->_sprite.height; });
+    std::sort(view_obj.begin(), view_obj.end(), [](IGameObject* a, IGameObject* b)
+              {
+    if (a->_layer < b->_layer) 
+        return true;
+    return a->_y_global + a->_sprite.height < b->_y_global + b->_sprite.height; });
 
-    for (auto it = view_obj.begin(), last_it = view_obj.end(); it != last_it; ++it)
-      (*it)->__onDraw();
+    for (auto const& g_obj : view_obj)
+      g_obj->__onDraw();
 
     giveLock();
 
@@ -155,8 +155,8 @@ namespace pixeler
   {
     size_t sum{0};
     takeLock();
-    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
-      sum += it->second->getDataSize();
+    for (auto const& obj : _game_objs)
+      sum += obj->getDataSize();
     giveLock();
     return sum;
   }
@@ -164,8 +164,8 @@ namespace pixeler
   void IGameScene::serialize(DataStream& ds)
   {
     takeLock();
-    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
-      it->second->serialize(ds);
+    for (auto const& obj : _game_objs)
+      obj->serialize(ds);
     giveLock();
 
     ds.flush();
@@ -176,10 +176,8 @@ namespace pixeler
     std::vector<IGameObject*> ret_objs;
     ret_objs.reserve(10);
 
-    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
+    for (auto const& obj : _game_objs)
     {
-      IGameObject* obj = it->second;
-
       if (obj != exclude)
       {
         for (const uint16_t id : type_ID)
@@ -201,10 +199,8 @@ namespace pixeler
     std::vector<IGameObject*> ret_objs;
     ret_objs.reserve(10);
 
-    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
+    for (auto const& obj : _game_objs)
     {
-      IGameObject* obj = it->second;
-
       if (obj != exclude)
       {
         for (const uint16_t id : type_ID)
@@ -226,10 +222,8 @@ namespace pixeler
     std::vector<IGameObject*> ret_objs;
     ret_objs.reserve(10);
 
-    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
+    for (auto const& obj : _game_objs)
     {
-      IGameObject* obj = it->second;
-
       if (obj != exclude)
       {
         for (const uint16_t id : type_ID)
@@ -251,10 +245,8 @@ namespace pixeler
     std::vector<IGameObject*> ret_objs;
     ret_objs.reserve(10);
 
-    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
+    for (auto const& obj : _game_objs)
     {
-      IGameObject* obj = it->second;
-
       if (obj != exclude)
       {
         for (const uint16_t id : type_ID)
@@ -273,10 +265,8 @@ namespace pixeler
 
   bool IGameScene::hasCollisionAt(uint16_t x, uint16_t y, const IGameObject* exclude)
   {
-    for (auto it = _game_objs.begin(), last_it = _game_objs.end(); it != last_it; ++it)
+    for (auto const& obj : _game_objs)
     {
-      const IGameObject* obj = it->second;
-
       if (obj != exclude && obj->_sprite.is_rigid && obj->hasIntersectWithPoint(x, y))
         return true;
     }
@@ -291,7 +281,7 @@ namespace pixeler
 
   void IGameScene::addObject(IGameObject& obj)
   {
-    _game_objs.emplace(obj.getID(), &obj);
+    _game_objs.emplace_back(&obj);
   }
 
   void IGameScene::onTriggered(uint16_t trigg_id)

@@ -86,19 +86,17 @@ const char STR_LED_GREET[] = "Привітання LED";
 const char STR_FILE_SERVER[] = "Файловий сервер";
 
 //
+const char STR_PREF_NICKNAME[] = "nickname";
+const char STR_PREF_SERVER_SSID[] = "serverssid";
+const char STR_PREF_SERVER_PWD[] = "serverpwd";
 
-const char STR_MULTI_GAME[] = "Мультиплеєр";
-const char STR_SOLO_GAME[] = "Один гравець";
-const char STR_TEST_GAME_NICK[] = "test_game_nick";
-const char STR_TEST_GAME_C_PWD[] = "test_game_c_pwd";
-const char STR_TEST_GAME_S_PWD[] = "test_game_s_pwd";
-const char STR_TEST_GAME_S_NAME[] = "test_game_s_name";
+const char STR_MODE_ONE_PL[] = "Один гравець";
+const char STR_MODE_TWO_PL[] = "Два гравці";
+const char STR_MODE_CLIENT[] = "Клієнт";
+const char STR_MODE_SERVER[] = "Сервер";
 const char STR_NICKNAME[] = "Нікнейм";
-const char STR_ENTER_NICK[] = "Введіть нікнейм";
 const char STR_SERV_NAME[] = "Назва сервера";
-const char STR_ENTER_SERV_NAME[] = "Введіть назву сервера";
-const char STR_SERV_PWD[] = "Пароль від сервера";
-const char STR_ENTER_SERV_PWD[] = "Введіть пароль від сервера";
+const char STR_SERV_PWD[] = "Пароль до сервера";
 
 //
 

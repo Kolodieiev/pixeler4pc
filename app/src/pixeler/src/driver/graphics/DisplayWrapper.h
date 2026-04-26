@@ -25,6 +25,13 @@ namespace pixeler
   class DisplayWrapper
   {
   public:
+    enum RotateAngle : uint8_t
+    {
+      ROTATE_ANGLE_90 = 0,
+      ROTATE_ANGLE_180,
+      ROTATE_ANGLE_270
+    };
+
     DisplayWrapper();
     ~DisplayWrapper();
 
@@ -261,7 +268,7 @@ namespace pixeler
      * @param piv_y Y-координата точки обертання зображення.
      * @param angle Кут повороту.
      */
-    void drawBitmapRotated(int16_t x, int16_t y, const uint16_t* bitmap, int16_t w, int16_t h, int16_t piv_x, int16_t piv_y, float angle);
+    void drawBitmapRotated(int16_t x, int16_t y, const uint16_t* bitmap, int16_t w, int16_t h, float piv_x, float piv_y, float angle);
 
     /**
      * @brief Повертає висоту вказаного шрифту в пікселях.
@@ -279,6 +286,16 @@ namespace pixeler
      * @return nullptr - інакше.
      */
     SemaphoreHandle_t getMutex();
+
+    /**
+     * @brief Розвертає в буфері зображення частину, що обмежена заданим квадратом.
+     *
+     * @param x Кородината верхнього лівого кута квадрата.
+     * @param y Кородината верхнього лівого кута квадрата.
+     * @param side_len Довжина сторони квадрата.
+     * @param angle ROTATE_ANGLE_90/ROTATE_ANGLE_180/ROTATE_ANGLE_270.
+     */
+    void rotateDisplaySquare(uint16_t x, uint16_t y, uint16_t side_len, RotateAngle angle);
 
 #ifdef ENABLE_SCREENSHOTER
     void takeScreenshot();

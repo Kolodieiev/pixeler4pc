@@ -180,47 +180,45 @@ namespace pixeler
 #endif  // #ifdef GRAPHICS_ENABLED
   }
 
-  void DisplayWrapper::drawBitmapRotated(int16_t x, int16_t y, const uint16_t* bitmap, int16_t w, int16_t h, int16_t piv_x, int16_t piv_y, float angle)
+  void DisplayWrapper::drawBitmapRotated(int16_t x, int16_t y, const uint16_t* bitmap, int16_t w, int16_t h, float piv_x, float piv_y, float angle)
   {
 #ifdef GRAPHICS_ENABLED
-    float rad = angle * M_PI / 180.0f;
-    float cos_a = cosf(rad);
-    float sin_a = sinf(rad);
+#ifndef DIRECT_DRAWING
+    const float rad = angle * (M_PI / 180.0f);
+    const float cos_a = cosf(rad);
+    const float sin_a = sinf(rad);
 
-    uint16_t* rotated{nullptr};
-
-    rotated = new uint16_t[w * h];
-
+    uint16_t* rotated = static_cast<uint16_t*>(ps_malloc(w * h * sizeof(uint16_t)));
     if (!rotated)
     {
-      log_e("Помилка виділення пам'яті для повернутого зображення");
+      log_e("Memory allocation failed");
       esp_restart();
     }
 
-    std::fill(rotated, rotated + w * h, COLOR_TRANSPARENT);
+    for (int i = 0; i < w * h; i++)
+      rotated[i] = COLOR_TRANSPARENT;
 
-    for (int16_t dy = 0; dy < h; dy++)
+    for (int16_t dst_y = 0; dst_y < h; dst_y++)
     {
-      for (int16_t dx = 0; dx < w; dx++)
+      const float rel_y = static_cast<float>(dst_y) - piv_y + 0.5f;
+      const float y_cos = rel_y * cos_a;
+      const float y_sin = rel_y * sin_a;
+
+      for (int16_t dst_x = 0; dst_x < w; dst_x++)
       {
-        float rel_x = dx - piv_x;
-        float rel_y = dy - piv_y;
+        const float rel_x = static_cast<float>(dst_x) - piv_x + 0.5f;
 
-        float orig_x = rel_x * cos_a + rel_y * sin_a + piv_x;
-        float orig_y = -rel_x * sin_a + rel_y * cos_a + piv_y;
+        const int16_t src_x = static_cast<int16_t>(rel_x * cos_a + y_sin + piv_x);
+        const int16_t src_y = static_cast<int16_t>(-rel_x * sin_a + y_cos + piv_y);
 
-        // Отримуємо піксель з оригінального зображення (білінійна інтерполяція)
-        int16_t ix = static_cast<int16_t>(orig_x);
-        int16_t iy = static_cast<int16_t>(orig_y);
-
-        // Проста вибірка найближчого пікселя
-        if (ix >= 0 && ix < w && iy >= 0 && iy < h)
-          rotated[dy * w + dx] = bitmap[iy * w + ix];
+        if (src_x >= 0 && src_x < w && src_y >= 0 && src_y < h)
+          rotated[dst_y * w + dst_x] = bitmap[src_y * w + src_x];
       }
     }
 
     _canvas->draw16bitRGBBitmapWithTranColor(x, y, rotated, COLOR_TRANSPARENT, w, h);
     delete[] rotated;
+#endif  // #ifndef DIRECT_DRAWING
 #endif  // #ifdef GRAPHICS_ENABLED
   }
 
@@ -244,6 +242,53 @@ namespace pixeler
     return _sync_mutex;
 #else   // not def GRAPHICS_ENABLED
     return nullptr;
+#endif  // #ifdef GRAPHICS_ENABLED
+  }
+
+  void DisplayWrapper::rotateDisplaySquare(uint16_t x, uint16_t y, uint16_t side_len, RotateAngle angle)
+  {
+#ifdef GRAPHICS_ENABLED
+#ifndef DIRECT_DRAWING
+    side_len = std::min<uint16_t>(side_len, std::min(UI_WIDTH, UI_HEIGHT));
+    uint16_t* display_buff = static_cast<uint16_t*>(_canvas->getFramebuffer());
+    const size_t square_img_size = side_len * side_len * sizeof(uint16_t);
+
+    uint16_t* square_img = static_cast<uint16_t*>(ps_malloc(square_img_size));
+    if (!square_img)
+    {
+      log_e("Memory allocation failed");
+      esp_restart();
+    }
+
+    const uint16_t canvas_w = _canvas->width();
+    const uint16_t canvas_h = _canvas->height();
+
+    for (uint16_t row = 0; row < side_len; row++)
+    {
+      uint16_t* src_row_ptr = &display_buff[(y + row) * canvas_w + x];
+      uint16_t* dst_row_ptr = &square_img[row * side_len];
+      memcpy(dst_row_ptr, src_row_ptr, side_len * sizeof(uint16_t));
+    }
+
+    bool old_ppa_state = _canvas->isPPAEnabled();
+    if (side_len * side_len > PPA_IMG_SIZE_TRIGG)
+      _canvas->setPPAState(true);
+
+    switch (angle)
+    {
+      case ROTATE_ANGLE_90:
+        _canvas->drawBitmapToFramebufferRotate1(square_img, side_len, side_len, display_buff, x, y, canvas_w, canvas_h);
+        break;
+      case ROTATE_ANGLE_180:
+        _canvas->drawBitmapToFramebufferRotate2(square_img, side_len, side_len, display_buff, x, y, canvas_w, canvas_h);
+        break;
+      case ROTATE_ANGLE_270:
+        _canvas->drawBitmapToFramebufferRotate3(square_img, side_len, side_len, display_buff, x, y, canvas_w, canvas_h);
+        break;
+    }
+    _canvas->setPPAState(old_ppa_state);
+    free(square_img);
+#endif  // #ifdef DIRECT_DRAWING
 #endif  // #ifdef GRAPHICS_ENABLED
   }
 
@@ -381,9 +426,9 @@ namespace pixeler
 
     BmpLoader loader;
     bool res = loader.saveBmp(header,
-                                self->_canvas.getFramebuffer(),
-                                path_to_bmp.c_str(),
-                                true);
+                              self->_canvas->getFramebuffer(),
+                              path_to_bmp.c_str(),
+                              true);
 
     if (res)
       log_i("Скріншот %s успішно збережено", path_to_bmp.c_str());

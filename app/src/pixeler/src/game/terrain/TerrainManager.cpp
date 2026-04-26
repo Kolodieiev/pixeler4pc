@@ -9,6 +9,26 @@ namespace pixeler
     freeTilesDescriptionData();
   }
 
+  uint16_t TerrainManager::getWidth() const
+  {
+    return _terrain_w;
+  }
+
+  uint16_t TerrainManager::getHeight() const
+  {
+    return _terrain_h;
+  }
+
+  uint16_t TerrainManager::getViewX() const
+  {
+    return _view_x;
+  }
+
+  uint16_t TerrainManager::getViewY() const
+  {
+    return _view_y;
+  }
+
   void TerrainManager::freeMem()
   {
     if (!_terrain)
@@ -64,19 +84,34 @@ namespace pixeler
     if (_back_img)
     {
 #if CONFIG_IDF_TARGET_ESP32P4
-      if (VIEW_W * VIEW_H > PPA_IMG_SIZE_TRIGG)
+      if ((_back_img_w != VIEW_W || _back_img_h != VIEW_H) && VIEW_W * VIEW_H > PPA_FILL_SIZE_TRIGG)
       {
         bool old_state = _display.isPPAEnabled();
 
         _display.setPPAState(true);
-        _display.drawBitmap(0, 0, _back_img, VIEW_W, VIEW_H);
-
+        _display.fillRect(0, 0, VIEW_W, VIEW_H, _back_color);
         _display.setPPAState(old_state);
       }
       else
 #endif  // #if CONFIG_IDF_TARGET_ESP32P4
       {
-        _display.drawBitmap(0, 0, _back_img, VIEW_W, VIEW_H);
+        if (_back_img_w != VIEW_W || _back_img_h != VIEW_H)
+          _display.fillRect(0, 0, VIEW_W, VIEW_H, _back_color);
+      }
+
+#if CONFIG_IDF_TARGET_ESP32P4
+      if (_back_img_w * _back_img_h > PPA_IMG_SIZE_TRIGG)
+      {
+        bool old_state = _display.isPPAEnabled();
+
+        _display.setPPAState(true);
+        _display.drawBitmap(_back_img_x_off, _back_img_y_off, _back_img, _back_img_w, _back_img_h);
+        _display.setPPAState(old_state);
+      }
+      else
+#endif  // #if CONFIG_IDF_TARGET_ESP32P4
+      {
+        _display.drawBitmap(_back_img_x_off, _back_img_y_off, _back_img, _back_img_w, _back_img_h);
       }
     }
 
@@ -138,6 +173,16 @@ namespace pixeler
         y_draw_pos += _tile_side_len;
       }
     }
+  }
+
+  void TerrainManager::setBackImg(const uint16_t* img_ptr, uint16_t img_width, uint16_t img_height, uint16_t back_color, uint16_t x_offset, uint16_t y_offset)
+  {
+    _back_img = img_ptr;
+    _back_img_w = img_width;
+    _back_img_h = img_height;
+    _back_color = back_color;
+    _back_img_x_off = x_offset;
+    _back_img_y_off = y_offset;
   }
 
   void TerrainManager::build(uint16_t tiles_w_num, uint16_t tiles_h_num, uint16_t tile_side_len, const uint16_t* tiles_pos_templ)
@@ -326,5 +371,10 @@ namespace pixeler
       log_e("%s", e.what());
       esp_restart();
     }
+  }
+
+  void TerrainManager::clearTilesDesc()
+  {
+    freeTilesDescriptionData();
   }
 }  // namespace pixeler

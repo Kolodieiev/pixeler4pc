@@ -4,7 +4,6 @@
 //
 #include <array>
 #include <span>
-#include <unordered_map>
 #include <vector>
 //
 #include "../driver/graphics/DisplayWrapper.h"
@@ -13,9 +12,9 @@
 #include "sound/SfxPlayer.h"
 
 //
+#include "IGameObject.h"
 #include "terrain/TerrainLoader.h"
 #include "terrain/TerrainManager.h"
-#include "IGameObject.h"
 #include "ui/IGameMenu.h"
 #include "ui/IGameUI.h"
 
@@ -209,7 +208,7 @@ namespace pixeler
     SfxPlayer _sfx_player;    // Плеєр звукових ефектів
 
   private:
-    std::unordered_map<uint32_t, IGameObject*> _game_objs;  // Список усіх ігрових об'єктів на сцені, які повинні взаємодіяти один з одним
+    std::vector<IGameObject*> _game_objs;  // Список усіх ігрових об'єктів на сцені, які повинні взаємодіяти один з одним
 
   protected:
     DataStream& _stored_objs;         // Контейнер для перенесення відбитків об'єктів до наступної сцени
