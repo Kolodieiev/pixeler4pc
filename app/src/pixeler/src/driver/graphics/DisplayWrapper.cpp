@@ -164,6 +164,22 @@ namespace pixeler
 #endif  // #ifdef GRAPHICS_ENABLED
   }
 
+  void DisplayWrapper::drawTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color)
+  {
+#ifdef GRAPHICS_ENABLED
+    _canvas->drawTriangle(x0, y0, x1, y1, x2, y2, color);
+    _is_buff_changed = true;
+#endif  // #ifdef GRAPHICS_ENABLED
+  }
+
+  void DisplayWrapper::fillTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color)
+  {
+#ifdef GRAPHICS_ENABLED
+    _canvas->fillTriangle(x0, y0, x1, y1, x2, y2, color);
+    _is_buff_changed = true;
+#endif  // #ifdef GRAPHICS_ENABLED
+  }
+
   void DisplayWrapper::drawBitmap(int16_t x, int16_t y, const uint16_t* bitmap, int16_t w, int16_t h)
   {
 #ifdef GRAPHICS_ENABLED
