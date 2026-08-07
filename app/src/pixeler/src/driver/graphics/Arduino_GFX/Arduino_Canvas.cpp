@@ -11,7 +11,7 @@
 
 #include "float.h"
 #include "font/glcdfont.h"
-#include "pixeler/setup/graphics_setup.hpp"
+#include "pixeler/config/graphics_config.hpp"
 
 Arduino_Canvas::Arduino_Canvas(int16_t w, int16_t h)
     : MAX_X{static_cast<uint16_t>(WIDTH - 1)},

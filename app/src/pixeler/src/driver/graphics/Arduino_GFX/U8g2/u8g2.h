@@ -39,7 +39,7 @@
       u8x8_SetupDefaults(u8g2);
       assign u8x8 callbacks
       u8x8->display_cb(u8x8, U8X8_MSG_DISPLAY_SETUP_MEMORY, 0, NULL);
-    setup tile buffer
+    config tile buffer
 
 
   Arduino Uno Text Example
@@ -278,7 +278,7 @@ typedef int16_t u8g2_long_t; /* introduced for ellipse calculation */
     u8g2_draw_ll_hvline_cb ll_hvline; /* low level hvline procedure */
     const u8g2_cb_t* cb;              /* callback drawprocedures, can be replaced for rotation */
 
-    /* the following variables must be assigned during u8g2 setup */
+    /* the following variables must be assigned during u8g2 config */
     uint8_t* tile_buf_ptr;   /* ptr to memory area with u8x8.display_info->tile_width * 8 * tile_buf_height bytes */
     uint8_t tile_buf_height; /* height of the tile memory area in tile rows */
     uint8_t tile_curr_row;   /* current row for picture loop */
@@ -422,7 +422,7 @@ typedef int16_t u8g2_long_t; /* introduced for ellipse calculation */
 
   void u8g2_SendF(u8g2_t* u8g2, const char* fmt, ...);
 
-  /* null device setup */
+  /* null device config */
   void u8g2_Setup_null(u8g2_t* u8g2, const u8g2_cb_t* rotation, u8x8_msg_cb byte_cb, u8x8_msg_cb gpio_and_delay_cb);
 
   /*==========================================*/

@@ -38,7 +38,7 @@
 
   The topmost level is the display layer. It includes the following messages:
 
-    U8X8_MSG_DISPLAY_SETUP_MEMORY			no communication with the display, setup memory only
+    U8X8_MSG_DISPLAY_SETUP_MEMORY			no communication with the display, config memory only
     U8X8_MSG_DISPLAY_INIT
     U8X8_MSG_DISPLAY_SET_FLIP_MODE
     U8X8_MSG_DISPLAY_SET_POWER_SAVE
@@ -425,7 +425,7 @@ extern "C"
   Name: 	U8X8_MSG_DISPLAY_SETUP_MEMORY
   Args:	None
   Tasks:
-    1) setup u8g2->display_info
+    1) config u8g2->display_info
       copy u8g2->display_info->default_x_offset to u8g2->x_offset
 
    usually calls u8x8_d_helper_display_setup_memory()
@@ -442,7 +442,7 @@ extern "C"
     execute u8x8_cad_Init for default port levels
     3) set CS status (not clear, may be done in cad/byte interface
     4) execute display reset (gpio interface)
-    5) send setup sequence to display, do not activate display, disable "power save" will follow
+    5) send config sequence to display, do not activate display, disable "power save" will follow
 */
 #define U8X8_MSG_DISPLAY_INIT 10
 
@@ -536,7 +536,7 @@ extern "C"
 
   /*
     After a call to u8x8_SetupDefaults,
-    setup u8x8 memory structures & inform callbacks
+    config u8x8 memory structures & inform callbacks
     This function is also called from u8x8_Setup(), so do not call u8x8_SetupMemory()
     directly, but use u8x8_Setup() instead.
   */
@@ -574,7 +574,7 @@ extern "C"
   U8X8_MSG_CAD_INIT
     no args
     call U8X8_MSG_BYTE_INIT
-    setup default values for the I/O lines
+    config default values for the I/O lines
 */
 #define U8X8_MSG_CAD_INIT 20
 
@@ -685,7 +685,7 @@ extern "C"
 /*
   U8X8_MSG_GPIO_AND_DELAY_INIT
   no args
-  setup port directions, do not set IO levels, this is done with BYTE/CAD_INIT
+  config port directions, do not set IO levels, this is done with BYTE/CAD_INIT
 */
 #define U8X8_MSG_GPIO_AND_DELAY_INIT 40
 

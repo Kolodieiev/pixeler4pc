@@ -2,7 +2,7 @@
 
 #include "Button.h"
 
-#include "pixeler/setup/input_setup.hpp"
+#include "pixeler/config/input_config.hpp"
 
 namespace pixeler
 {

@@ -1,5 +1,5 @@
 /**
- * @file cpu_setup.h
+ * @file cpu_config.h
  * @brief Файл базових визначень налаштувань основного мікроконтролера
  * @details
  */

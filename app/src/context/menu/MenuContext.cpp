@@ -10,7 +10,7 @@
 #include "./res/sd.h"
 #include "./res/settings.h"
 #include "./res/wifi_ico.h"
-#include "pixeler/setup/context_id_setup.hpp"
+#include "pixeler/config/context_id_config.hpp"
 
 #define ICO_WH 35
 

@@ -10,7 +10,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
-#include "pixeler/setup/sd_setup.hpp"
+#include "pixeler/config/sd_config.hpp"
 #include "pixeler/src/defines.h"
 #include "file/FileInfo.h"
 

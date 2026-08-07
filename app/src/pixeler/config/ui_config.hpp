@@ -4,7 +4,7 @@
 #include <functional>
 #include <unordered_map>
 
-#include "context_id_setup.hpp"
+#include "context_id_config.hpp"
 
 // -------------------------------- Підключи нижче заголовкові файли контекстів першого рівня
 #include "context/3d/ThreeDContext.h"

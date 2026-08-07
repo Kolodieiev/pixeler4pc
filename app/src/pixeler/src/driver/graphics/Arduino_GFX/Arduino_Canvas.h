@@ -11,7 +11,7 @@
 #include <cstdlib>
 
 #include "U8g2/u8g2.h"
-#include "pixeler/setup/graphics_setup.hpp"
+#include "pixeler/config/graphics_config.hpp"
 #include "pixeler/src/defines.h"
 
 #ifndef DEGTORAD

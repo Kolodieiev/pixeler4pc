@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 
-#include "pixeler/setup/input_setup.hpp"
+#include "pixeler/config/input_config.hpp"
 #include "Button.h"
 
 namespace pixeler

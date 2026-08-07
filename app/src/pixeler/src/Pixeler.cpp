@@ -1,9 +1,9 @@
 #include "Pixeler.h"
 
-#include "pixeler/setup/context_id_setup.hpp"
-#include "pixeler/setup/cpu_setup.hpp"
-#include "pixeler/setup/graphics_setup.hpp"
-#include "pixeler/setup/ui_setup.hpp"
+#include "pixeler/config/context_id_config.hpp"
+#include "pixeler/config/cpu_config.hpp"
+#include "pixeler/config/graphics_config.hpp"
+#include "pixeler/config/ui_config.hpp"
 #include "pixeler/src/context/IContext.h"
 #include "pixeler/src/driver/graphics/DisplayWrapper.h"
 

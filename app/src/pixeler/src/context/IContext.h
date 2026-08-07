@@ -17,8 +17,8 @@
 #include "../widget/IWidgetContainer.h"
 #include "../widget/notification/Notification.h"
 #include "../widget/text/Label.h"
-#include "pixeler/setup/context_id_setup.hpp"
-#include "pixeler/setup/cpu_setup.hpp"
+#include "pixeler/config/context_id_config.hpp"
+#include "pixeler/config/cpu_config.hpp"
 
 namespace pixeler
 {

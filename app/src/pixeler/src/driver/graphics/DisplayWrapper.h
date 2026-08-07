@@ -5,7 +5,7 @@
  * Не повинен реалізовуватися в користувацьому коді.
  * Доступний для використання через глобальний об'єкт "_display" в класі контексту.
  *
- * Налаштовується в pixeler/setup/graphics_setup.h
+ * Налаштовується в pixeler/config/graphics_config.h
  */
 
 #pragma once
@@ -13,7 +13,7 @@
 #include <stdint.h>
 
 #include "Arduino_GFX/Arduino_Canvas.h"
-#include "pixeler/setup/graphics_setup.hpp"
+#include "pixeler/config/graphics_config.hpp"
 #include "pixeler/src/defines.h"
 
 #define WDT_GUARD_TIME 1000UL
