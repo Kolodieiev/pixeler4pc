@@ -69,7 +69,7 @@ namespace pixeler
     for (; startIndex > 0; startIndex--)
       if (*p++ == '\0')
         return -1;
-    char* pos = strstr(p, str);
+    const char* pos = strstr(p, str);
     if (pos == nullptr)
       return -1;
     return pos - base;
@@ -81,7 +81,7 @@ namespace pixeler
     for (; startIndex > 0; startIndex--)
       if (*p++ == '\0')
         return -1;
-    char* pos = strchr(p, ch);
+    const char* pos = strchr(p, ch);
     if (pos == nullptr)
       return -1;
     return pos - base;
