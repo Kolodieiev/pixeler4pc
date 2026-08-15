@@ -1,5 +1,5 @@
 #pragma once
-#include "pixeler/src/defines.h"
+#include "defines.h"
 
 extern "C"
 {

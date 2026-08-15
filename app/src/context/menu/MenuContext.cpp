@@ -1,7 +1,7 @@
 #include "MenuContext.h"
 //
-#include "../../pixeler/src/widget/layout/EmptyLayout.h"
-#include "../../pixeler/src/widget/menu/item/MenuItem.h"
+#include "widget/layout/EmptyLayout.h"
+#include "widget/menu/item/MenuItem.h"
 #include "../WidgetCreator.h"
 #include "./res/book.h"
 #include "./res/chip.h"

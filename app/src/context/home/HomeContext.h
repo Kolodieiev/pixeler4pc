@@ -1,8 +1,8 @@
 #pragma once
 
-#include "pixeler/src/context/IContext.h"
-#include "pixeler/src/manager/res/BmpLoader.h"
-#include "pixeler/src/widget/text/Label.h"
+#include "context/IContext.h"
+#include "manager/res/BmpLoader.h"
+#include "widget/text/Label.h"
 
 using namespace pixeler;
 

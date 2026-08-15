@@ -1,8 +1,8 @@
 #include "ChessContext.h"
 
 #include "../../WidgetCreator.h"
-#include "pixeler/src/manager/SettingsManager.h"
-#include "pixeler/src/widget/text/TextBox.h"
+#include "manager/SettingsManager.h"
+#include "widget/text/TextBox.h"
 #include "scene/ChessScene.h"
 
 static const char STR_CHESS_GAME_DIR[] = "chess";

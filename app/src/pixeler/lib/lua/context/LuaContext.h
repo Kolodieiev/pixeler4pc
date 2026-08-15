@@ -11,7 +11,7 @@
 #pragma GCC optimize("O3")
 
 #include "../lua.h"
-#include "pixeler/src/context/IContext.h"
+#include "context/IContext.h"
 
 namespace pixeler
 {

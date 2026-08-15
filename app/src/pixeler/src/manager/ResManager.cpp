@@ -1,7 +1,7 @@
 #pragma GCC optimize("O3")
 #include "ResManager.h"
 
-#include "pixeler/src/util/string_util.h"
+#include "util/string_util.h"
 #include "res/BmpLoader.h"
 #include "res/WavLoader.h"
 

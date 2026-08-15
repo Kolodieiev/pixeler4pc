@@ -32,8 +32,8 @@
 #include "../lua_lib/type/widget/lua_toggle_item.h"
 #include "../lua_lib/type/widget/lua_toggle_switch.h"
 //
-#include "pixeler/src/manager/ResManager.h"
-#include "pixeler/src/widget/layout/EmptyLayout.h"
+#include "manager/ResManager.h"
+#include "widget/layout/EmptyLayout.h"
 
 static const char STR_NOTIFICATION[] = "Повідомлення";
 static const char STR_OK[] = "OK";

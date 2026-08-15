@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 
 #include "pixeler/config/sd_config.hpp"
-#include "pixeler/src/defines.h"
+#include "defines.h"
 #include "file/FileInfo.h"
 
 namespace pixeler

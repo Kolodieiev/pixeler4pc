@@ -3,7 +3,7 @@
 
 #include <cmath>
 
-#include "pixeler/src/manager/res/BmpLoader.h"
+#include "manager/res/BmpLoader.h"
 
 namespace pixeler
 {

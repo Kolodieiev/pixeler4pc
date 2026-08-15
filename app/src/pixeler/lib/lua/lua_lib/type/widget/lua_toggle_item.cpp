@@ -4,8 +4,8 @@
 #include "./lua_menu_item.h"
 #include "./lua_toggle_switch.h"
 #include "pixeler/lib/lua/res/lua_strs.h"
-#include "pixeler/src/widget/menu/item/ToggleItem.h"
-#include "pixeler/src/widget/toggle/ToggleSwitch.h"
+#include "widget/menu/item/ToggleItem.h"
+#include "widget/toggle/ToggleSwitch.h"
 
 using namespace pixeler;
 

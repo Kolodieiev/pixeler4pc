@@ -3,9 +3,9 @@
 
 #include "DataStream.h"
 
-#include "pixeler/src/defines.h"
-#include "pixeler/src/driver/graphics/DisplayWrapper.h"
-#include "pixeler/src/manager/ResManager.h"
+#include "defines.h"
+#include "driver/graphics/DisplayWrapper.h"
+#include "manager/ResManager.h"
 
 #include "sound/SfxPlayer.h"
 #include "sprite/PhysicsState.h"

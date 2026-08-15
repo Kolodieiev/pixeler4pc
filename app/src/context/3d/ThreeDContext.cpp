@@ -1,7 +1,7 @@
 #include "ThreeDContext.h"
 
 #include "../WidgetCreator.h"
-#include "pixeler/src/manager/SettingsManager.h"
+#include "manager/SettingsManager.h"
 
 ThreeDContext::ThreeDContext()
 {

@@ -4,7 +4,7 @@
 
 #include "Board.h"
 #include "IMoveStrategy.h"
-#include "pixeler/src/game/IGameObject.h"
+#include "game/IGameObject.h"
 
 using namespace pixeler;
 

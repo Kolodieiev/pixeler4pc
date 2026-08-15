@@ -11,7 +11,7 @@
 #include <unordered_map>
 
 #include "SFX.h"
-#include "pixeler/src/defines.h"
+#include "defines.h"
 
 namespace pixeler
 {

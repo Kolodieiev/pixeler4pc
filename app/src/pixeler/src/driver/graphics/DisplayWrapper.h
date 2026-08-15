@@ -14,7 +14,7 @@
 
 #include "Arduino_GFX/Arduino_Canvas.h"
 #include "pixeler/config/graphics_config.hpp"
-#include "pixeler/src/defines.h"
+#include "defines.h"
 
 #define WDT_GUARD_TIME 1000UL
 #define PPA_FILL_SIZE_TRIGG 67599U

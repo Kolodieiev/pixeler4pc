@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pixeler/src/game/IGameObject.h"
+#include "game/IGameObject.h"
 
 using namespace pixeler;
 

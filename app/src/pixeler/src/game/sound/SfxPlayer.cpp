@@ -4,7 +4,7 @@
 #include <cmath>
 #include <limits>
 
-// #include "pixeler/src/bus/I2S_Out_Bus.h"
+// #include "bus/I2S_Out_Bus.h"
 
 namespace pixeler
 {

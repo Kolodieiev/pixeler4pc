@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #include "IResource.h"
-#include "pixeler/src/defines.h"
+#include "defines.h"
 
 namespace pixeler
 {

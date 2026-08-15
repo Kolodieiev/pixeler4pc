@@ -1,4 +1,4 @@
-#include "pixeler/src/Pixeler.h"
+#include "Pixeler.h"
 using namespace pixeler;
 
 #ifdef _WIN32

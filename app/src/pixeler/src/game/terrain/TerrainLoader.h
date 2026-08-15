@@ -7,8 +7,8 @@
 
 #include "TerrainManager.h"
 #include "TileType.h"
-#include "pixeler/src/defines.h"
-#include "pixeler/src/manager/ResManager.h"
+#include "defines.h"
+#include "manager/ResManager.h"
 
 namespace pixeler
 {

@@ -2,7 +2,7 @@
 
 #include "../WidgetCreator.h"
 #include "../resources/ico/battery.h"
-#include "pixeler/src/manager/SettingsManager.h"
+#include "manager/SettingsManager.h"
 
 #define UPD_DISPLAY_INTERVAL_MS 5000UL
 

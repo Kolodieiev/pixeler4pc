@@ -2,8 +2,8 @@
 
 #include "../obj/Board.h"
 #include "../obj/player/CameraObj.h"
-#include "pixeler/src/game/IGameScene.h"
-#include "pixeler/src/widget/text/Label.h"
+#include "game/IGameScene.h"
+#include "widget/text/Label.h"
 
 using namespace pixeler;
 

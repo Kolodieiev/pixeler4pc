@@ -3,7 +3,7 @@
 
 #include "./lua_widget_helper.h"
 #include "pixeler/lib/lua/res/lua_strs.h"
-#include "pixeler/src/widget/IWidget.h"
+#include "widget/IWidget.h"
 
 using namespace pixeler;
 //

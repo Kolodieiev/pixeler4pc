@@ -4,8 +4,8 @@
 #include "pixeler/config/cpu_config.hpp"
 #include "pixeler/config/graphics_config.hpp"
 #include "pixeler/config/ui_config.hpp"
-#include "pixeler/src/context/IContext.h"
-#include "pixeler/src/driver/graphics/DisplayWrapper.h"
+#include "context/IContext.h"
+#include "driver/graphics/DisplayWrapper.h"
 
 namespace pixeler
 {

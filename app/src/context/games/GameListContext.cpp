@@ -3,8 +3,8 @@
 #include "../WidgetCreator.h"
 #include "./icons/chess_ico.h"
 #include "./icons/sokoban_ico.h"
-#include "pixeler/src/widget/layout/EmptyLayout.h"
-#include "pixeler/src/widget/menu/item/MenuItem.h"
+#include "widget/layout/EmptyLayout.h"
+#include "widget/menu/item/MenuItem.h"
 
 const char STR_SOKOBAN_ITEM[] = "Комірник";
 const char STR_CHESS_ITEM[] = "Шахи";

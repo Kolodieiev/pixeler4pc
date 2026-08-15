@@ -5,7 +5,7 @@
 #include "./lua_menu_item.h"
 #include "./lua_widget_helper.h"
 #include "pixeler/lib/lua/res/lua_strs.h"
-#include "pixeler/src/widget/menu/FixedMenu.h"
+#include "widget/menu/FixedMenu.h"
 
 using namespace pixeler;
 

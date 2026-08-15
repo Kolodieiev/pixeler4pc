@@ -1,7 +1,7 @@
 #pragma GCC optimize("O3")
 #include "BmpLoader.h"
 
-#include "pixeler/src/manager/FileManager.h"
+#include "manager/FileManager.h"
 
 static const uint16_t BMP_FILE_TYPE{0x4D42};
 static const uint8_t BMP_HEADER_SIZE{54};

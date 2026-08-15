@@ -4,7 +4,7 @@
 #include "./lua_iwidget.h"
 #include "./lua_widget_helper.h"
 #include "pixeler/lib/lua/res/lua_strs.h"
-#include "pixeler/src/widget/IWidgetContainer.h"
+#include "widget/IWidgetContainer.h"
 #include "vector"
 
 using namespace pixeler;

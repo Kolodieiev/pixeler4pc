@@ -1,9 +1,9 @@
 #pragma once
 #include <stdint.h>
 
-#include "pixeler/src/context/IContext.h"
-#include "pixeler/src/widget/menu/FixedMenu.h"
-#include "pixeler/src/widget/scrollbar/ScrollBar.h"
+#include "context/IContext.h"
+#include "widget/menu/FixedMenu.h"
+#include "widget/scrollbar/ScrollBar.h"
 
 using namespace pixeler;
 

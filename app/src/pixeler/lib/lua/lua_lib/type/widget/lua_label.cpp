@@ -5,8 +5,8 @@
 #include "lua_image.h"
 #include "pixeler/lib/lua/lua_lib/helper/lua_helper.h"
 #include "pixeler/lib/lua/res/lua_strs.h"
-#include "pixeler/src/widget/image/Image.h"
-#include "pixeler/src/widget/text/Label.h"
+#include "widget/image/Image.h"
+#include "widget/text/Label.h"
 
 using namespace pixeler;
 

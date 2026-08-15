@@ -10,7 +10,7 @@
 #include <cstring>
 #include <vector>
 
-#include "pixeler/src/util/MutexGuard.h"
+#include "util/MutexGuard.h"
 
 #define IDLE_WD_GUARD_TIME 250U
 #define OPT_BLOCK_SIZE 16384

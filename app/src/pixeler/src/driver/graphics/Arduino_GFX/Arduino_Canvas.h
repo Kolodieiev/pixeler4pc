@@ -12,7 +12,7 @@
 
 #include "U8g2/u8g2.h"
 #include "pixeler/config/graphics_config.hpp"
-#include "pixeler/src/defines.h"
+#include "defines.h"
 
 #ifndef DEGTORAD
 #define DEGTORAD 0.017453292519943295769236907684886F

@@ -1,7 +1,7 @@
 #pragma GCC optimize("O3")
 #include "WavLoader.h"
 
-#include "pixeler/src/manager/FileManager.h"
+#include "manager/FileManager.h"
 
 namespace pixeler
 {

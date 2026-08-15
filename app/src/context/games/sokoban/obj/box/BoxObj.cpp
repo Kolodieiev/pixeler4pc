@@ -2,7 +2,7 @@
 
 #include "../../ResID.h"
 #include "../TypeID.h"
-#include "pixeler/src/game/IGameScene.h"
+#include "game/IGameScene.h"
 
 namespace sokoban
 {

@@ -6,10 +6,10 @@
 #include "./lua_label.h"
 #include "./lua_widget_helper.h"
 #include "pixeler/lib/lua/res/lua_strs.h"
-#include "pixeler/src/widget/IWidget.h"
-#include "pixeler/src/widget/image/Image.h"
-#include "pixeler/src/widget/menu/item/MenuItem.h"
-#include "pixeler/src/widget/text/Label.h"
+#include "widget/IWidget.h"
+#include "widget/image/Image.h"
+#include "widget/menu/item/MenuItem.h"
+#include "widget/text/Label.h"
 
 using namespace pixeler;
 

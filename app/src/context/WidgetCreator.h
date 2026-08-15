@@ -5,13 +5,13 @@
 
 #pragma once
 
-#include "pixeler/src/driver/graphics/DisplayWrapper.h"
-#include "pixeler/src/widget/image/Image.h"
-#include "pixeler/src/widget/keyboard/Keyboard.h"
-#include "pixeler/src/widget/layout/EmptyLayout.h"
-#include "pixeler/src/widget/menu/DynamicMenu.h"
-#include "pixeler/src/widget/menu/item/MenuItem.h"
-#include "pixeler/src/widget/text/Label.h"
+#include "driver/graphics/DisplayWrapper.h"
+#include "widget/image/Image.h"
+#include "widget/keyboard/Keyboard.h"
+#include "widget/layout/EmptyLayout.h"
+#include "widget/menu/DynamicMenu.h"
+#include "widget/menu/item/MenuItem.h"
+#include "widget/text/Label.h"
 #include "resources/colors.h"
 #include "resources/kb_btn_id.h"
 #include "resources/strings.h"

@@ -1,7 +1,7 @@
 #pragma GCC optimize("O3")
 #include "lua_helper.h"
 
-#include "pixeler/src/driver/graphics/DisplayWrapper.h"
+#include "driver/graphics/DisplayWrapper.h"
 
 const char STR_INCORRECT_ARGS_NUMBER_BTW[] = "Некоректна кількість аргументів. Очікується [%s], отримано %d";
 
