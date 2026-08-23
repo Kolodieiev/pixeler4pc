@@ -1,32 +1,31 @@
 #pragma once
 #pragma GCC optimize("O3")
 #include "defines.h"
-
 //
 #include <array>
 #include <span>
 #include <vector>
 //
-#include "../driver/graphics/DisplayWrapper.h"
-#include "../driver/input/Input.h"
-#include "../manager/ResManager.h"
-#include "sound/SfxPlayer.h"
+#include "../sound/SfxPlayer.h"
+#include "driver/graphics/DisplayWrapper.h"
+#include "driver/input/Input.h"
+#include "manager/ResManager.h"
 
 //
-#include "IGameObject.h"
+#include "../ui/IGameMenu.h"
+#include "../ui/IGameUI.h"
+#include "IGameObject2D.h"
 #include "sprite/SpriteTemplate.h"
-#include "terrain/TerrainLoader.h"
-#include "terrain/TerrainManager.h"
-#include "ui/IGameMenu.h"
-#include "ui/IGameUI.h"
+#include "terrain/TerrainLoader2D.h"
+#include "terrain/TerrainManager2D.h"
 
 namespace pixeler
 {
-  class IGameScene
+  class IGameScene2D
   {
   public:
-    IGameScene(DataStream& stored_objs);
-    virtual ~IGameScene() = 0;
+    IGameScene2D(DataStream& stored_objs);
+    virtual ~IGameScene2D() = 0;
 
     /**
      * @brief Забезпечує оновлення стану гри.
@@ -35,11 +34,11 @@ namespace pixeler
      */
     virtual void update() = 0;
 
-    IGameScene(const IGameScene& rhs) = delete;
-    IGameScene& operator=(const IGameScene& rhs) = delete;
+    IGameScene2D(const IGameScene2D& rhs) = delete;
+    IGameScene2D& operator=(const IGameScene2D& rhs) = delete;
 
     /**
-     * @brief Повертає стан прапору, який вказує на те, чи повинна бути завершена гра.
+     * @brief Повертає стан прапора, який вказує на те, чи повинна бути завершена гра.
      * Зазвичай, викликається керуючим контекстом.
      *
      * @return true - Якщо гра повинна бути завершена. false - Інакше.
@@ -47,7 +46,7 @@ namespace pixeler
     bool isFinished() const;
 
     /**
-     * @brief Повертає стан прапору, який вказує на те, чи повинен бути зміненений поточний ігровий рівень.
+     * @brief Повертає стан прапора, який вказує на те, чи повинен бути зміненений поточний ігровий рівень.
      * Зазвичай, викликається керуючим контекстом.
      *
      * @return true - Якщо ігровий рівень повинен бути змінений. false - Інакше.
@@ -69,7 +68,7 @@ namespace pixeler
      * @param exclude Вказівник на об'єкт, який буде пропущено під час вибірки.
      * @return std::vector<IGameObject*>
      */
-    std::vector<IGameObject*> getObjByType(std::span<const uint16_t> type_ID, const IGameObject* exclude = nullptr);
+    std::vector<IGameObject2D*> getObjByType(std::span<const uint16_t> type_ID, const IGameObject2D* exclude = nullptr);
 
     /**
      * @brief Повертає список усіх об'єктів, що знаходяться в указаній точці і мають відповідний ідентифікатор класу.
@@ -80,7 +79,7 @@ namespace pixeler
      * @param exclude Вказівник на об'єкт, який буде пропущено під час вибірки.
      * @return std::vector<IGameObject*>
      */
-    std::vector<IGameObject*> getObjByTypeAt(std::span<const uint16_t> type_ID, uint16_t x, uint16_t y, const IGameObject* exclude = nullptr);
+    std::vector<IGameObject2D*> getObjByTypeAt(std::span<const uint16_t> type_ID, uint16_t x, uint16_t y, const IGameObject2D* exclude = nullptr);
 
     /**
      * @brief Повертає список усіх об'єктів, що пересікаються з заданим прямокутним і мають відповідний ідентифікатор класу.
@@ -93,12 +92,12 @@ namespace pixeler
      * @param exclude Вказівник на об'єкт, який буде пропущено під час вибірки.
      * @return std::vector<IGameObject*>
      */
-    std::vector<IGameObject*> getObjByTypeInRect(std::span<const uint16_t> type_ID,
-                                                 uint16_t x,
-                                                 uint16_t y,
-                                                 uint16_t width,
-                                                 uint16_t height,
-                                                 const IGameObject* exclude = nullptr);
+    std::vector<IGameObject2D*> getObjByTypeInRect(std::span<const uint16_t> type_ID,
+                                                   uint16_t x,
+                                                   uint16_t y,
+                                                   uint16_t width,
+                                                   uint16_t height,
+                                                   const IGameObject2D* exclude = nullptr);
 
     /**
      * @brief Повертає список усіх об'єктів, що пересікаються з заданим колом і мають відповідний ідентифікатор класу.
@@ -110,7 +109,7 @@ namespace pixeler
      * @param exclude Вказівник на об'єкт, який буде пропущено під час вибірки.
      * @return std::vector<IGameObject*>
      */
-    std::vector<IGameObject*> getObjByTypeInCircle(std::span<const uint16_t> type_ID, uint16_t x, uint16_t y, uint16_t radius, const IGameObject* exclude = nullptr);
+    std::vector<IGameObject2D*> getObjByTypeInCircle(std::span<const uint16_t> type_ID, uint16_t x, uint16_t y, uint16_t radius, const IGameObject2D* exclude = nullptr);
 
     /**
      * @brief Перевіряє чи є у вказаних координатах будь-який об'єкт з твердим тілом.
@@ -121,7 +120,7 @@ namespace pixeler
      * @return true - Якщо об'єкт матиме пересічення.
      * @return false - Інакше.
      */
-    bool hasCollisionAt(uint16_t x, uint16_t y, const IGameObject* exclude = nullptr);
+    bool hasCollisionAt(uint16_t x, uint16_t y, const IGameObject2D* exclude = nullptr);
 
     /**
      * @brief Перевіряє, чи може об'єкт з вказаним спрайтом бути переміщеним в указані координати ігрового рівня.
@@ -132,14 +131,14 @@ namespace pixeler
      * @return true - Якщо об'єкт має право переміщуватися в указану точку.
      * @return false - Інакше.
      */
-    bool canPass(const IGameObject& caller, uint16_t x_to, uint16_t y_to);
+    bool canPass(const IGameObject2D& caller, uint16_t x_to, uint16_t y_to);
 
     /**
      * @brief Додає ігровий об'єкт до контейнера об'єктів сцени.
      *
      * @param obj Адреса ігрового об'єкта.
      */
-    void addObject(IGameObject& obj);
+    void addObject(IGameObject2D& obj);
 
     /**
      * @brief Створює об'єкт вказаного типу.
@@ -223,21 +222,21 @@ namespace pixeler
     void serializeObjects(DataStream& ds) const;
 
   protected:
-    TerrainManager _terrain;  // Самий нижній шар сцени
-    SfxPlayer _sfx_player;    // Плеєр звукових ефектів
-    ResManager _res_manager;  // Менеджер ресурсів
+    TerrainManager2D _terrain;  // Самий нижній шар сцени
+    SfxPlayer _sfx_player;      // Плеєр звукових ефектів
+    ResManager _res_manager;    // Менеджер ресурсів
   private:
     std::unordered_map<uint16_t, SpriteTemplate> _sprite_templates;  // Мапа зв'язування шаблонів спрайтів з типами ігрових об'єктів
 
   private:
-    std::vector<IGameObject*> _game_objs;  // Список усіх ігрових об'єктів на сцені, які повинні взаємодіяти один з одним
+    std::vector<IGameObject2D*> _game_objs;  // Список усіх ігрових об'єктів на сцені, які повинні взаємодіяти один з одним
 
   protected:
     DataStream& _stored_objs;              // Контейнер для перенесення відбитків об'єктів до наступної сцени
     mutable SemaphoreHandle_t _obj_mutex;  // Мютекс для синхронізації доступу до об'єктів
     IGameUI* _game_UI{nullptr};            // Шар ігрового UI. Тут можуть виводитися графічні елементи інтерфейса
     IGameMenu* _game_menu{nullptr};        // Шар ігрового меню, якщо в ньому є необхідність
-    IGameObject* _main_obj{nullptr};       // Об'єкт, за яким завжди слідує камера
+    IGameObject2D* _main_obj{nullptr};     // Об'єкт, за яким завжди слідує камера
 
   private:
     static uint32_t _obj_id_counter;  // Глобальний лічильник ідентифікаторів об'єктів.
