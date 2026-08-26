@@ -1,9 +1,10 @@
 #include "ChessContext.h"
 
 #include "../../WidgetCreator.h"
+#include "../GameListContext.h"
 #include "manager/SettingsManager.h"
-#include "widget/text/TextBox.h"
 #include "scene/ChessScene.h"
+#include "widget/text/TextBox.h"
 
 static const char STR_CHESS_GAME_DIR[] = "chess";
 
@@ -40,7 +41,6 @@ namespace chess
 
   ChessContext::ChessContext()
   {
-    setCpuFrequencyMhz(BALANCED_CPU_FREQ_MHZ);
     EmptyLayout* layout = WidgetCreator::getEmptyLayout();
     setLayout(layout);
     showMainTmpl();
@@ -49,7 +49,6 @@ namespace chess
 
   ChessContext::~ChessContext()
   {
-    setCpuFrequencyMhz(BASE_CPU_FREQ_MHZ);
   }
 
   //----------------------------------------------------------------------------------------------------------
@@ -366,9 +365,9 @@ namespace chess
 
       switch (id)
       {
-        // case ID_ITEM_ONE_PLAYER: // TODO
-        //   startGame(GAME_MODE_ONE_PL);
-        //   break;
+          // case ID_ITEM_ONE_PLAYER: // TODO
+          //   startGame(GAME_MODE_ONE_PL);
+          //   break;
 
         case ID_ITEM_TWO_PLAYERS:
           startGame(GAME_MODE_TWO_PL);
@@ -390,7 +389,7 @@ namespace chess
     else if (_input.isReleased(BtnID::BTN_BACK))
     {
       _input.lock(BtnID::BTN_BACK, CLICK_LOCK);
-      openContextByID(ID_CONTEXT_GAMES);
+      openContext(new GameListContext());
     }
   }
 

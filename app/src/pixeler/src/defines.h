@@ -68,6 +68,10 @@ inline void* ps_realloc(void* _Memory, size_t _NewSize)
 
 using TaskFunction_t = void (*)(void*);
 using BaseType_t = int;
+using TickType_t = uint32_t;
+
+constexpr int pdTRUE = 1;
+constexpr int pdFALSE = 0;
 
 constexpr BaseType_t pdPASS = 1;
 constexpr BaseType_t pdFAIL = 0;

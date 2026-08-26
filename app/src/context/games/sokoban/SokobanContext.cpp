@@ -1,6 +1,7 @@
 #include "SokobanContext.h"
 //
 #include "../../WidgetCreator.h"
+#include "../GameListContext.h"
 #include "./SceneID.h"
 #include "scene/SokobanScene.h"
 
@@ -13,7 +14,6 @@ namespace sokoban
 {
   SokobanContext::SokobanContext()
   {
-    setCpuFrequencyMhz(MAX_CPU_FREQ_MHZ);
     EmptyLayout* layout = WidgetCreator::getEmptyLayout();
     setLayout(layout);
     showLvlMenu();
@@ -21,7 +21,6 @@ namespace sokoban
 
   SokobanContext::~SokobanContext()
   {
-    setCpuFrequencyMhz(BASE_CPU_FREQ_MHZ);
   }
 
   bool SokobanContext::loop()
@@ -57,7 +56,7 @@ namespace sokoban
       if (_input.isReleased(BtnID::BTN_BACK))
       {
         _input.lock(BtnID::BTN_BACK, CLICK_LOCK);
-        openContextByID(ID_CONTEXT_GAMES);
+        openContext(new GameListContext());
       }
       else if (_input.isHolded(BtnID::BTN_UP))
       {

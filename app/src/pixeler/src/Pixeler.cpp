@@ -1,18 +1,15 @@
 #include "Pixeler.h"
 
-#include "pixeler/config/context_id_config.hpp"
+#include "context/IContext.h"
+#include "driver/graphics/DisplayWrapper.h"
 #include "pixeler/config/cpu_config.hpp"
 #include "pixeler/config/graphics_config.hpp"
 #include "pixeler/config/ui_config.hpp"
-#include "context/IContext.h"
-#include "driver/graphics/DisplayWrapper.h"
 
 namespace pixeler
 {
   void Pixeler::begin(uint32_t stack_depth_kb)
   {
-    setCpuFrequencyMhz(BASE_CPU_FREQ_MHZ);
-
     _input.__init();
 
     //---------------------------------------
@@ -24,7 +21,6 @@ namespace pixeler
     IContext* context = new START_CONTEXT();
 
     unsigned long ts = millis();
-
     while (window.isOpen())
     {
       while (auto event = window.pollEvent())
@@ -66,25 +62,23 @@ namespace pixeler
             _input.__setState(BtnID::BTN_BACK, false);
         }
       }
+
       if (!context->isReleased())
       {
         context->tick();
       }
       else
       {
-        ContextID next_context_id = context->getNextContextID();
-        delete context;
+        IContext* next_context = context->takeNextContext();
 
-        const auto it = _context_id_map.find(next_context_id);
-        if (it == _context_id_map.end())
+        if (!next_context) [[unlikely]]
         {
-          log_e("Невідомий ідентифікатор контексту: %u", next_context_id);
+          log_e("Наступний контекст першого рівня не може бути null");
           esp_restart();
         }
-        else
-        {
-          context = it->second();
-        }
+
+        delete context;
+        context = next_context;
       }
 
       if (millis() - ts > WDT_GUARD_TIME)

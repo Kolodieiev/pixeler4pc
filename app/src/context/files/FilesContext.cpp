@@ -1,14 +1,15 @@
 #pragma GCC optimize("O3")
 #include "FilesContext.h"
 
-#include "pixeler/lib/qr/QR_Gen.h"
 #include "manager/FileManager.h"
 #include "manager/SettingsManager.h"
 #include "manager/res/BmpLoader.h"
+#include "pixeler/lib/qr/QR_Gen.h"
 //
 #include "../WidgetCreator.h"
 #include "./res/folder.h"
 #include "./res/lua.h"
+#include "context/menu/MenuContext.h"
 #include "widget/menu/item/MenuItem.h"
 #include "widget/menu/item/ToggleItem.h"
 #include "widget/progress/ProgressBar.h"
@@ -56,7 +57,6 @@ bool FilesContext::loop()
 
 FilesContext::FilesContext()
 {
-  setCpuFrequencyMhz(MAX_CPU_FREQ_MHZ);
   _dir_img = new Image(1);
   _dir_img->setTransparency(true);
   _dir_img->setWidth(16);
@@ -506,7 +506,7 @@ void FilesContext::update()
     _input.lock(BtnID::BTN_BACK, PRESS_LOCK);
 
     if (_mode == MODE_NAVIGATION)
-      openContextByID(ID_CONTEXT_MENU);
+      openContext(new MenuContext());
     else if (_mode == MODE_NEW_DIR_DIALOG || _mode == MODE_RENAME_DIALOG)
       hideDialog();
   }
@@ -747,7 +747,7 @@ void FilesContext::openPrevlevel()
   }
   else
   {
-    openContextByID(ID_CONTEXT_MENU);
+    openContext(new MenuContext());
   }
 }
 

@@ -123,7 +123,7 @@ namespace pixeler
 
     _notification = new Notification(1);
 #endif
-    setCpuFrequencyMhz(MAX_CPU_FREQ_MHZ);
+    setCpuFrequency(FREQ_MAX);
     _self = this;
   }
 
@@ -139,7 +139,6 @@ namespace pixeler
       delete _managed_widgets[i];
 
     log_i("%s", STR_LUA_STOP);
-    setCpuFrequencyMhz(BASE_CPU_FREQ_MHZ);
   }
 
   bool LuaContext::initLua()
@@ -302,7 +301,7 @@ namespace pixeler
       if (callLuaFunction(STR_UPDATE_NAME) != LUA_OK)
       {
         luaErrToMsg();
-        release();
+        releaseContext();
       }
     }
   }
@@ -327,7 +326,7 @@ namespace pixeler
 
   int LuaContext::lua_context_exit(lua_State* L)
   {
-    _self->release();
+    _self->releaseContext();
     return 0;
   }
 

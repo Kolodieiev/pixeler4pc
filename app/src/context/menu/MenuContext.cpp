@@ -1,7 +1,5 @@
 #include "MenuContext.h"
 //
-#include "widget/layout/EmptyLayout.h"
-#include "widget/menu/item/MenuItem.h"
 #include "../WidgetCreator.h"
 #include "./res/book.h"
 #include "./res/chip.h"
@@ -10,11 +8,15 @@
 #include "./res/sd.h"
 #include "./res/settings.h"
 #include "./res/wifi_ico.h"
-#include "pixeler/config/context_id_config.hpp"
+#include "context/files/FilesContext.h"
+#include "context/games/GameListContext.h"
+#include "context/home/HomeContext.h"
+#include "context/menu/MenuContext.h"
+#include "widget/layout/EmptyLayout.h"
+#include "widget/menu/item/MenuItem.h"
 
 #define ICO_WH 35
 
-const char STR_3D_ITEM[] = "3D";
 const char STR_READER_ITEM[] = "Читалка";
 const char STR_FILES_ITEM[] = "Файли";
 const char STR_GAME_ITEM[] = "Ігри";
@@ -44,7 +46,7 @@ MenuContext::MenuContext()
   _scrollbar->setBackColor(COLOR_MAIN_BACK);
 
   // Файли
-  MenuItem* files_item = WidgetCreator::getMenuItem(ID_CONTEXT_FILES);
+  MenuItem* files_item = WidgetCreator::getMenuItem(ID_ITEM_FILES);
   _menu->addItem(files_item);
 
   Image* files_img = new Image(1);
@@ -57,22 +59,8 @@ MenuContext::MenuContext()
   Label* files_lbl = WidgetCreator::getItemLabel(STR_FILES_ITEM, font_10x20);
   files_item->setLbl(files_lbl);
 
-  // Музика
-  MenuItem* seudo3d_item = WidgetCreator::getMenuItem(ID_CONTEXT_3D);
-  _menu->addItem(seudo3d_item);
-
-  Image* mp3_img = new Image(1);
-  seudo3d_item->setImg(mp3_img);
-  mp3_img->setTransparency(true);
-  mp3_img->setWidth(ICO_WH);
-  mp3_img->setHeight(ICO_WH);
-  mp3_img->setSrc(HEADPHONES_IMG);
-
-  Label* pseudo3d_lbl = WidgetCreator::getItemLabel(STR_3D_ITEM, font_10x20);
-  seudo3d_item->setLbl(pseudo3d_lbl);
-
   // Ігри
-  MenuItem* game_item = WidgetCreator::getMenuItem(ID_CONTEXT_GAMES);
+  MenuItem* game_item = WidgetCreator::getMenuItem(ID_ITEM_GAMES);
   _menu->addItem(game_item);
 
   Image* game_img = new Image(1);
@@ -86,7 +74,7 @@ MenuContext::MenuContext()
   game_item->setLbl(game_lbl);
 
   // Читалка
-  MenuItem* read_item = WidgetCreator::getMenuItem(ID_CONTEXT_READER);
+  MenuItem* read_item = WidgetCreator::getMenuItem(ID_ITEM_READER);
   _menu->addItem(read_item);
 
   Image* read_img = new Image(1);
@@ -100,7 +88,7 @@ MenuContext::MenuContext()
   read_item->setLbl(read_lbl);
 
   // WiFi
-  MenuItem* wifi_item = WidgetCreator::getMenuItem(ID_CONTEXT_WIFI);
+  MenuItem* wifi_item = WidgetCreator::getMenuItem(ID_ITEM_WIFI);
   _menu->addItem(wifi_item);
 
   Image* wifi_img = new Image(1);
@@ -114,7 +102,7 @@ MenuContext::MenuContext()
   wifi_item->setLbl(wifi_lbl);
 
   // Налаштування
-  MenuItem* pref_item = WidgetCreator::getMenuItem(ID_CONTEXT_PREF_SEL);
+  MenuItem* pref_item = WidgetCreator::getMenuItem(ID_ITEM_PREF_SEL);
   _menu->addItem(pref_item);
 
   Image* pref_img = new Image(1);
@@ -128,7 +116,7 @@ MenuContext::MenuContext()
   pref_item->setLbl(pref_lbl);
 
   // Прошивка
-  MenuItem* firm_item = WidgetCreator::getMenuItem(ID_CONTEXT_FIRMWARE);
+  MenuItem* firm_item = WidgetCreator::getMenuItem(ID_ITEM_FIRMWARE);
   _menu->addItem(firm_item);
 
   Image* firm_img = new Image(1);
@@ -177,7 +165,7 @@ void MenuContext::update()
   {
     _input.lock(BtnID::BTN_BACK, CLICK_LOCK);
     _last_sel_item_pos = 0;
-    openContextByID(ID_CONTEXT_HOME);
+    openContext(new HomeContext());
   }
 }
 
@@ -195,17 +183,24 @@ void MenuContext::down()
 
 void MenuContext::ok()
 {
-  ContextID id = static_cast<ContextID>(_menu->getCurrItemID());
+    uint16_t id = _menu->getCurrItemID();
   _last_sel_item_pos = _menu->getCurrFocusPos();
 
-  if (id == ID_CONTEXT_FILES ||
-      id == ID_CONTEXT_GAMES ||
-      id == ID_CONTEXT_3D)
+  IContext* context{nullptr};
+
+  switch (id)
   {
-    openContextByID(id);
+    case ID_ITEM_FILES:
+      context = new FilesContext();
+      break;
+    case ID_ITEM_GAMES:
+      context = new GameListContext();
+      break;
+    default:
+      log_e("Невідомий ідентифікатор контексту: %u", id);
+      break;
   }
-  else
-  {
-    log_i("Не реалізовано");
-  }
+
+  if (context)
+    openContext(context);
 }
