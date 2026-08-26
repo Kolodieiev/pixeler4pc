@@ -14,8 +14,8 @@
 #include "pixeler/config/graphics_config.hpp"
 
 Arduino_Canvas::Arduino_Canvas(int16_t w, int16_t h)
-    : MAX_X{static_cast<uint16_t>(WIDTH - 1)},
-      MAX_Y{static_cast<uint16_t>(HEIGHT - 1)},
+    : MAX_X{static_cast<uint16_t>(w - 1)},
+      MAX_Y{static_cast<uint16_t>(h - 1)},
       WIDTH(w),
       HEIGHT(h),
       FRAMEBUFF_SIZE{static_cast<uint32_t>(w * h * sizeof(uint16_t))},
@@ -78,7 +78,7 @@ bool Arduino_Canvas::begin(sf::RenderWindow* window)
     esp_restart();
   }
 
-  log_e("Canvas ініціалізовано");
+  log_i("Canvas ініціалізовано");
   return true;
 }
 
