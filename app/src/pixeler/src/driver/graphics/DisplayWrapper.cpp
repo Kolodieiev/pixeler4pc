@@ -412,7 +412,7 @@ namespace pixeler
       uint16_t fps_x_pos = _canvas->width() / 2 - w;
       _canvas->fillRect(fps_x_pos - 3, 0, w + 6, h + 9, COLOR_BLACK);
       _canvas->setCursor(fps_x_pos, h + 3);
-      _canvas->print(fps_str);
+      _canvas->print(fps_str.c_str()); 
 #endif  // SHOW_FPS
 
       xSemaphoreTake(_sync_mutex, portMAX_DELAY);
