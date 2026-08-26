@@ -8,6 +8,10 @@ namespace pixeler
 {
   void IContext::tick()
   {
+#ifdef GRAPHICS_ENABLED
+    processPostedTasks();
+#endif  // #ifdef GRAPHICS_ENABLED
+
     if (loop())
     {
       if ((millis() - _upd_time) > UI_UPDATE_DELAY)
@@ -47,9 +51,11 @@ namespace pixeler
     }
   }
 
-  ContextID IContext::getNextContextID() const
+  IContext* IContext::takeNextContext()
   {
-    return _next_context_ID;
+    IContext* context = _next_context;
+    _next_context = nullptr;
+    return context;
   }
 
   bool IContext::isReleased() const
@@ -57,16 +63,21 @@ namespace pixeler
     return _is_released;
   }
 
-  void IContext::openContextByID(ContextID context_ID)
+  void IContext::setCpuFrequency(CpuFrequency frequency)
+  {
+    setCpuFrequencyMhz(frequency);
+  }
+
+  void IContext::openContext(IContext* context)
   {
     _input.reset();
-    _next_context_ID = context_ID;
+    _next_context = context;
     _is_released = true;
   }
 
-  void IContext::release()
+  void IContext::releaseContext()
   {
-    openContextByID(static_cast<ContextID>(0));
+    openContext(nullptr);
   }
 
 #ifndef GRAPHICS_ENABLED
@@ -75,8 +86,10 @@ namespace pixeler
 #else  // GRAPHICS_ENABLED
 
   IContext::IContext() : _layout_mutex{xSemaphoreCreateMutex()},
+                         _task_queue{xQueueCreate(UI_TASK_QUEUE_DEPTH, sizeof(std::function<void()>*))},
                          _layout{new EmptyLayout(1)}
   {
+    _owner_task_handle = xTaskGetCurrentTaskHandle();
     _layout->setBackColor(COLOR_YELLOW);
     _layout->setWidth(UI_WIDTH);
     _layout->setHeight(UI_HEIGHT);
@@ -84,17 +97,68 @@ namespace pixeler
 
   IContext::~IContext()
   {
+    _is_alive = false;
+
+    std::function<void()>* task = nullptr;
+    while (xQueueReceive(_task_queue, &task, 0) == pdTRUE)
+      delete task;
+
+    vQueueDelete(_task_queue);
+
     delete _layout;
     delete _toast_label;
 
     vSemaphoreDelete(_layout_mutex);
   }
 
+  bool IContext::post(std::function<void()> task, unsigned long timeout_ms)
+  {
+    if (!_is_alive) [[unlikely]]
+    {
+      log_e("Спроба виконати post в мертвому контексті");
+      esp_restart();
+    }
+
+    if (xTaskGetCurrentTaskHandle() == _owner_task_handle)
+    {
+      task();
+      return true;
+    }
+
+    // Виділяємо копію в купі, бо queue копіює лише вказівник
+    auto* task_ptr = new std::function<void()>(std::move(task));
+    if (xQueueSend(_task_queue, &task_ptr, pdMS_TO_TICKS(timeout_ms)) != pdTRUE)
+    {
+      delete task_ptr;
+      if (timeout_ms > 0)
+        log_e("Черга post переповнена, система може працювати нестабільно");
+
+      return false;
+    }
+
+    return true;
+  }
+
+  void IContext::processPostedTasks()
+  {
+    std::function<void()>* task = nullptr;
+    uint32_t processed_count{0};
+
+    while (xQueueReceive(_task_queue, &task, 0) == pdTRUE)
+    {
+      (*task)();
+      delete task;
+
+      if ((++processed_count & 15) == 0)
+        delay(1);
+    }
+  }
+
   void IContext::setLayout(IWidgetContainer* layout)
   {
     if (!layout)
     {
-      log_e("Спроба встановити NULL-layout.");
+      log_e("Спроба встановити NULL-layout");
       esp_restart();
     }
 
@@ -125,10 +189,13 @@ namespace pixeler
     _toast_birthtime = millis();
     _toast_lifetime = duration;
 
+    xSemaphoreTake(_layout_mutex, portMAX_DELAY);
+
     if (_toast_label)
     {
       _toast_label->setText(msg_txt);
       _toast_label->setAutoscroll(true);
+      xSemaphoreGive(_layout_mutex);
       return;
     }
 
@@ -151,6 +218,8 @@ namespace pixeler
       _toast_label->setWidth(120);
 
     _toast_label->setPos(getCenterX(_toast_label), UI_HEIGHT - _toast_label->getHeight() - 15);
+
+    xSemaphoreGive(_layout_mutex);
   }
 
   uint16_t IContext::getCenterX(const IWidget* widget) const
@@ -171,17 +240,18 @@ namespace pixeler
   void IContext::hideNotification()
   {
     _notification = nullptr;
-
+    xSemaphoreTake(_layout_mutex, portMAX_DELAY);
     if (_layout)
       _layout->drawForced();
+    xSemaphoreGive(_layout_mutex);
   }
 
-  bool IContext::takeLayoutMutex()
+  bool IContext::takeLayoutMutex() const
   {
     return xSemaphoreTake(_layout_mutex, portMAX_DELAY);
   }
 
-  void IContext::giveLayoutMutex()
+  void IContext::giveLayoutMutex() const
   {
     xSemaphoreGive(_layout_mutex);
   }
