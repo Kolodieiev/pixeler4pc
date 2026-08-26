@@ -1,1 +1,0 @@
-#define TEXTURE_SIZE 16
