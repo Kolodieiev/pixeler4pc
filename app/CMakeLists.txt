@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(Pixeler4PC LANGUAGES CXX C)
 
-set(EN_GIT_BUILD ON) # GIT SFML 3.0.2
-set(EN_LOCAL_BUILD OFF) # Локальний SFML 3.0.2
-set(EN_STATIC_SFML_LIB OFF) # Локальний SFML 3.0.2. Якщо бібліотеки зібрані статично - ON. Інакше OFF.
+set(EN_GIT_BUILD OFF) # GIT SFML 3.0.2
+set(EN_LOCAL_BUILD ON) # Локальний SFML 3.0.2
+set(EN_STATIC_SFML_LIB ON) # Локальний SFML 3.0.2. Якщо бібліотеки зібрані статично - ON. Інакше OFF.
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -19,23 +19,19 @@ if(EN_GIT_BUILD)
 elseif(EN_LOCAL_BUILD)
     if(EN_STATIC_SFML_LIB)
         set(SFML_STATIC_LIBRARIES TRUE)
-
     endif()
     find_package(SFML 3.0.2 REQUIRED COMPONENTS Graphics)
 
 else()
     message(FATAL_ERROR "Потрібно обрати один із варіантів збірки")
-
 endif()
 
-file(GLOB_RECURSE CPP_SOURCES
-    "src/*.cpp"
-    "src/**/*.cpp"
+file(GLOB_RECURSE CPP_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
 
-file(GLOB_RECURSE C_SOURCES
-    "src/*.c"
-    "src/**/*.c"
+file(GLOB_RECURSE C_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
 )
 
 add_executable(main ${CPP_SOURCES} ${C_SOURCES}) 
@@ -49,6 +45,9 @@ target_include_directories(main PUBLIC
 
 target_compile_features(main PRIVATE cxx_std_20)
 set_target_properties(main PROPERTIES CXX_EXTENSIONS ON)
-target_compile_options(main PRIVATE -Wno-unknown-pragmas)
+
+target_compile_options(main PRIVATE 
+    -Wno-unknown-pragmas 
+)
 
 target_link_libraries(main PRIVATE SFML::Graphics)
