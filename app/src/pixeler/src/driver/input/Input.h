@@ -3,8 +3,8 @@
 
 #include <unordered_map>
 
-#include "pixeler/config/input_config.hpp"
 #include "Button.h"
+#include "pixeler/config/input_config.hpp"
 
 namespace pixeler
 {
@@ -36,7 +36,7 @@ namespace pixeler
      * @brief Вмикає фізичний пін та ініціалізує його в тому режимі, який було передано в конструктор під час створення об'єкта віртуального піна з цим номером.
      * Якщо віртуальний пін з таким номером відсутній, буде викликано виключення std::out_of_range.
      *
-     * @param btn_id Номер віртуального піна.
+     * @param btn_id Номер віртуального піна
      */
     void enableBtn(BtnID btn_id);
 
@@ -46,63 +46,72 @@ namespace pixeler
      * Вимкнення піна на тривалий період, може трохи скоротити споживання струму мікроконтролером.
      * Якщо віртуальний пін з таким номером відсутній, буде викликано виключення std::out_of_range.
      *
-     * @param btn_id Номер віртуального піна.
+     * @param btn_id Номер віртуального піна
      */
     void disableBtn(BtnID btn_id);
 
     /**
-     * @brief Перевіряє чи знаходиться зараз віртуальний пін з таким номер в активному стані.
-     * Тобто чи натиснута кнопка або чи фіксується дотик на цьому піні.
-     * Якщо віртуальний пін з таким номером відсутній, буде викликано виключення std::out_of_range.
+     * @brief Перевіряє чи фіксується в даний момент утримання кнопки на віртуальному піні з таким номером.
      *
-     *
-     * @param btn_id Номер віртуального піна.
-     * @return true - Якщо пін утримується.
-     * @return false - Інакше.
+     * @param btn_id Номер віртуального піна
+     * @return true - Якщо пін утримується. false - Інакше
      */
-    bool isHolded(BtnID btn_id) const;
+    bool isHolded(BtnID btn_id);
 
     /**
      * @brief Перевіряє чи утримується пін більше n мілісекунд, що задано в налаштуваннях вводу.
-     * Якщо віртуальний пін з таким номером відсутній, буде викликано виключення std::out_of_range.
      *
-     * @param btn_id Номер віртуального піна.
-     * @return true - Якщо пін утримується більше n мілісекунд.
-     * @return false - Інакше.
+     * @param btn_id Номер віртуального піна
+     * @return true - Якщо пін утримується більше n мілісекунд. false - Інакше
      */
-    bool isPressed(BtnID btn_id) const;
+    bool isPressed(BtnID btn_id);
 
     /**
      * @brief Перевіряє чи було пін раніше активовано натисканням та відпущено.
-     * Якщо віртуальний пін з таким номером відсутній, буде викликано виключення std::out_of_range.
      *
-     * @param btn_id Номер віртуального піна.
-     * @return true - Якщо пін раніше було активовано та відпущено.
-     * @return false - Інакше.
+     * @param btn_id Номер віртуального піна
+     * @return true - Якщо пін раніше було активовано та відпущено. false - Інакше
      */
-    bool isReleased(BtnID btn_id) const;
+    bool isReleased(BtnID btn_id);
 
     /**
-     * @brief Блокує віртуальний пін, щоб запобігти випадковим спрацюванням через брязкіт контактів,
-     * або щоб задати час очікування до наступного спрацюванням цього піна. Під час виклику скидає стан віртуального піна
-     * та блокує його оновлення, доки не сплине час блокування.
-     * Якщо віртуальний пін з таким номером відсутній, буде викликано виключення std::out_of_range.
+     * @brief Встановлює час автоматичного блокування кнопки,
+     * яке буде застосовано до неї після позитивного зчитування стану "is_holded".
      *
-     * @param btn_id Номер віртуального піна.
-     * @param lock_duration Час в мілісекундах, на який потрібно заблокувати віртуальний пін.
+     * @param lock_duration_ms Час блокування в мілісекнудах
      */
-    void lock(BtnID btn_id, unsigned long lock_duration);
+    void setHoldLockTime(unsigned long lock_duration_ms);
+
+    /**
+     * @brief Встановлює час автоматичного блокування кнопки,
+     * яке буде застосовано до неї після позитивного зчитування стану "is_released".
+     *
+     * @param lock_duration_ms Час блокування в мілісекнудах
+     */
+    void setClickLockTime(unsigned long lock_duration_ms);
+
+    /**
+     * @brief Встановлює час автоматичного блокування кнопки,
+     * яке буде застосовано до неї після позитивного зчитування стану "is_pressed".
+     *
+     * @param lock_duration_ms Час блокування в мілісекнудах
+     */
+    void setPressLockTime(unsigned long lock_duration_ms);
 
     /**
      * @brief Використовується виключно для сумісності на ПК.
-     * 
-     * @param btn_id 
-     * @param is_holded 
+     *
+     * @param btn_id
+     * @param is_holded
      */
     void __setState(BtnID btn_id, bool is_holded);
 
   private:
     std::unordered_map<BtnID, Button> _buttons BUTTONS;
+
+    unsigned long _hold_lock_time;
+    unsigned long _click_lock_time;
+    unsigned long _press_lock_time;
   };
 
   extern Input _input;

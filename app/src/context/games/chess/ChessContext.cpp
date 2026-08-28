@@ -350,17 +350,14 @@ namespace chess
 
     if (_input.isHolded(BtnID::BTN_UP))
     {
-      _input.lock(BtnID::BTN_UP, HOLD_LOCK);
       menu->focusUp();
     }
     else if (_input.isHolded(BtnID::BTN_DOWN))
     {
-      _input.lock(BtnID::BTN_DOWN, HOLD_LOCK);
       menu->focusDown();
     }
     else if (_input.isReleased(BtnID::BTN_OK))
     {
-      _input.lock(BtnID::BTN_OK, CLICK_LOCK);
       uint16_t id = menu->getCurrItemID();
 
       switch (id)
@@ -388,7 +385,6 @@ namespace chess
     }
     else if (_input.isReleased(BtnID::BTN_BACK))
     {
-      _input.lock(BtnID::BTN_BACK, CLICK_LOCK);
       openContext(new GameListContext());
     }
   }
@@ -399,17 +395,14 @@ namespace chess
 
     if (_input.isHolded(BtnID::BTN_UP))
     {
-      _input.lock(BtnID::BTN_UP, HOLD_LOCK);
       menu->focusUp();
     }
     else if (_input.isHolded(BtnID::BTN_DOWN))
     {
-      _input.lock(BtnID::BTN_DOWN, HOLD_LOCK);
       menu->focusDown();
     }
     else if (_input.isReleased(BtnID::BTN_OK))
     {
-      _input.lock(BtnID::BTN_OK, CLICK_LOCK);
       uint16_t id = menu->getCurrItemID();
 
       switch (id)
@@ -429,7 +422,6 @@ namespace chess
     }
     else if (_input.isReleased(BtnID::BTN_BACK))
     {
-      _input.lock(BtnID::BTN_BACK, HOLD_LOCK);
       showMainTmpl();
     }
   }
@@ -441,38 +433,30 @@ namespace chess
 
     if (_input.isHolded(BtnID::BTN_UP))
     {
-      _input.lock(BtnID::BTN_UP, CLICK_LOCK);
       keyboard->focusUp();
     }
     else if (_input.isHolded(BtnID::BTN_DOWN))
     {
-      _input.lock(BtnID::BTN_DOWN, CLICK_LOCK);
       keyboard->focusDown();
     }
     else if (_input.isHolded(BtnID::BTN_LEFT))
     {
-      _input.lock(BtnID::BTN_LEFT, CLICK_LOCK);
       keyboard->focusLeft();
     }
     else if (_input.isHolded(BtnID::BTN_RIGHT))
     {
-      _input.lock(BtnID::BTN_RIGHT, CLICK_LOCK);
       keyboard->focusRight();
     }
     else if (_input.isReleased(BtnID::BTN_OK))
     {
-      _input.lock(BtnID::BTN_OK, CLICK_LOCK);
       dialog_txt->addChars(keyboard->getCurrBtnTxt().c_str());
     }
     else if (_input.isReleased(BtnID::BTN_BACK))
     {
-      _input.lock(BtnID::BTN_BACK, CLICK_LOCK);
       dialog_txt->removeLastChar();
     }
     else if (_input.isPressed(BtnID::BTN_OK))
     {
-      _input.lock(BtnID::BTN_OK, PRESS_LOCK);
-
       bool save_pref_result{false};
 
       switch (_mode)
@@ -508,8 +492,6 @@ namespace chess
     }
     else if (_input.isPressed(BtnID::BTN_BACK))
     {
-      _input.lock(BtnID::BTN_BACK, PRESS_LOCK);
-
       if (_mode == MODE_CONN_DIALOG)  // Якщо в режимі підключення до сервера
         showWifiScanTmpl();           // Пароль не введено. Повторно запускаємо сканування
       else

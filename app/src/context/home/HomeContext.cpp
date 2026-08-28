@@ -77,10 +77,7 @@ bool HomeContext::loop()
 void HomeContext::update()
 {
   if (_input.isReleased(BtnID::BTN_OK))
-  {
-    _input.lock(BtnID::BTN_OK, CLICK_LOCK);
     openContext(new MenuContext());
-  }
 
   if (millis() - _upd_timer > UPD_DISPLAY_INTERVAL_MS)
   {

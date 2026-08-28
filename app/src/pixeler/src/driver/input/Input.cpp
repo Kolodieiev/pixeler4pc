@@ -8,7 +8,9 @@ const char STR_UNKNOWN_PIN[] = "Незареєстрована віртуаль�
 
 namespace pixeler
 {
-  Input::Input() {}
+  Input::Input() : _hold_lock_time{HOLD_LOCK_TIME_MS}, _click_lock_time{CLICK_LOCK_TIME_MS}, _press_lock_time{PRESS_LOCK_TIME_MS}
+  {
+  }
 
   void Input::__init()
   {
@@ -16,7 +18,6 @@ namespace pixeler
 
   void Input::__update()
   {
-
   }
 
   void Input::reset()
@@ -49,55 +50,73 @@ namespace pixeler
     }
   }
 
-  bool Input::isHolded(BtnID btn_id) const
+  bool Input::isHolded(BtnID btn_id)
   {
     try
     {
-      return _buttons.at(btn_id).isHolded();
+      bool result = _buttons.at(btn_id).isHolded();
+
+      if (result)
+        _buttons.at(btn_id).lock(_hold_lock_time);
+
+      return result;
     }
     catch (const std::out_of_range& ignored)
     {
-      log_e("%s", STR_UNKNOWN_PIN);
+      log_e("%s : id[%u]", STR_UNKNOWN_PIN);
       return false;
     }
   }
 
-  bool Input::isPressed(BtnID btn_id) const
+  bool Input::isPressed(BtnID btn_id)
   {
     try
     {
-      return _buttons.at(btn_id).isPressed();
+      bool result = _buttons.at(btn_id).isPressed();
+
+      if (result)
+        _buttons.at(btn_id).lock(_press_lock_time);
+
+      return result;
     }
     catch (const std::out_of_range& ignored)
     {
-      log_e("%s", STR_UNKNOWN_PIN);
+      log_e("%s : id[%u]", STR_UNKNOWN_PIN);
       return false;
     }
   }
 
-  bool Input::isReleased(BtnID btn_id) const
+  bool Input::isReleased(BtnID btn_id)
   {
     try
     {
-      return _buttons.at(btn_id).isReleased();
+      bool result = _buttons.at(btn_id).isReleased();
+
+      if (result)
+        _buttons.at(btn_id).lock(_click_lock_time);
+
+      return result;
     }
     catch (const std::out_of_range& ignored)
     {
-      log_e("%s", STR_UNKNOWN_PIN);
+      log_e("%s : id[%u]", STR_UNKNOWN_PIN);
       return false;
     }
   }
 
-  void Input::lock(BtnID btn_id, unsigned long lock_duration)
+  void Input::setHoldLockTime(unsigned long lock_duration_ms)
   {
-    try
-    {
-      _buttons.at(btn_id).lock(lock_duration);
-    }
-    catch (const std::out_of_range& ignored)
-    {
-      log_e("%s", STR_UNKNOWN_PIN);
-    }
+    _hold_lock_time = lock_duration_ms;
+  }
+
+  void Input::setClickLockTime(unsigned long lock_duration_ms)
+  {
+    _click_lock_time = lock_duration_ms;
+  }
+
+  void Input::setPressLockTime(unsigned long lock_duration_ms)
+  {
+    _press_lock_time = lock_duration_ms;
   }
 
   void Input::__setState(BtnID btn_id, bool is_holded)
