@@ -217,7 +217,7 @@ void FilesContext::showContextMenu()
     _context_menu->addItem(paste_item);
 
     Label* paste_lbl = WidgetCreator::getItemLabel(STR_PASTE, font_unifont);
-    paste_item->setLbl(paste_lbl);
+    paste_item->setLabel(paste_lbl);
     paste_lbl->setHPadding(1);
   }
 
@@ -226,7 +226,7 @@ void FilesContext::showContextMenu()
   _context_menu->addItem(new_dir_item);
 
   Label* new_dir_lbl = WidgetCreator::getItemLabel(STR_NEW_DIR, font_unifont);
-  new_dir_item->setLbl(new_dir_lbl);
+  new_dir_item->setLabel(new_dir_lbl);
   new_dir_lbl->setHPadding(1);
 
   // контекст для вибраного файлу
@@ -243,7 +243,7 @@ void FilesContext::showContextMenu()
         _context_menu->addItem(exec_item);
 
         Label* exec_lbl = WidgetCreator::getItemLabel(STR_EXECUTE, font_unifont);
-        exec_item->setLbl(exec_lbl);
+        exec_item->setLabel(exec_lbl);
         exec_lbl->setHPadding(1);
       }
       else if (_files[id - 1].nameEndsWith(STR_BMP_EXT))
@@ -262,7 +262,7 @@ void FilesContext::showContextMenu()
             _context_menu->addItem(set_wall_item);
 
             Label* set_wall_lbl = WidgetCreator::getItemLabel(STR_SET_WALLPP, font_unifont);
-            set_wall_item->setLbl(set_wall_lbl);
+            set_wall_item->setLabel(set_wall_lbl);
             set_wall_lbl->setHPadding(1);
           }
           _fs.closeFile(bmp_file);
@@ -274,7 +274,7 @@ void FilesContext::showContextMenu()
       _context_menu->addItem(copy_item);
 
       Label* copy_lbl = WidgetCreator::getItemLabel(STR_COPY, font_unifont);
-      copy_item->setLbl(copy_lbl);
+      copy_item->setLabel(copy_lbl);
       copy_lbl->setHPadding(1);
     }
 
@@ -283,7 +283,7 @@ void FilesContext::showContextMenu()
     _context_menu->addItem(rename_item);
 
     Label* rename_lbl = WidgetCreator::getItemLabel(STR_RENAME, font_unifont);
-    rename_item->setLbl(rename_lbl);
+    rename_item->setLabel(rename_lbl);
     rename_lbl->setHPadding(1);
 
     // перемістити
@@ -291,7 +291,7 @@ void FilesContext::showContextMenu()
     _context_menu->addItem(move_item);
 
     Label* move_lbl = WidgetCreator::getItemLabel(STR_MOVE, font_unifont);
-    move_item->setLbl(move_lbl);
+    move_item->setLabel(move_lbl);
     move_lbl->setHPadding(1);
 
     // видалити
@@ -299,7 +299,7 @@ void FilesContext::showContextMenu()
     _context_menu->addItem(delete_item);
 
     Label* delete_lbl = WidgetCreator::getItemLabel(STR_DELETE, font_unifont);
-    delete_item->setLbl(delete_lbl);
+    delete_item->setLabel(delete_lbl);
     delete_lbl->setHPadding(1);
   }
 
@@ -308,7 +308,7 @@ void FilesContext::showContextMenu()
   _context_menu->addItem(upd_item);
 
   Label* upd_lbl = WidgetCreator::getItemLabel(STR_UPDATE, font_unifont);
-  upd_item->setLbl(upd_lbl);
+  upd_item->setLabel(upd_lbl);
   upd_lbl->setHPadding(1);
 
   //
@@ -800,14 +800,14 @@ void FilesContext::makeMenuFilesItems(std::vector<MenuItem*>& items, uint16_t fi
     items.push_back(item);
 
     Label* lbl = new Label(1);
-    item->setLbl(lbl);
+    item->setLabel(lbl);
     lbl->setAutoscrollInFocus(true);
     lbl->setFont(font_10x20);
 
     if (_files[i].isDir())
-      item->setImg(_dir_img->clone(1));
+      item->setImage(_dir_img->clone(1));
     else if (_files[i].nameEndsWith(STR_LUA_EXT))
-      item->setImg(_lua_img->clone(1));
+      item->setImage(_lua_img->clone(1));
 
     lbl->setText(_files[i].getName());
   }
