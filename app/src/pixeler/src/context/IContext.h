@@ -14,10 +14,10 @@
 #include "../defines.h"
 #include "../driver/graphics/DisplayWrapper.h"
 #include "../driver/input/Input.h"
+#include "../freertos_pc_shim.h"
 #include "../widget/IWidgetContainer.h"
 #include "../widget/notification/Notification.h"
 #include "../widget/text/Label.h"
-#include "freertos_pc_shim.h"
 #include "pixeler/config/cpu_config.hpp"
 
 namespace pixeler
@@ -35,8 +35,8 @@ namespace pixeler
 
 #ifdef GRAPHICS_ENABLED
     /**
-     * @brief Додає задачу до черги виконання, яка буде викликана
-     * в потоці контексту під час наступного tick().
+     * @brief Додає задачу до черги, яка буде виконана
+     * в потоці контексту під час наступного виклику tick().
      * Може викликатись з будь-якої FreeRTOS-задачі.
      *
      * @param task Функція без аргументів і повернення результату,
