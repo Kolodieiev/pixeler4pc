@@ -69,6 +69,8 @@ namespace pixeler
 
     takeLock();
 
+    processPostedTasks();
+
     _terrain.setCameraPos(_main_obj->_x_global, _main_obj->_y_global);
     _terrain.onDraw();
 
