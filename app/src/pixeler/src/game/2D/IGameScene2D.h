@@ -14,10 +14,10 @@
 //
 #include <functional>
 
-#include "../../freertos_pc_shim.h"
 #include "../ui/IGameMenu.h"
 #include "../ui/IGameUI.h"
 #include "IGameObject2D.h"
+#include "defines.h"
 #include "sprite/SpriteTemplate.h"
 #include "terrain/TerrainLoader2D.h"
 #include "terrain/TerrainManager2D.h"
@@ -205,18 +205,6 @@ namespace pixeler
     virtual void onTriggered(uint16_t trigg_id);
 
     /**
-     * @brief Блокує мютекс доступу до ігрових об'єктів.
-     *
-     */
-    void takeLock() const;
-
-    /**
-     * @brief Відпускає мютекс доступу до ігрових об'єктів.
-     *
-     */
-    void giveLock() const;
-
-    /**
      * @brief Піднімає прапор, який вказує, що поточний ігровий рівень повинен бути змінений.
      * Встановлює ідентифікатро ігрового рівня, який повинен бути створений наступним.
      *
@@ -252,11 +240,10 @@ namespace pixeler
     std::vector<IGameObject2D*> _game_objs;  // Список усіх ігрових об'єктів на сцені, які повинні взаємодіяти один з одним
 
   protected:
-    DataStream& _stored_objs;              // Контейнер для перенесення відбитків об'єктів до наступної сцени
-    mutable SemaphoreHandle_t _obj_mutex;  // Мютекс для синхронізації доступу до об'єктів
-    IGameUI* _game_UI{nullptr};            // Шар ігрового UI. Тут можуть виводитися графічні елементи інтерфейса
-    IGameMenu* _game_menu{nullptr};        // Шар ігрового меню, якщо в ньому є необхідність
-    IGameObject2D* _main_obj{nullptr};     // Об'єкт, за яким завжди слідує камера
+    DataStream& _stored_objs;           // Контейнер для перенесення відбитків об'єктів до наступної сцени
+    IGameUI* _game_UI{nullptr};         // Шар ігрового UI. Тут можуть виводитися графічні елементи інтерфейса
+    IGameMenu* _game_menu{nullptr};     // Шар ігрового меню, якщо в ньому є необхідність
+    IGameObject2D* _main_obj{nullptr};  // Об'єкт, за яким завжди слідує камера
 
   private:
     TaskHandle_t _owner_task_handle{nullptr};

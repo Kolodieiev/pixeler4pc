@@ -15,14 +15,14 @@ const char STR_FILE_READ_ERR[] = "Помилка читання файла";
 int lua_sd_file_exist(lua_State* L)
 {
   const char* path = luaL_checkstring(L, 1);
-  lua_pushboolean(L, pixeler::_fs.fileExist(path, true));
+  lua_pushboolean(L, pixeler::_fs.fileExistSilently(path));
   return 1;
 }
 
 int lua_sd_dir_exist(lua_State* L)
 {
   const char* path = luaL_checkstring(L, 1);
-  lua_pushboolean(L, pixeler::_fs.dirExist(path, true));
+  lua_pushboolean(L, pixeler::_fs.dirExistSilently(path));
   return 1;
 }
 

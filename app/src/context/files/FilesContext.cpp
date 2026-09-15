@@ -1,10 +1,8 @@
 #pragma GCC optimize("O3")
 #include "FilesContext.h"
 
-#include "manager/FileManager.h"
 #include "manager/SettingsManager.h"
 #include "manager/res/BmpLoader.h"
-#include "pixeler/lib/qr/QR_Gen.h"
 //
 #include "../WidgetCreator.h"
 #include "./res/folder.h"
@@ -22,6 +20,7 @@ const char STR_SIZE[] = "File size:";
 const char STR_LUA_EXT[] = ".lua";
 const char STR_BMP_EXT[] = ".bmp";
 const char STR_SET_WALLPP[] = "На шпалери";
+const char STR_BACK_IMPORT[] = "Отримати у фоні";
 
 bool FilesContext::loop()
 {
@@ -57,6 +56,8 @@ bool FilesContext::loop()
 
 FilesContext::FilesContext()
 {
+  setCpuFrequency(FREQ_MAX);
+
   _dir_img = new Image(1);
   _dir_img->setTransparency(true);
   _dir_img->setWidth(16);
@@ -70,9 +71,16 @@ FilesContext::FilesContext()
   EmptyLayout* layout = WidgetCreator::getEmptyLayout();
   setLayout(layout);
 
+  if (!_fs.isMounted())
+  {
+    showSDErrTmpl();
+    return;
+  }
+
   createNotificationObj();
 
-  _fs.setTaskDoneHandler(taskDone, this);
+  _fs.onTaskDone(taskDoneHandler, this);
+  _fs.onCopyProgress(copyProgressHandler, this);
 
   indexCurDir();
   showFilesTmpl();
@@ -81,6 +89,9 @@ FilesContext::FilesContext()
 
 FilesContext::~FilesContext()
 {
+  _fs.onTaskDone(nullptr, nullptr);
+  _fs.onCopyProgress(nullptr, nullptr);
+
   delete _dir_img;
   delete _lua_img;
   delete _lua_context;
@@ -88,6 +99,18 @@ FilesContext::~FilesContext()
 }
 
 //-------------------------------------------------------------------------------------------
+
+void FilesContext::showSDErrTmpl()
+{
+  EmptyLayout* layout = WidgetCreator::getEmptyLayout();
+
+  _msg_lbl = WidgetCreator::getStatusMsgLable(ID_MSG_LBL, STR_SD_ERR);
+  layout->addWidget(_msg_lbl);
+
+  _mode = MODE_SD_UNCONN;
+
+  setLayout(layout);
+}
 
 void FilesContext::showCopyingTmpl()
 {
@@ -98,16 +121,16 @@ void FilesContext::showCopyingTmpl()
   _msg_lbl->setHeight(32);
   _msg_lbl->setPos(0, UI_HEIGHT / 2 - _msg_lbl->getHeight() - 2);
 
-  _task_progress = new ProgressBar(ID_PROGRESS);
-  layout->addWidget(_task_progress);
-  _task_progress->setBackColor(COLOR_BLACK);
-  _task_progress->setProgressColor(COLOR_ORANGE);
-  _task_progress->setBorderColor(COLOR_WHITE);
-  _task_progress->setMax(100);
-  _task_progress->setWidth(UI_WIDTH - 5 * 8);
-  _task_progress->setHeight(20);
-  _task_progress->setProgress(0);
-  _task_progress->setPos((UI_WIDTH - _task_progress->getWidth()) / 2, UI_HEIGHT / 2 + 2);
+  _task_progress_bar = new ProgressBar(ID_PROGRESS);
+  layout->addWidget(_task_progress_bar);
+  _task_progress_bar->setBackColor(COLOR_BLACK);
+  _task_progress_bar->setProgressColor(COLOR_ORANGE);
+  _task_progress_bar->setBorderColor(COLOR_WHITE);
+  _task_progress_bar->setMax(100);
+  _task_progress_bar->setWidth(UI_WIDTH - 5 * 8);
+  _task_progress_bar->setHeight(20);
+  _task_progress_bar->setProgress(0);
+  _task_progress_bar->setPos((UI_WIDTH - _task_progress_bar->getWidth()) / 2, UI_HEIGHT / 2 + 2);
 
   _mode = MODE_COPYING;
 
@@ -201,14 +224,8 @@ void FilesContext::showContextMenu()
   _mode = MODE_CONTEXT_MENU;
   _files_list->disable();
 
-  _context_menu = new FixedMenu(ID_CNTXT_MENU);
+  _context_menu = WidgetCreator::getContextMenu(ID_CNTXT_MENU);
   getLayout()->addWidget(_context_menu);
-  _context_menu->setItemHeight(18);
-  _context_menu->setWidth((float)UI_WIDTH / 2.2);
-  _context_menu->setBackColor(COLOR_BLACK);
-  _context_menu->setBorder(true);
-  _context_menu->setBorderColor(COLOR_ORANGE);
-  _context_menu->setLoopState(true);
 
   if (_has_moving_file || _has_copying_file)
   {
@@ -455,14 +472,9 @@ void FilesContext::pasteFile()
   else if (_has_copying_file)
   {
     if (!_fs.startCopyingFile(old_file_path.c_str(), new_file_path.c_str()))
-    {
       showResultToast(false);
-    }
     else
-    {
       showCopyingTmpl();
-      _task_runnning = true;
-    }
   }
 
   _has_moving_file = false;
@@ -479,20 +491,25 @@ void FilesContext::removeFile()
   filename += _files_list->getCurrItemText();
 
   if (!_fs.startRemoving(filename.c_str()))
-  {
     showResultToast(false);
-  }
   else
-  {
     showRemovingTmpl();
-    _task_runnning = true;
-  }
 }
 
 //-------------------------------------------------------------------------------------------
 
 void FilesContext::update()
 {
+  if (_mode == MODE_SD_UNCONN)
+  {
+    if (_input.isReleased(BtnID::BTN_BACK))
+    {
+      openContext(new MenuContext());
+    }
+
+    return;
+  }
+
   if (_input.isPressed(BtnID::BTN_OK))
   {
     if (_mode == MODE_NAVIGATION)
@@ -555,11 +572,6 @@ void FilesContext::update()
         upd_txt += upd_progress;
         _msg_lbl->setText(upd_txt);
       }
-      else if (_mode == MODE_COPYING)
-      {
-        _task_progress->setProgress(_fs.getCopyProgress());
-        _upd_msg_time = millis();
-      }
       else if (_mode == MODE_REMOVING)
       {
         upd_txt = STR_REMOVING;
@@ -569,17 +581,6 @@ void FilesContext::update()
 
       _upd_msg_time = millis();
     }
-  }
-  else if (_task_runnning && _task_done)
-  {
-    _task_runnning = false;
-    _task_done = false;
-
-    showResultToast(_task_done_result);
-
-    indexCurDir();
-    showFilesTmpl();
-    fillFilesTmpl();
   }
 }
 
@@ -720,7 +721,7 @@ void FilesContext::openNextLevel()
   String next_dir_path = makePathFromBreadcrumbs();
   next_dir_path += next_dir;
 
-  if (!_fs.dirExist(next_dir_path.c_str(), true))
+  if (!_fs.dirExistSilently(next_dir_path.c_str()))
     return;
 
   _breadcrumbs.push_back(next_dir);
@@ -765,16 +766,33 @@ void FilesContext::fillFilesTmpl()
   updateFileInfo();
 }
 
-void FilesContext::taskDoneHandler(bool result)
+void FilesContext::finishTaskState(bool result)
 {
-  _task_done = true;
-  _task_done_result = result;
+  showResultToast(result);
+
+  indexCurDir();
+  showFilesTmpl();
+  fillFilesTmpl();
 }
 
-void FilesContext::taskDone(bool result, void* arg)
+void FilesContext::taskDoneHandler(bool result, void* arg)
 {
   FilesContext* self = static_cast<FilesContext*>(arg);
-  self->taskDoneHandler(result);
+
+  self->post([self, result]()
+             { self->finishTaskState(result); }, 500);
+}
+
+void FilesContext::updCopyProgress(uint8_t progress)
+{
+  _task_progress_bar->setProgress(progress);
+}
+
+void FilesContext::copyProgressHandler(uint8_t progress, void* arg)
+{
+  FilesContext* self = static_cast<FilesContext*>(arg);
+  self->post([self, progress]()
+             { self->updCopyProgress(progress); }, 0);
 }
 
 //-------------------------------------------------------------------------------------------
@@ -948,7 +966,7 @@ void FilesContext::saveWallppSettings()
   path_to_bmp += "/";
   path_to_bmp += _files_list->getCurrItemText();
 
-  if (!SettingsManager::set(STR_WALLPP_FILENAME, path_to_bmp.c_str()))
+  if (!SettingsManager::set(STR_WALLPP_FILENAME, path_to_bmp))
     showToast(STR_FAIL);
   else
     showToast(STR_SUCCESS);

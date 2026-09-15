@@ -182,7 +182,7 @@ namespace chess
     menu->setWidth(UI_WIDTH);
     menu->setHeight(UI_HEIGHT);
     menu->setItemHeight(UI_HEIGHT / ITEM_NUM - 2);
-    menu->setLoopState(true);
+    menu->setLooped(true);
 
     // Один гравець
     MenuItem* solo_item = WidgetCreator::getMenuItem(ID_ITEM_ONE_PLAYER);
@@ -233,7 +233,7 @@ namespace chess
     menu->setWidth(UI_WIDTH);
     menu->setHeight(UI_HEIGHT);
     menu->setItemHeight(UI_HEIGHT / ITEM_NUM - 2);
-    menu->setLoopState(true);
+    menu->setLooped(true);
 
     // nick
     MenuItem* nick_item = WidgetCreator::getMenuItem(ID_ITEM_NICK);
@@ -527,7 +527,6 @@ namespace chess
   {
   }
 
-  //----------------------------------------------------------------------------------------------------------
   //----------------------------------------------------------------------------------------------------------
 
 }  // namespace chess

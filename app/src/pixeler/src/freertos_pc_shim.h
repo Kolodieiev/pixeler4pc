@@ -10,6 +10,94 @@
 #include <thread>
 #include <vector>
 
+#define log_e(fmt, ...) printf("E: " fmt "\n", ##__VA_ARGS__)
+#define log_i(fmt, ...) printf("I: " fmt "\n", ##__VA_ARGS__)
+#define debug(fmt, ...) printf("I: " fmt, ##__VA_ARGS__)
+
+using TaskFunction_t = void (*)(void*);
+using BaseType_t = int;
+using TickType_t = uint32_t;
+
+constexpr int pdTRUE = 1;
+constexpr int pdFALSE = 0;
+
+constexpr BaseType_t pdPASS = 1;
+constexpr BaseType_t pdFAIL = 0;
+
+// Кидається з vTaskDelete(nullptr) для штатного завершення поточного таска.
+// Перехоплюється у обгортці, створеній xTaskCreatePinnedToCore.
+struct TaskDeletedException
+{
+};
+
+inline BaseType_t xTaskCreatePinnedToCore(
+    TaskFunction_t pvTaskCode,
+    const char* pcName,
+    uint32_t usStackDepth,
+    void* pvParameters,
+    uint32_t uxPriority,
+    void* pxCreatedTask,
+    int xCoreID)
+{
+  try
+  {
+    std::thread t([pvTaskCode, pvParameters]()
+                  {
+      try
+      {
+        pvTaskCode(pvParameters);
+      }
+      catch (const TaskDeletedException&)
+      {
+        // vTaskDelete(nullptr) — штатне самовидалення, не помилка.
+      } });
+    t.detach();
+    return pdPASS;
+  }
+  catch (...)
+  {
+    return pdFAIL;
+  }
+}
+
+using SemaphoreHandle_t = std::mutex*;
+constexpr unsigned long portMAX_DELAY = (unsigned long)-1;
+
+inline SemaphoreHandle_t xSemaphoreCreateMutex()
+{
+  return new std::mutex();
+}
+
+inline void vSemaphoreDelete(SemaphoreHandle_t handle)
+{
+  delete handle;
+}
+
+inline bool xSemaphoreTake(SemaphoreHandle_t handle, unsigned long timeout_ms)
+{
+  using namespace std::chrono;
+
+  if (timeout_ms == portMAX_DELAY)
+  {
+    handle->lock();
+    return true;
+  }
+
+  auto start = steady_clock::now();
+  while (!handle->try_lock())
+  {
+    if (duration_cast<milliseconds>(steady_clock::now() - start).count() >= timeout_ms)
+      return false;
+    std::this_thread::sleep_for(milliseconds(1));
+  }
+  return true;
+}
+
+inline void xSemaphoreGive(SemaphoreHandle_t handle)
+{
+  handle->unlock();
+}
+
 inline TickType_t pdMS_TO_TICKS(unsigned long ms)
 {
   return static_cast<TickType_t>(ms);
@@ -41,6 +129,17 @@ using TaskHandle_t = TaskHandleImpl;
 inline TaskHandle_t xTaskGetCurrentTaskHandle()
 {
   return TaskHandle_t(std::this_thread::get_id());
+}
+
+inline void vTaskDelete(TaskHandle_t task_to_delete)
+{
+  if (task_to_delete != nullptr && task_to_delete != xTaskGetCurrentTaskHandle())
+  {
+    log_e("Підтримується лише самовидалення (nullptr або handle поточного таска). \nвидалення \"чужого\" таска не має ефекту");
+    return;
+  }
+
+  throw TaskDeletedException();
 }
 
 // ---- черга ----

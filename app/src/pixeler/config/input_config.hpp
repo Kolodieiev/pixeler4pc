@@ -29,7 +29,7 @@ namespace pixeler
       {BTN_DOWN, Button(BTN_DOWN, false)},   \
   }
 
-#define PRESS_DURATION_TIME_MS 1000UL  // Час(мс), після спливання якого кнопка вважається утримуваною.
+#define PRESS_DURATION_TIME_MS 700UL  // Час(мс), після спливання якого кнопка вважається утримуваною.
 
 #define PRESS_LOCK_TIME_MS 700UL  // Час(мс) блокування кнопки після спрацювання тригеру PRESS
 #define CLICK_LOCK_TIME_MS 250UL  // Час(мс) блокування кнопки після спрацювання тригеру CLICK

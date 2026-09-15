@@ -6,6 +6,8 @@
 
 namespace pixeler
 {
+  static const uint8_t UI_TASK_QUEUE_DEPTH{20};
+
   void IContext::tick()
   {
 #ifdef GRAPHICS_ENABLED
@@ -25,7 +27,6 @@ namespace pixeler
 #ifdef GRAPHICS_ENABLED
         if (_gui_enabled)
         {
-          xSemaphoreTake(_layout_mutex, portMAX_DELAY);
           _layout->onDraw();
 
           if (_notification)
@@ -40,7 +41,6 @@ namespace pixeler
             else
               _toast_label->drawForced();
           }
-          xSemaphoreGive(_layout_mutex);
 
 #ifndef DIRECT_DRAWING
           _display.__flush();
@@ -85,10 +85,15 @@ namespace pixeler
   IContext::~IContext() {}
 #else  // GRAPHICS_ENABLED
 
-  IContext::IContext() : _layout_mutex{xSemaphoreCreateMutex()},
-                         _task_queue{xQueueCreate(UI_TASK_QUEUE_DEPTH, sizeof(std::function<void()>*))},
+  IContext::IContext() : _task_queue{xQueueCreate(UI_TASK_QUEUE_DEPTH, sizeof(std::function<void()>*))},
                          _layout{new EmptyLayout(1)}
   {
+    if (!_task_queue)
+    {
+      log_e("Не вдалося створити _task_queue");
+      esp_restart();
+    }
+
     _owner_task_handle = xTaskGetCurrentTaskHandle();
     _layout->setBackColor(COLOR_YELLOW);
     _layout->setWidth(UI_WIDTH);
@@ -107,13 +112,11 @@ namespace pixeler
 
     delete _layout;
     delete _toast_label;
-
-    vSemaphoreDelete(_layout_mutex);
   }
 
   bool IContext::post(std::function<void()> task, unsigned long timeout_ms)
   {
-    if (!_is_alive) [[unlikely]]
+    if (!_is_alive)
     {
       log_e("Спроба виконати post в мертвому контексті");
       esp_restart();
@@ -165,12 +168,8 @@ namespace pixeler
     if (_layout == layout)
       return;
 
-    xSemaphoreTake(_layout_mutex, portMAX_DELAY);
-
     delete _layout;
     _layout = layout;
-
-    xSemaphoreGive(_layout_mutex);
   }
 
   IWidgetContainer* IContext::getLayout() const
@@ -189,13 +188,10 @@ namespace pixeler
     _toast_birthtime = millis();
     _toast_lifetime = duration;
 
-    xSemaphoreTake(_layout_mutex, portMAX_DELAY);
-
     if (_toast_label)
     {
       _toast_label->setText(msg_txt);
       _toast_label->setAutoscroll(true);
-      xSemaphoreGive(_layout_mutex);
       return;
     }
 
@@ -218,8 +214,6 @@ namespace pixeler
       _toast_label->setWidth(120);
 
     _toast_label->setPos(getCenterX(_toast_label), UI_HEIGHT - _toast_label->getHeight() - 15);
-
-    xSemaphoreGive(_layout_mutex);
   }
 
   uint16_t IContext::getCenterX(const IWidget* widget) const
@@ -240,20 +234,8 @@ namespace pixeler
   void IContext::hideNotification()
   {
     _notification = nullptr;
-    xSemaphoreTake(_layout_mutex, portMAX_DELAY);
     if (_layout)
       _layout->drawForced();
-    xSemaphoreGive(_layout_mutex);
-  }
-
-  bool IContext::takeLayoutMutex() const
-  {
-    return xSemaphoreTake(_layout_mutex, portMAX_DELAY);
-  }
-
-  void IContext::giveLayoutMutex() const
-  {
-    xSemaphoreGive(_layout_mutex);
   }
 
   void IContext::removeToast()

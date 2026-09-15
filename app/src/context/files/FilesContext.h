@@ -67,6 +67,7 @@ private:
     MODE_CONTEXT_MENU,
     MODE_NEW_DIR_DIALOG,
     MODE_RENAME_DIALOG,
+    MODE_SD_UNCONN,
     MODE_CANCELING,
   };
   //
@@ -76,6 +77,7 @@ private:
   void showCopyingTmpl();
   void showRemovingTmpl();
   void showCancelingTmpl();
+  void showSDErrTmpl();
   //
   void showContextMenu();
   void hideContextMenu();
@@ -104,8 +106,12 @@ private:
 
   void makeMenuFilesItems(std::vector<MenuItem*>& items, uint16_t file_pos, uint8_t size);
   //
-  void taskDoneHandler(bool result);
-  static void taskDone(bool result, void* arg);
+
+  void finishTaskState(bool result);
+  static void taskDoneHandler(bool result, void* arg);
+  //
+  void updCopyProgress(uint8_t progress);
+  static void copyProgressHandler(uint8_t progress, void* arg);
   //
   void handleNextItemsLoad(std::vector<MenuItem*>& items, uint8_t size, uint16_t cur_id);
   static void onNextItemsLoad(std::vector<MenuItem*>& items, uint8_t size, uint16_t cur_id, void* arg);
@@ -132,9 +138,10 @@ private:
   Notification* _notification{nullptr};
   Image* _lua_img{nullptr};
   Label* _msg_lbl{nullptr};
+  Image* _qr_img{nullptr};
   FixedMenu* _context_menu{nullptr};
   ScrollBar* _scrollbar{nullptr};
-  ProgressBar* _task_progress{nullptr};
+  ProgressBar* _task_progress_bar{nullptr};
   DynamicMenu* _files_list{nullptr};
   Image* _dir_img{nullptr};
   Keyboard* _keyboard{nullptr};
@@ -150,7 +157,4 @@ private:
   bool _has_moving_file{false};
   bool _has_copying_file{false};
   bool _dialog_success_res{false};
-  bool _task_runnning{false};
-  bool _task_done{false};
-  bool _task_done_result{false};
 };
