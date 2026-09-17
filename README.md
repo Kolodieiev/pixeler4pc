@@ -1,18 +1,19 @@
-Завдяки цьому порту досягається двостороння сумісніть коду для GUI між мікроконтролером та Linux-ПК, що допоможе значно пришвидшити навчання, розробку та тестування GUI з використанням Pixeler-фреймворку.
+Завдяки цьому порту досягається двостороння сумісніть коду для GUI між мікроконтролером та Linux-ПК, що допоможе значно пришвидшити навчання, розробку ігор та тестування GUI з використанням Pixeler-фреймворку.
+
+Документацію Pixeler можна знайти в репозиторію фреймворку.
 
 В якості рендера вікна використовується SFML версії 3.0.2. 
 Для збірки проєкту використовуйте компілятор, що рекомендується розробником SFML за цим посиланням: [Download SFML 3.0.2](https://www.sfml-dev.org/download/sfml/3.0.2/).
 
-Встановлення повного списку залежностей для SFML:
+Встановлення SFML 3.0.2 локально та налаштування збірки:
 ```bash
-sudo apt install libxrandr-dev libxcursor-dev libxi-dev libx11-dev libxinerama-dev libgl1-mesa-dev libudev-dev libflac-dev libogg-dev libvorbis-dev libopenal-dev libmbedtls-dev libssh2-1-dev libfreetype-dev libharfbuzz-dev
-```
-Встановлення SFML 3.0.2 локально:
-```bash
+# 0. Встановлення залежностей
 sudo apt update && sudo apt install -y \
     cmake build-essential \
     libfreetype6-dev libx11-dev libxrandr-dev libudev-dev \
-    libgl1-mesa-dev libflac-dev libvorbis-dev libopenal-dev
+    libgl1-mesa-dev libflac-dev libvorbis-dev libopenal-dev \
+    libxcursor-dev libxi-dev libxinerama-dev libogg-dev \
+    libmbedtls-dev libssh2-1-dev libfreetype-dev libharfbuzz-dev
 
 # 1. Завантаження вихідного коду
 git clone -b 3.0.2 https://github.com/SFML/SFML.git sfml-3.0.2
