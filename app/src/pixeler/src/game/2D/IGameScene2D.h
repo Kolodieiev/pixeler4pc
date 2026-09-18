@@ -41,7 +41,7 @@ namespace pixeler
     IGameScene2D& operator=(const IGameScene2D& rhs) = delete;
 
     /**
-     * @brief Додає задачу до черги, яка буде виконана
+     * @brief Додає функцію до черги, яку буде опрацьовано
      * в потоці сцени під час наступного виклику update().
      * Може викликатись з будь-якої FreeRTOS-задачі.
      *
@@ -49,7 +49,7 @@ namespace pixeler
      * яка повинна бути виконана в потоці UI
      * @param timeout_ms Максимальний час очікування(мілісекунд) вільного місця в черзі,
      * за замовчуванням - неблокуючий виклик
-     * @return true - якщо задачу успішно додано в чергу
+     * @return true - якщо функцію успішно додано в чергу.
      * @return false - якщо черга переповнена і час очікування вичерпано
      */
     bool post(std::function<void()> task, unsigned long timeout_ms = 0);
