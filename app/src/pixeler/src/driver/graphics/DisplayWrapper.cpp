@@ -63,7 +63,7 @@ namespace pixeler
 #endif  // #ifdef GRAPHICS_ENABLED
   }
 
-  void DisplayWrapper::setPPAState(bool state)
+  void DisplayWrapper::switchPPA(bool state)
   {
   }
 
@@ -288,7 +288,7 @@ namespace pixeler
 
     bool old_ppa_state = _canvas->isPPAEnabled();
     if (side_len * side_len > PPA_IMG_SIZE_TRIGG)
-      _canvas->setPPAState(true);
+      _canvas->switchPPA(true);
 
     switch (angle)
     {
@@ -302,7 +302,7 @@ namespace pixeler
         _canvas->drawBitmapToFramebufferRotate3(square_img, side_len, side_len, display_buff, x, y, canvas_w, canvas_h);
         break;
     }
-    _canvas->setPPAState(old_ppa_state);
+    _canvas->switchPPA(old_ppa_state);
     free(square_img);
 #endif  // #ifdef DIRECT_DRAWING
 #endif  // #ifdef GRAPHICS_ENABLED

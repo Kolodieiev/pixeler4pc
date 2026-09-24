@@ -29,6 +29,11 @@ namespace pixeler
     return _view_y;
   }
 
+  void TerrainManager2D::setBackColorFill(bool state)
+  {
+    _has_back_color = state;
+  }
+
   void TerrainManager2D::freeMem()
   {
     if (!_terrain)
@@ -83,20 +88,22 @@ namespace pixeler
   {
     if (_back_img)
     {
+      if (_has_back_color)
+      {
 #if CONFIG_IDF_TARGET_ESP32P4
-      if ((_back_img_w != VIEW_W || _back_img_h != VIEW_H) && VIEW_W * VIEW_H > PPA_FILL_SIZE_TRIGG)
-      {
-        bool old_state = _display.isPPAEnabled();
+        if (VIEW_W * VIEW_H > PPA_FILL_SIZE_TRIGG)
+        {
+          bool old_state = _display.isPPAEnabled();
 
-        _display.setPPAState(true);
-        _display.fillRect(0, 0, VIEW_W, VIEW_H, _back_color);
-        _display.setPPAState(old_state);
-      }
-      else
-#endif  // #if CONFIG_IDF_TARGET_ESP32P4
-      {
-        if (_back_img_w != VIEW_W || _back_img_h != VIEW_H)
+          _display.switchPPA(true);
           _display.fillRect(0, 0, VIEW_W, VIEW_H, _back_color);
+          _display.switchPPA(old_state);
+        }
+        else
+#endif  // #if CONFIG_IDF_TARGET_ESP32P4
+        {
+          _display.fillRect(0, 0, VIEW_W, VIEW_H, _back_color);
+        }
       }
 
 #if CONFIG_IDF_TARGET_ESP32P4
@@ -104,9 +111,9 @@ namespace pixeler
       {
         bool old_state = _display.isPPAEnabled();
 
-        _display.setPPAState(true);
+        _display.switchPPA(true);
         _display.drawBitmap(_back_img_x_off, _back_img_y_off, _back_img, _back_img_w, _back_img_h);
-        _display.setPPAState(old_state);
+        _display.switchPPA(old_state);
       }
       else
 #endif  // #if CONFIG_IDF_TARGET_ESP32P4
@@ -150,9 +157,9 @@ namespace pixeler
               {
                 bool old_state = _display.isPPAEnabled();
 
-                _display.setPPAState(true);
+                _display.switchPPA(true);
                 _display.drawBitmap(temp_x_draw_pos, y_draw_pos, _terrain[h][w]->_img_data, _tile_side_len, _tile_side_len);
-                _display.setPPAState(old_state);
+                _display.switchPPA(old_state);
               }
               else
 #endif  // #if CONFIG_IDF_TARGET_ESP32P4

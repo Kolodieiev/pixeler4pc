@@ -1215,7 +1215,7 @@ void Arduino_Canvas::fillEllipse(int16_t x, int16_t y, int16_t rx, int16_t ry, u
   writeFillEllipseHelper(x, y, rx, ry, 3, 0, color);
 }
 
-void Arduino_Canvas::setPPAState(bool state)
+void Arduino_Canvas::switchPPA(bool state)
 {
 }
 
