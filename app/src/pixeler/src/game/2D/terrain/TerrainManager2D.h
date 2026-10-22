@@ -163,6 +163,12 @@ namespace pixeler
      */
     void setBackColorFill(bool state);
 
+
+
+  // TODO додати малювання руху зображень, наприклад для хмарок
+  // TODO додати повільний рух фону, типу гори
+  // TODO додати паралакс ефект
+
   private:
     void freeMem();
     void freeTilesDescriptionData();
