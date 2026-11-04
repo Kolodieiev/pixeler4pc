@@ -84,7 +84,7 @@ namespace pixeler
     return rounded_div;
   }
 
-  void TerrainManager2D::onDraw() const
+  void TerrainManager2D::onDraw()
   {
     if (_back_img)
     {

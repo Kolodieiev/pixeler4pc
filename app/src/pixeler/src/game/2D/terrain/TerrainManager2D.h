@@ -62,7 +62,7 @@ namespace pixeler
      * Інакше малює частину ігрового рівня найближчу до цих координат.
      *
      */
-    void onDraw() const;
+    void onDraw();
 
     /**
      * @brief Встановлює вказівник на фонове зображення ігрового рівня.
@@ -162,12 +162,6 @@ namespace pixeler
      * @param state
      */
     void setBackColorFill(bool state);
-
-
-
-  // TODO додати малювання руху зображень, наприклад для хмарок
-  // TODO додати повільний рух фону, типу гори
-  // TODO додати паралакс ефект
 
   private:
     void freeMem();
