@@ -287,7 +287,7 @@ namespace pixeler
     }
 
 #if CONFIG_IDF_TARGET_ESP32P4
-    bool old_ppa_state = _canvas.isPPAEnabled();
+    const bool old_ppa_state = _canvas.isPPAEnabled();
     _canvas.setPPA(side_len * side_len > PPA_IMG_SIZE_TRIGG);
 #endif  // #if CONFIG_IDF_TARGET_ESP32P4
 
@@ -305,7 +305,7 @@ namespace pixeler
     }
 
 #if CONFIG_IDF_TARGET_ESP32P4
-    _display.setPPA(old_state);
+    _display.setPPA(old_ppa_state);
 #endif  // #if CONFIG_IDF_TARGET_ESP32P4
 
     free(square_img);
