@@ -20,12 +20,6 @@ namespace pixeler
   {
   }
 
-  void Input::reset()
-  {
-    for (auto&& btn : _buttons)
-      btn.second.reset();
-  }
-
   void Input::enableBtn(BtnID btn_id)
   {
     try
