@@ -286,9 +286,10 @@ namespace pixeler
       memcpy(dst_row_ptr, src_row_ptr, side_len * sizeof(uint16_t));
     }
 
-    bool old_ppa_state = _canvas->isPPAEnabled();
-    if (side_len * side_len > PPA_IMG_SIZE_TRIGG)
-      _canvas->setPPA(true);
+#if CONFIG_IDF_TARGET_ESP32P4
+    bool old_ppa_state = _canvas.isPPAEnabled();
+    _canvas.setPPA(side_len * side_len > PPA_IMG_SIZE_TRIGG);
+#endif  // #if CONFIG_IDF_TARGET_ESP32P4
 
     switch (angle)
     {
@@ -302,7 +303,11 @@ namespace pixeler
         _canvas->drawBitmapToFramebufferRotate3(square_img, side_len, side_len, display_buff, x, y, canvas_w, canvas_h);
         break;
     }
-    _canvas->setPPA(old_ppa_state);
+
+#if CONFIG_IDF_TARGET_ESP32P4
+    _display.setPPA(old_state);
+#endif  // #if CONFIG_IDF_TARGET_ESP32P4
+
     free(square_img);
 #endif  // #ifdef DIRECT_DRAWING
 #endif  // #ifdef GRAPHICS_ENABLED
@@ -412,7 +417,7 @@ namespace pixeler
       uint16_t fps_x_pos = _canvas->width() / 2 - w;
       _canvas->fillRect(fps_x_pos - 3, 0, w + 6, h + 9, COLOR_BLACK);
       _canvas->setCursor(fps_x_pos, h + 3);
-      _canvas->print(fps_str.c_str()); 
+      _canvas->print(fps_str.c_str());
 #endif  // SHOW_FPS
 
       xSemaphoreTake(_sync_mutex, portMAX_DELAY);
