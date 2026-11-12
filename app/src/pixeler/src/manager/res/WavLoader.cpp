@@ -16,7 +16,7 @@ namespace pixeler
 
     if (!validateHeader(header))
     {
-      log_e("Помилка валідації файла: %s", path);
+      log_e("Помилка валідації файлу: %s", path);
       return nullptr;
     }
 
@@ -33,7 +33,7 @@ namespace pixeler
       return nullptr;
     }
 
-    size_t bytes_read = _fs.readFile(path, data, header.data_size, sizeof(WavHeader));
+    const size_t bytes_read = _fs.readFile(path, data, header.data_size, sizeof(WavHeader));
 
     if (bytes_read != header.data_size)
     {

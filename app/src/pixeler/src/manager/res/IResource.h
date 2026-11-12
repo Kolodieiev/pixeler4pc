@@ -1,3 +1,7 @@
+/**
+ * @file IResource.h
+ * @brief Базовий абстрактний клас для всіх типів завантажуваних ресурсів.
+ */
 #pragma once
 #pragma GCC optimize("O3")
 
@@ -16,7 +20,15 @@ namespace pixeler
       TYPE_AUDIO
     };
 
-    IResource(const String& name, void* data, ResType type);
+    /**
+     * @brief Конструктор базового ресурсу.
+     *
+     * @param name Ім'я ресурсу.
+     * @param data Вказівник на виділений у купі буфер із сирими даними ресурсу.
+     * @param data_size Розмір даних ресурсу.
+     * @param type Тип ресурсу (TYPE_IMAGE або TYPE_AUDIO).
+     */
+    IResource(const String& name, void* data, size_t data_size, ResType type);
     virtual ~IResource() = 0;
 
     /**
@@ -29,9 +41,8 @@ namespace pixeler
     /**
      * @brief Перевіряє, чи має ресурс вказане ім'я.
      *
-     * @param name Рядок, з яким буде порівнюватись ім'я ресурсу.
-     * @return true - Якщо імена співпадають.
-     * @return false - Інакше.
+     * @param name Рядок, з яким буде порівнюватись ім'я ресурсу
+     * @return true - якщо імена збігаються. false - інакше
      */
     bool hasName(const char* name) const;
 
@@ -41,6 +52,13 @@ namespace pixeler
      * @return const void*
      */
     const void* getData() const;
+
+    /**
+     * @brief Повертає розмір даних ресурса.
+     *
+     * @return const size_t
+     */
+    const size_t getDataSize() const;
 
     /**
      * @brief Повертає тип ресурса.
@@ -53,12 +71,11 @@ namespace pixeler
     IResource& operator=(const IResource&) = delete;
     IResource(IResource&& other) noexcept = delete;
 
-  protected:
+  private:
     char* _name{nullptr};
     void* _data{nullptr};
+    const size_t _DATA_SIZE{0};
     const uint32_t _NAME_LEN;
     const ResType _RES_TYPE;
-
-  private:
   };
 }  // namespace pixeler
