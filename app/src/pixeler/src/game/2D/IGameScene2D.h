@@ -12,13 +12,13 @@
 #include "manager/ResManager.h"
 
 //
-#include "defines.h"
-
 #include <functional>
+#include <new>
 
 #include "../ui/IGameMenu.h"
 #include "../ui/IGameUI.h"
 #include "IGameObject2D.h"
+#include "defines.h"
 #include "sprite/SpriteTemplate.h"
 #include "terrain/Terrain2D.h"
 #include "terrain/TerrainLoader2D.h"
@@ -75,34 +75,34 @@ namespace pixeler
      * @brief Повертає ідентифікатор ігрового рівня, який повинен бути запущений наступним.
      * Зазвичай, викликається керуючим контекстом.
      *
-     * @return uint8_t
+     * @return uint16_t
      */
-    uint8_t getNextSceneID() const;
+    uint16_t getNextSceneID() const;
 
     /**
      * @brief Повертає список усіх об'єктів на сцені з заданими ідентифікаторами класів.
      *
-     * @param type_ID Ідентифікатори типу.
+     * @param type_IDs Ідентифікатори типу.
      * @param exclude Вказівник на об'єкт, який буде пропущено під час вибірки.
      * @return std::vector<IGameObject*>
      */
-    std::vector<IGameObject2D*> getObjByType(std::span<const uint16_t> type_ID, const IGameObject2D* exclude = nullptr);
+    std::vector<IGameObject2D*> getObjByType(std::span<const uint16_t> type_IDs, const IGameObject2D* exclude = nullptr);
 
     /**
      * @brief Повертає список усіх об'єктів, що знаходяться в указаній точці і мають відповідний ідентифікатор класу.
      *
-     * @param type_ID Ідентифікатори типу.
+     * @param type_IDs Ідентифікатори типу.
      * @param x Координата точки.
      * @param y Координата точки.
      * @param exclude Вказівник на об'єкт, який буде пропущено під час вибірки.
      * @return std::vector<IGameObject*>
      */
-    std::vector<IGameObject2D*> getObjByTypeAt(std::span<const uint16_t> type_ID, uint16_t x, uint16_t y, const IGameObject2D* exclude = nullptr);
+    std::vector<IGameObject2D*> getObjByTypeAt(std::span<const uint16_t> type_IDs, uint16_t x, uint16_t y, const IGameObject2D* exclude = nullptr);
 
     /**
      * @brief Повертає список усіх об'єктів, що пересікаються з заданим прямокутним і мають відповідний ідентифікатор класу.
      *
-     * @param type_ID Ідентифікатори типу.
+     * @param type_IDs Ідентифікатори типу.
      * @param x Координата верхнього лівого кута прямокутника.
      * @param y Координата верхнього лівого кута прямокутника.
      * @param width Ширина прямокутника.
@@ -110,7 +110,7 @@ namespace pixeler
      * @param exclude Вказівник на об'єкт, який буде пропущено під час вибірки.
      * @return std::vector<IGameObject*>
      */
-    std::vector<IGameObject2D*> getObjByTypeInRect(std::span<const uint16_t> type_ID,
+    std::vector<IGameObject2D*> getObjByTypeInRect(std::span<const uint16_t> type_IDs,
                                                    uint16_t x,
                                                    uint16_t y,
                                                    uint16_t width,
@@ -120,14 +120,14 @@ namespace pixeler
     /**
      * @brief Повертає список усіх об'єктів, що пересікаються з заданим колом і мають відповідний ідентифікатор класу.
      *
-     * @param type_ID Ідентифікатори типу.
+     * @param type_IDs Ідентифікатори типу.
      * @param x Координата центральної точки кола.
      * @param y Координата центральної точки кола.
      * @param radius Радіус кола, що обмежує вибірку.
      * @param exclude Вказівник на об'єкт, який буде пропущено під час вибірки.
      * @return std::vector<IGameObject*>
      */
-    std::vector<IGameObject2D*> getObjByTypeInCircle(std::span<const uint16_t> type_ID, uint16_t x, uint16_t y, uint16_t radius, const IGameObject2D* exclude = nullptr);
+    std::vector<IGameObject2D*> getObjByTypeInCircle(std::span<const uint16_t> type_IDs, uint16_t x, uint16_t y, uint16_t radius, const IGameObject2D* exclude = nullptr);
 
     /**
      * @brief Перевіряє чи є у вказаних координатах будь-який об'єкт з твердим тілом.
@@ -167,34 +167,33 @@ namespace pixeler
     template <typename T>
     T* createObject()
     {
-      try
+      T* obj = new (std::nothrow) T(++_obj_id_counter, *this, _sfx_player);
+      if (!obj)
       {
-        return new T(++_obj_id_counter, *this, _sfx_player);
-      }
-      catch (const std::bad_alloc& e)
-      {
-        log_e("%s", e.what());
+        log_e("Не вдалося виділити пам'ять для ігрового об'єкта");
         esp_restart();
       }
+
+      return obj;
     }
 
     /**
      * @brief Реєструє шаблон спрайта для вказаного типу ігрового об'єкта.
      * Викликається один раз при завантаженні рівня/сцени, до появи ігрових об'єктів цього типу.
      *
-     * @param type_ID Ідентифікатор типу об'єкта
+     * @param type_IDs Ідентифікатор типу об'єкта
      * @param tmpl Заповнений шаблон спрайта
      * @return Адреса зареєстрованого шаблону. Викликає скидання МК, якщо шаблон для вказаного типу було зареєстровано раніше
      */
-    const SpriteTemplate* registerSpriteTemplate(uint16_t type_ID, SpriteTemplate tmpl);
+    const SpriteTemplate* registerSpriteTemplate(uint16_t type_IDs, SpriteTemplate&& tmpl);
 
     /**
      * @brief Повертає шаблон спрайта за ідентифікатором типу об'єкта.
      *
-     * @param type_ID Ідентифікатор типу об'єкта
+     * @param type_IDs Ідентифікатор типу об'єкта
      * @return Адреса шаблону. Викликає скидання МК, якщо шаблон не було зареєстровано для вказаного типу
      */
-    const SpriteTemplate* getSpriteTemplate(uint16_t type_ID) const;
+    const SpriteTemplate* getSpriteTemplate(uint16_t type_IDs) const;
 
   protected:
     /**
@@ -238,6 +237,7 @@ namespace pixeler
 
   private:
     std::vector<IGameObject2D*> _game_objs;  // Список усіх ігрових об'єктів на сцені, які повинні взаємодіяти один з одним
+    std::vector<IGameObject2D*> _view_objs;  // Кешований буфер видимих об'єктів для рендеру кадру
 
   protected:
     DataStream& _stored_objs;           // Контейнер для перенесення відбитків об'єктів до наступної сцени
@@ -249,10 +249,10 @@ namespace pixeler
     TaskHandle_t _owner_task_handle{nullptr};
     QueueHandle_t _task_queue{nullptr};
 
-    static uint32_t _obj_id_counter;  // Глобальний лічильник ідентифікаторів об'єктів.
+    uint32_t _obj_id_counter{0};  // Глобальний лічильник ідентифікаторів об'єктів
 
   protected:
-    uint8_t _next_scene_ID{0};  // Ідентифікатор наступної сцени
+    uint16_t _next_scene_ID{0};  // Ідентифікатор наступної сцени
 
     bool _is_paused{false};    // Прапор встановлення сцени на паузу
     bool _is_released{false};  // Прапор, який вказує, що поточна сцена готова звільнити своє місце для наступної сцени

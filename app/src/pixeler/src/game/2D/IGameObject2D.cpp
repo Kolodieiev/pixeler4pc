@@ -7,6 +7,8 @@
 
 namespace pixeler
 {
+  static constexpr float RAD_TO_DEG_F{57.2957795f};
+
   IGameObject2D::IGameObject2D(uint32_t id, uint16_t type_id, IGameScene2D& game_scene, SfxPlayer& audio)
       : _scene{game_scene},
         _sfx_player{audio},
@@ -32,29 +34,17 @@ namespace pixeler
 
   void IGameObject2D::__onDraw()
   {
+    const uint16_t* frame = nullptr;
+
     if (_sprite.has_animation)
     {
-      if (!_sprite.animation)
+      if (!_sprite.animation || _sprite.animation->empty())
       {
-        log_e("Не встановлено вказівник на вектор анімації");
+        log_e("Не встановлено або порожній вектор анімації");
         esp_restart();
       }
 
-      if (_sprite.angle == 0)
-        _display.drawBitmapTransp(_x_local,
-                                  _y_local,
-                                  _sprite.animation->at(_sprite.anim_pos),
-                                  _geometry->width,
-                                  _geometry->height);
-      else
-        _display.drawBitmapRotated(_x_local,
-                                   _y_local,
-                                   _sprite.animation->at(_sprite.anim_pos),
-                                   _geometry->width,
-                                   _geometry->height,
-                                   _geometry->x_pivot,
-                                   _geometry->y_pivot,
-                                   _sprite.angle);
+      frame = (*_sprite.animation)[_sprite.anim_pos];
 
       if (_sprite.frames_counter != _sprite.frames_between_anim)
       {
@@ -77,22 +67,28 @@ namespace pixeler
         esp_restart();
       }
 
-      if (_sprite.angle == 0)
-        _display.drawBitmapTransp(_x_local,
-                                  _y_local,
-                                  _sprite.image,
-                                  _geometry->width,
-                                  _geometry->height);
-      else
-        _display.drawBitmapRotated(_x_local,
-                                   _y_local,
-                                   _sprite.image,
-                                   _geometry->width,
-                                   _geometry->height,
-                                   _geometry->x_pivot,
-                                   _geometry->y_pivot,
-                                   _sprite.angle);
+      frame = _sprite.image;
     }
+    else
+    {
+      return;
+    }
+
+    if (_sprite.angle == 0)
+      _display.drawBitmapTransp(_x_local,
+                                _y_local,
+                                frame,
+                                _geometry->width,
+                                _geometry->height);
+    else
+      _display.drawBitmapRotated(_x_local,
+                                 _y_local,
+                                 frame,
+                                 _geometry->width,
+                                 _geometry->height,
+                                 _geometry->x_pivot,
+                                 _geometry->y_pivot,
+                                 _sprite.angle);
   }
 
   void IGameObject2D::setPos(uint16_t x_pos, uint16_t y_pos)
@@ -111,77 +107,78 @@ namespace pixeler
     return _y_global;
   }
 
-  uint16_t IGameObject2D::calcAngleToPoint(uint16_t x, uint16_t y)
+  uint16_t IGameObject2D::calcAngleToPoint(uint16_t x, uint16_t y) const
   {
-    int16_t azimut = atan2(y - _y_global - _geometry->y_pivot, x - _x_global - _geometry->x_pivot) * 180 / PI;
+    const float dy = static_cast<float>(static_cast<int32_t>(y) - _y_global - _geometry->y_pivot);
+    const float dx = static_cast<float>(static_cast<int32_t>(x) - _x_global - _geometry->x_pivot);
+
+    int16_t azimut = static_cast<int16_t>(atan2f(dy, dx) * RAD_TO_DEG_F);
     if (azimut < 0)
       azimut += 360;
+
     return azimut + 90;
   }
 
-  uint16_t IGameObject2D::calcDistToPoint(uint16_t x, uint16_t y)
+  uint16_t IGameObject2D::calcDistToPoint(uint16_t x, uint16_t y) const
   {
-    uint16_t a = abs(_x_global + _geometry->x_pivot - x);
-    uint16_t b = abs(_y_global + _geometry->y_pivot - y);
+    const int32_t dx = static_cast<int32_t>(_x_global) + _geometry->x_pivot - x;
+    const int32_t dy = static_cast<int32_t>(_y_global) + _geometry->y_pivot - y;
 
-    return sqrt((a * a) + (b * b));
+    return static_cast<uint16_t>(sqrtf(static_cast<float>(dx * dx + dy * dy)));
   }
 
   void IGameObject2D::stepToPoint(uint16_t x_to, uint16_t y_to, uint16_t step_w)
   {
-    if (_x_global == x_to && _y_global == y_to)
+    if (step_w == 0 || (_x_global == x_to && _y_global == y_to))
       return;
 
-    int32_t dx = static_cast<int32_t>(x_to) - _x_global;
-    int32_t dy = static_cast<int32_t>(y_to) - _y_global;
+    const int32_t dx = static_cast<int32_t>(x_to) - _x_global;
+    const int32_t dy = static_cast<int32_t>(y_to) - _y_global;
+    const int32_t abs_dx = std::abs(dx);
+    const int32_t abs_dy = std::abs(dy);
 
     if (dx == 0)
-    {  // Рух строго по вертикалі
-      if (abs(dy) <= step_w)
+    {
+      if (abs_dy <= step_w)
         _y_global = y_to;
       else
-        _y_global += (dy > 0) ? step_w : -step_w;
+        _y_global += (dy > 0) ? step_w : -static_cast<int32_t>(step_w);
       return;
     }
 
     if (dy == 0)
-    {  // Рух строго по горизонталі
-      if (abs(dx) <= step_w)
+    {
+      if (abs_dx <= step_w)
         _x_global = x_to;
       else
-        _x_global += (dx > 0) ? step_w : -step_w;
+        _x_global += (dx > 0) ? step_w : -static_cast<int32_t>(step_w);
       return;
     }
 
-    // Визначаємо, по якій осі відстань більша, щоб зробити її базовою
-    if (abs(dx) >= abs(dy))
+    if (abs_dx >= abs_dy)
     {
-      // Рух переважно по X
-      int16_t x_prev = _x_global;
-      if (abs(dx) <= step_w)
+      if (abs_dx <= step_w)
       {
         _x_global = x_to;
         _y_global = y_to;
       }
       else
       {
-        _x_global += (dx > 0) ? step_w : -step_w;
-        // Множимо перед діленням для збереження точності
-        _y_global += static_cast<int32_t>(_x_global - x_prev) * dy / dx;
+        _x_global += (dx > 0) ? step_w : -static_cast<int32_t>(step_w);
+        _y_global += (static_cast<int32_t>(step_w) * dy) / abs_dx;
       }
     }
     else
     {
-      int16_t y_prev = _y_global;
-      if (abs(dy) <= step_w)
+      if (abs_dy <= step_w)
       {
         _y_global = y_to;
         _x_global = x_to;
       }
       else
       {
-        _y_global += (dy > 0) ? step_w : -step_w;
-        _x_global += static_cast<int32_t>(_y_global - y_prev) * dx / dy;
+        _y_global += (dy > 0) ? step_w : -static_cast<int32_t>(step_w);
+        _x_global += (static_cast<int32_t>(step_w) * dx) / abs_dy;
       }
     }
   }
@@ -244,8 +241,10 @@ namespace pixeler
     if (rigid_only && !_physics.is_rigid)
       return false;
 
-    // 1. Визначаємо межі прямокутника (AABB)
-    int16_t rect_x1, rect_y1, rect_x2, rect_y2;
+    int32_t rect_x1;
+    int32_t rect_y1;
+    int32_t rect_x2;
+    int32_t rect_y2;
 
     if (rigid_only)
     {
@@ -262,16 +261,19 @@ namespace pixeler
       rect_y2 = _y_global + _geometry->height;
     }
 
-    // 2. Знаходимо найближчу точку на прямокутнику до центру кола
-    int16_t closest_x = (x_mid < rect_x1) ? rect_x1 : (x_mid > rect_x2 ? rect_x2 : x_mid);
-    int16_t closest_y = (y_mid < rect_y1) ? rect_y1 : (y_mid > rect_y2 ? rect_y2 : y_mid);
+    const int32_t cx = x_mid;
+    const int32_t cy = y_mid;
 
-    // 3. Рахуємо відстань від найближчої точки до центру кола
-    int32_t dx = static_cast<int32_t>(x_mid) - closest_x;
-    int32_t dy = static_cast<int32_t>(y_mid) - closest_y;
+    const uint32_t dx = (cx < rect_x1) ? (rect_x1 - cx) : (cx > rect_x2 ? (cx - rect_x2) : 0);
+    if (dx > radius)
+      return false;
 
-    // 4. Перевірка: чи відстань менша за радіус (використовуємо квадрат відстані)
-    return (dx * dx + dy * dy) <= (static_cast<int32_t>(radius) * radius);
+    const uint32_t dy = (cy < rect_y1) ? (rect_y1 - cy) : (cy > rect_y2 ? (cy - rect_y2) : 0);
+    if (dy > radius)
+      return false;
+
+    const uint32_t r = radius;
+    return (dx * dx + dy * dy) <= (r * r);
   }
 
   bool IGameObject2D::hasIntersectWithRect(uint16_t x_start, uint16_t y_start, uint16_t rect_width, uint16_t rect_height, bool rigid_only) const
