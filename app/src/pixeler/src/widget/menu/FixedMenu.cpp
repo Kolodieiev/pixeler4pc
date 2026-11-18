@@ -15,24 +15,18 @@ namespace pixeler
     if (_first_item_index > 0)
     {
       if (_first_item_index >= capacity)  // Перевіряємо, чи ми можемо відняти цілу сторінку
-      {
         _first_item_index -= capacity;
-      }
       else
-      {
         _first_item_index = 0;  // Якщо до початку менше, ніж ціла сторінка, стаємо в нуль
-      }
     }
     else if (_is_loop_enbl)
     {
       uint16_t total = _widgets.size();  // Переходимо до останньої можливої сторінки
 
       if (total <= capacity)
-      {
         return false;
-      }
 
-      _first_item_index = (total - 1 / capacity) * capacity;  // Розраховуємо індекс для відображення залишку елементів
+      _first_item_index = ((total - 1) / capacity) * capacity;  // Розраховуємо індекс для відображення залишку елементів
     }
     else
     {
@@ -52,25 +46,19 @@ namespace pixeler
 
   bool FixedMenu::pageDown()
   {
-    uint16_t capacity = getItemsPerPage();
-
+    const uint16_t capacity = getItemsPerPage();
     if (capacity == 0 || _widgets.empty())
       return false;
 
-    uint16_t next_first_pos = _first_item_index + capacity;
+    const uint16_t next_first_pos = _first_item_index + capacity;
+    const size_t total = _widgets.size();
 
-    if (next_first_pos < _widgets.size())  // Якщо є хоча б одни елемент що не видно на поточній сторінці меню
-    {
+    if (next_first_pos < total)
       _first_item_index = next_first_pos;
-    }
-    else if (_is_loop_enbl && _first_item_index > 0)  // Якщо меню може зациклюватися і ми не на першому елементі
-    {
+    else if (_is_loop_enbl && _first_item_index > 0)
       _first_item_index = 0;
-    }
     else
-    {
       return false;
-    }
 
     if (!_has_touch_support && _cur_focus_pos != _first_item_index)
     {
@@ -79,7 +67,7 @@ namespace pixeler
       _widgets[_cur_focus_pos]->setFocus();
     }
 
-    drawItems(_first_item_index, capacity);
+    drawItems(_first_item_index, getCyclesCount());
     return true;
   }
 
@@ -90,8 +78,8 @@ namespace pixeler
 
     IWidget* item = _widgets[_cur_focus_pos];
     item->removeFocus();
-    uint16_t cycles_count = getCyclesCount();
 
+    const uint16_t capacity = getItemsPerPage();
     bool need_redraw = false;
 
     if (_cur_focus_pos > 0)
@@ -106,24 +94,26 @@ namespace pixeler
     }
     else if (_is_loop_enbl)
     {
-      if (_widgets.size() > cycles_count)
+      const uint16_t total = _widgets.size();
+      if (total > capacity)
       {
         need_redraw = true;
-        _first_item_index = _widgets.size() - cycles_count;
+        _first_item_index = ((total - 1) / capacity) * capacity;
       }
       else
       {
         _first_item_index = 0;
       }
 
-      _cur_focus_pos = _widgets.size() - 1;
+      _cur_focus_pos = total - 1;
     }
 
     item = _widgets[_cur_focus_pos];
     item->setFocus();
 
     if (need_redraw)
-      drawItems(_first_item_index, cycles_count);
+      drawItems(_first_item_index, getCyclesCount());
+
     return true;
   }
 
@@ -134,15 +124,15 @@ namespace pixeler
 
     IWidget* item = _widgets[_cur_focus_pos];
     item->removeFocus();
-    uint16_t cycles_count = getCyclesCount();
 
+    const uint16_t capacity = getItemsPerPage();
     bool need_redraw = false;
 
     if (_cur_focus_pos < _widgets.size() - 1)
     {
       ++_cur_focus_pos;
 
-      if (_cur_focus_pos > _first_item_index + cycles_count - 1)
+      if (_cur_focus_pos >= _first_item_index + getCyclesCount())
       {
         need_redraw = true;
         ++_first_item_index;
@@ -153,14 +143,14 @@ namespace pixeler
       _cur_focus_pos = 0;
       _first_item_index = 0;
 
-      need_redraw = _widgets.size() > cycles_count;
+      need_redraw = _widgets.size() > capacity;
     }
 
     item = _widgets[_cur_focus_pos];
     item->setFocus();
 
     if (need_redraw)
-      drawItems(_first_item_index, cycles_count);
+      drawItems(_first_item_index, getCyclesCount());
 
     return true;
   }
@@ -172,33 +162,30 @@ namespace pixeler
 
   void FixedMenu::setCurrFocusPos(uint16_t focus_pos)
   {
-    if (_has_touch_support || _widgets.size() < 2 || _cur_focus_pos == focus_pos || focus_pos >= _widgets.size())
+    const size_t total = _widgets.size();
+    if (_has_touch_support || total < 2 || _cur_focus_pos == focus_pos || focus_pos >= total)
       return;
 
     IWidget* item = _widgets[_cur_focus_pos];
     item->removeFocus();
 
     _cur_focus_pos = focus_pos;
-    uint16_t cycles_count = getCyclesCount();
 
-    uint16_t to_end = _widgets.size() - 1 - _cur_focus_pos;
+    const uint16_t capacity = getItemsPerPage();
+    uint16_t to_end = total - 1 - _cur_focus_pos;
 
-    if (to_end >= cycles_count)
-    {
+    if (to_end >= capacity)
       _first_item_index = _cur_focus_pos;
-    }
+    else if (total <= capacity)
+      _first_item_index = 0;
     else
-    {
-      if (_widgets.size() <= cycles_count)
-        _first_item_index = 0;
-      else
-        _first_item_index = _widgets.size() - cycles_count;
-    }
+      _first_item_index = total - capacity;
 
     item = _widgets[_cur_focus_pos];
     item->setFocus();
 
-    drawItems(_first_item_index, cycles_count);
+    // Відмальовуємо фактичну кількість на сторінку
+    drawItems(_first_item_index, getCyclesCount());
   }
 
   uint16_t FixedMenu::getPagesCount() const
@@ -221,18 +208,17 @@ namespace pixeler
 
   void FixedMenu::setPageNum(uint16_t page_pos)
   {
-    uint16_t capacity = getItemsPerPage();
+    const uint16_t capacity = getItemsPerPage();
     if (capacity == 0 || _widgets.empty())
       return;
 
-    uint32_t new_index = static_cast<uint32_t>(page_pos) * capacity;
-
-    if (new_index >= _widgets.size())
-      _first_item_index = ((_widgets.size() - 1) / capacity) * capacity;
+    const uint16_t max_pages = getPagesCount();
+    if (page_pos >= max_pages)
+      _first_item_index = (max_pages - 1) * capacity;
     else
-      _first_item_index = static_cast<uint16_t>(new_index);
+      _first_item_index = page_pos * capacity;
 
-    drawItems(_first_item_index, capacity);
+    drawItems(_first_item_index, getCyclesCount());
   }
 
   void FixedMenu::copyTo(IWidget* widget) const
