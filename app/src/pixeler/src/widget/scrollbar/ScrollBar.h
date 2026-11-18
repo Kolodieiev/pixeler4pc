@@ -122,25 +122,20 @@ namespace pixeler
 
   private:
     using IWidget::isTransparent;
-    using IWidget::setTransparency;
+    using IWidget::setTransparent;
 
   private:
     uint16_t _max_value{1};
     uint16_t _cur_value{0};
-    uint16_t _slider_last_x_pos{0};
-    uint16_t _slider_last_y_pos{0};
     uint16_t _slider_color{COLOR_WHITE};
     uint16_t _smart_value{0};
 
+    uint16_t _slider_width{1};
+    uint16_t _slider_height{1};
+    uint16_t _slider_step_size{1};
+    uint16_t _steps_to_scroll{1};
+
     Orientation _orientation{VERTICAL};
-
-    uint8_t _slider_width{1};
-    uint8_t _slider_height{1};
-    uint8_t _slider_step_size{1};
-    uint8_t _steps_to_scroll{0};
-    uint8_t _steps_counter{0};
-    uint8_t _scroll_direction{0};
-
     bool _smart_scroll_enabled{false};
   };
 

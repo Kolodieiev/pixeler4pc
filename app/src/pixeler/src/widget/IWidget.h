@@ -62,7 +62,7 @@ namespace pixeler
       INVISIBLE,
     };
 
-    IWidget(uint16_t widget_ID, TypeID type_ID, bool is_container = false);
+    IWidget(uint16_t widget_ID, TypeID type_ID);
     virtual ~IWidget() = 0;
 
     /**
@@ -326,7 +326,7 @@ namespace pixeler
      * @param state Якщо true - фон віджета не замальовується фоновим кольором.
      * Для коректного відображення необхідно самостійно перемальовувати зображення під прозорим віджетом
      */
-    void setTransparency(bool state);
+    void setTransparent(bool state);
 
     /**
      * @brief Повертає стан прапора, який вказує, чи є віджет прозорим.
@@ -375,15 +375,19 @@ namespace pixeler
      */
     uint16_t getBottomYPos() const;
 
+    /**
+     * @brief Повертає саму праву X-координату відносно канвасу, на якій в даний момент знаходиться віджет.
+     *
+     * @return uint16_t
+     */
+    uint16_t getRightXPos() const;
+
   protected:
     /**
-     * @brief  Залити місце розташування віджета фоновим кольором та відобразити межу віджета, якщо потрібно.
+     * @brief Заливає місце розташування віджета фоновим кольором та малює рамку віджета, якщо потрібно.
      *
-     * @param keep_border Прапор, який вказує, чи буде відмальовано межу.
-     * True - межу буде відмальовано, якщо увімкнено її відображення.
-     * False - малювання межі буде пропущено в будь-якому разі
      */
-    void clear(bool keep_border = true);
+    void clear();
 
     /*!
      * @brief  Приховати елемент. Працює, якщо віджет має батьківський контейнер.
@@ -412,7 +416,7 @@ namespace pixeler
     uint16_t _old_back_color{COLOR_WHITE};
 
   private:
-    const uint16_t _id;
+    const uint16_t _ID;
 
   protected:
     Visibility _visibility{VISIBLE};
@@ -429,7 +433,7 @@ namespace pixeler
     bool _need_change_back{false};
 
   private:
-    const TypeID _type_ID;
+    const TypeID _TYPE_ID;
   };
 
   /**
@@ -443,9 +447,9 @@ namespace pixeler
   template <typename T>
   inline T* IWidget::castTo()
   {
-    if (_type_ID != T::getTypeID())
+    if (_TYPE_ID != T::getTypeID())
     {
-      log_e("Неможливо привести тип віджета %u до %u", _type_ID, T::getTypeID());
+      log_e("Неможливо привести тип віджета %u до %u", _TYPE_ID, T::getTypeID());
       esp_restart();
     }
 

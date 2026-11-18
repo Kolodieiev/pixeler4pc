@@ -12,15 +12,16 @@
 #include "manager/ResManager.h"
 
 //
+#include "defines.h"
+
 #include <functional>
 
 #include "../ui/IGameMenu.h"
 #include "../ui/IGameUI.h"
 #include "IGameObject2D.h"
-#include "defines.h"
 #include "sprite/SpriteTemplate.h"
-#include "terrain/TerrainLoader2D.h"
 #include "terrain/Terrain2D.h"
+#include "terrain/TerrainLoader2D.h"
 
 namespace pixeler
 {
@@ -45,7 +46,7 @@ namespace pixeler
      * в потоці сцени під час наступного виклику update().
      * Може викликатись з будь-якої FreeRTOS-задачі.
      *
-     * @param task Функція без аргументів і повернення результату,
+     * @param task Функція без аргументів та повернення результату,
      * яка повинна бути виконана в потоці UI
      * @param timeout_ms Максимальний час очікування(мілісекунд) вільного місця в черзі,
      * за замовчуванням - неблокуючий виклик
@@ -230,8 +231,8 @@ namespace pixeler
     void processPostedTasks();
 
   protected:
-    Terrain2D _terrain;  // Самий нижній шар сцени
-    SfxPlayer _sfx_player;      // Плеєр звукових ефектів
+    Terrain2D _terrain;     // Самий нижній шар сцени
+    SfxPlayer _sfx_player;  // Плеєр звукових ефектів
   private:
     std::unordered_map<uint16_t, SpriteTemplate> _sprite_templates;  // Мапа зв'язування шаблонів спрайтів з типами ігрових об'єктів
 

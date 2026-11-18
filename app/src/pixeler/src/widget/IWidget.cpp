@@ -3,8 +3,8 @@
 
 namespace pixeler
 {
-  IWidget::IWidget(uint16_t widget_ID, TypeID type_ID, bool is_container) : _id{widget_ID},
-                                                                            _type_ID{type_ID}
+  IWidget::IWidget(uint16_t widget_ID, TypeID type_ID) : _ID{widget_ID},
+                                                         _TYPE_ID{type_ID}
 
   {
     if (widget_ID == 0)
@@ -18,7 +18,7 @@ namespace pixeler
 
   IWidget::TypeID IWidget::getTypeID() const
   {
-    return _type_ID;
+    return _TYPE_ID;
   }
 
   void IWidget::drawForced()
@@ -48,7 +48,11 @@ namespace pixeler
 
   void IWidget::setBackColor(uint16_t back_color)
   {
-    _back_color = back_color;
+    if (_has_focus && _need_change_back)
+      _old_back_color = back_color;
+    else
+      _back_color = back_color;
+
     _is_changed = true;
   }
 
@@ -71,62 +75,71 @@ namespace pixeler
 
   void IWidget::setBorder(bool state)
   {
-    _has_border = state;
+    if (_has_focus && _need_change_border)
+    {
+      _old_border_state = state;
+    }
+    else
+    {
+      if (_has_border && !state)
+        _need_clear_border = true;
+
+      _has_border = state;
+    }
+
     _is_changed = true;
   }
 
   void IWidget::setBorderColor(uint16_t color)
   {
-    _border_color = color;
+    if (_has_focus && _need_change_border)
+      _old_border_color = color;
+    else
+      _border_color = color;
+
     _is_changed = true;
   }
 
-  void IWidget::clear(bool keep_border)
+  void IWidget::clear()
   {
     if (_is_transparent)
       return;
 
-    uint16_t x_offset{0};
-    uint16_t y_offset{0};
-
-    if (_parent)
-    {
-      x_offset = _parent->getXPos();
-      y_offset = _parent->getYPos();
-    }
+    const uint16_t abs_x = getXPos();
+    const uint16_t abs_y = getYPos();
 
     if (_corner_radius == 0)
     {
 #if CONFIG_IDF_TARGET_ESP32P4
-      if (_width * _height > PPA_FILL_SIZE_TRIGG)
+      if (static_cast<uint32_t>(_width) * _height > PPA_FILL_SIZE_TRIGG)
       {
-        bool old_state = _display.isPPAEnabled();
-
+        const bool old_state = _display.isPPAEnabled();
         _display.setPPA(true);
-        _display.fillRect(_x_pos + x_offset, _y_pos + y_offset, _width, _height, _back_color);
+        _display.fillRect(abs_x, abs_y, _width, _height, _back_color);
         _display.setPPA(old_state);
       }
       else
 #endif  // #if CONFIG_IDF_TARGET_ESP32P4
       {
-        _display.fillRect(_x_pos + x_offset, _y_pos + y_offset, _width, _height, _back_color);
+        _display.fillRect(abs_x, abs_y, _width, _height, _back_color);
       }
 
-      if (keep_border && _has_border)
-        _display.drawRect(_x_pos + x_offset, _y_pos + y_offset, _width, _height, _border_color);
+      _need_clear_border = false;
+      if (_has_border)
+        _display.drawRect(abs_x, abs_y, _width, _height, _border_color);
     }
     else
     {
-      _display.fillRoundRect(_x_pos + x_offset, _y_pos + y_offset, _width, _height, _corner_radius, _back_color);
+      _display.fillRoundRect(abs_x, abs_y, _width, _height, _corner_radius, _back_color);
 
-      if (keep_border && _has_border)
+      if (_has_border)
       {
-        _display.drawRoundRect(_x_pos + x_offset, _y_pos + y_offset, _width, _height, _corner_radius, _border_color);
+        _display.drawRoundRect(abs_x, abs_y, _width, _height, _corner_radius, _border_color);
       }
       else if (_need_clear_border)
       {
         _need_clear_border = false;
-        _display.drawRoundRect(_x_pos + x_offset, _y_pos + y_offset, _width, _height, _corner_radius, _back_color);
+        _display.drawRoundRect(abs_x, abs_y, _width, _height, _corner_radius, _back_color);
       }
     }
   }
@@ -136,27 +149,22 @@ namespace pixeler
     if (_is_transparent)
       return;
 
-    uint16_t back_color{0};
-    uint16_t x_offset{0};
-    uint16_t y_offset{0};
-
-    if (_parent)
-    {
-      x_offset = _parent->getXPos();
-      y_offset = _parent->getYPos();
-      back_color = _parent->getBackColor();
-    }
+    const uint16_t back_color = _parent ? _parent->getBackColor() : COLOR_BLACK;
+    const uint16_t abs_x = getXPos();
+    const uint16_t abs_y = getYPos();
 
     if (_corner_radius == 0)
-      _display.fillRect(_x_pos + x_offset, _y_pos + y_offset, _width, _height, back_color);
+    {
+      _display.fillRect(abs_x, abs_y, _width, _height, back_color);
+    }
     else
     {
       if (_has_border || _need_clear_border)
       {
         _need_clear_border = false;
-        _display.drawRoundRect(_x_pos + x_offset, _y_pos + y_offset, _width, _height, _corner_radius, back_color);
+        _display.drawRoundRect(abs_x, abs_y, _width, _height, _corner_radius, back_color);
       }
-      _display.fillRoundRect(_x_pos + x_offset, _y_pos + y_offset, _width, _height, _corner_radius, back_color);
+      _display.fillRoundRect(abs_x, abs_y, _width, _height, _corner_radius, back_color);
     }
   }
 
@@ -165,11 +173,16 @@ namespace pixeler
     return getYPos() + _height;
   }
 
+  uint16_t IWidget::getRightXPos() const
+  {
+    return getXPos() + _width;
+  }
+
   void IWidget::copyTo(IWidget* widget) const
   {
     if (!widget)
     {
-      log_e("Спроба копіювати властивості (id: %u) до nullptr", _id);
+      log_e("Спроба копіювати властивості (id: %u) до nullptr", _ID);
       esp_restart();
     }
 
@@ -230,7 +243,7 @@ namespace pixeler
 
   uint16_t IWidget::getID() const
   {
-    return _id;
+    return _ID;
   }
 
   uint16_t IWidget::getHeight() const
@@ -346,9 +359,10 @@ namespace pixeler
     return _visibility;
   }
 
-  void IWidget::setTransparency(bool state)
+  void IWidget::setTransparent(bool state)
   {
     _is_transparent = state;
+    _is_changed = true;
   }
 
   bool IWidget::isTransparent() const
@@ -358,7 +372,7 @@ namespace pixeler
 
   IWidget* IWidget::findTouchableAt(uint16_t x, uint16_t y)
   {
-    if (!_is_touchable || !hitTest(x, y))
+    if (!_is_touchable || _visibility == INVISIBLE || !hitTest(x, y))
       return nullptr;
 
     return this;
@@ -366,11 +380,10 @@ namespace pixeler
 
   bool IWidget::hitTest(uint16_t x, uint16_t y) const
   {
-    if (_parent)
-      return (x > _parent->getXPos() + _x_pos && x < _parent->getXPos() + _x_pos + _width) &&
-          (y > _parent->getYPos() + _y_pos && y < _parent->getYPos() + _y_pos + _height);
-    else
-      return (x > _x_pos && x < _x_pos + _width) && (y > _y_pos && y < _y_pos + _height);
+    const uint16_t abs_x = getXPos();
+    const uint16_t abs_y = getYPos();
+
+    return (x > abs_x && x < abs_x + _width) && (y > abs_y && y < abs_y + _height);
   }
 
   void IWidget::setTouchable(bool state)

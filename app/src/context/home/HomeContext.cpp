@@ -40,7 +40,7 @@ HomeContext::HomeContext()
   lbl->setAlign(IWidget::ALIGN_CENTER);
   lbl->setTextSize(2);
   lbl->setTextColor(COLOR_CYAN);
-  lbl->setTransparency(true);
+  lbl->setTransparent(true);
 
   _batt_volt_lbl = new Label(ID_BAT_LVL);
   layout->addWidget(_batt_volt_lbl);
@@ -51,14 +51,14 @@ HomeContext::HomeContext()
   _batt_volt_lbl->setAlign(Label::ALIGN_CENTER);
   _batt_volt_lbl->setGravity(Label::GRAVITY_CENTER);
   _batt_volt_lbl->setPos(UI_WIDTH - DISPLAY_PADDING - _batt_volt_lbl->getWidth(), DISPLAY_PADDING);
-  _batt_volt_lbl->setTransparency(true);
+  _batt_volt_lbl->setTransparent(true);
 
   _batt_ico = new Image(1);
   _batt_volt_lbl->setBackImg(_batt_ico);
   _batt_ico->setWidth(_batt_volt_lbl->getWidth());
   _batt_ico->setHeight(_batt_volt_lbl->getHeight());
   _batt_ico->setSrc(ICO_BATTERY);
-  _batt_ico->setTransparency(true);
+  _batt_ico->setTransparent(true);
 
   updateBattVoltage();
 }

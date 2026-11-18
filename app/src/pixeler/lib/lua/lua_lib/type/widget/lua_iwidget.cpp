@@ -302,7 +302,7 @@ int lua_iwgt_set_transparency(lua_State* L)
 {
   IWidget* widget = *static_cast<IWidget**>(lua_check_instance(L, 1, STR_TYPE_NAME_IWIDGET));
   bool state = lua_toboolean(L, 2);
-  widget->setTransparency(state);
+  widget->setTransparent(state);
   return 0;
 }
 
@@ -342,7 +342,7 @@ const struct luaL_Reg TYPE_METH_IWIDGET[] = {
     {"setFocus", lua_iwgt_set_focus},
     {"removeFocus", lua_iwgt_remove_focus},
     {"setVisibility", lua_iwgt_set_visibility},
-    {"setTransparency", lua_iwgt_set_transparency},
+    {"setTransparent", lua_iwgt_set_transparency},
     {STR_LUA_UNLOAD, lua_iwgt_unload},
     {nullptr, nullptr},
 };

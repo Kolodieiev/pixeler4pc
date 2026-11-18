@@ -3,7 +3,7 @@
 
 namespace pixeler
 {
-  IWidgetContainer::IWidgetContainer(uint16_t widget_ID, TypeID type_ID) : IWidget(widget_ID, type_ID, true) {}
+  IWidgetContainer::IWidgetContainer(uint16_t widget_ID, TypeID type_ID) : IWidget(widget_ID, type_ID) {}
 
   IWidgetContainer::~IWidgetContainer()
   {
@@ -26,11 +26,11 @@ namespace pixeler
       esp_restart();
     }
 
-    for (const IWidget* widget : _widgets)
+    for (const IWidget* child : _widgets)
     {
-      if (widget->getID() == search_ID)
+      if (child->getID() == search_ID)
       {
-        log_e("Контейнер: %u. WidgetID повинен бути унікальним. Повторюється з: %u.", getID(), widget->getID());
+        log_e("Контейнер: %u. WidgetID повинен бути унікальним. Повторюється з: %u.", getID(), child->getID());
         esp_restart();
       }
     }
@@ -62,9 +62,7 @@ namespace pixeler
     for (auto& widget : _widgets)
     {
       if (widget->getID() == widget_ID)
-      {
         return widget;
-      }
     }
 
     return nullptr;
@@ -72,17 +70,15 @@ namespace pixeler
 
   IWidget* IWidgetContainer::getWidgetByIndx(uint16_t widget_indx)
   {
-    IWidget* result{nullptr};
+    if (widget_indx < _widgets.size())
+      return _widgets[widget_indx];
 
-    if (_widgets.size() > widget_indx)
-      result = _widgets[widget_indx];
-
-    return result;
+    return nullptr;
   }
 
   IWidget* IWidgetContainer::findTouchableAt(uint16_t x, uint16_t y)
   {
-    if (!hitTest(x, y))
+    if (!_is_enabled || _visibility == INVISIBLE || !hitTest(x, y))
       return nullptr;
 
     for (auto i_b = _widgets.rbegin(), i_e = _widgets.rend(); i_b != i_e; ++i_b)
@@ -131,7 +127,7 @@ namespace pixeler
     IWidgetContainer* clone = static_cast<IWidgetContainer*>(widget);
     clone->_is_enabled = _is_enabled;
 
-    for (const auto& widget : _widgets)
-      clone->addWidget(widget->clone(widget->getID()));
+    for (const auto& child : _widgets)
+      clone->addWidget(child->clone(child->getID()));
   }
 }  // namespace pixeler

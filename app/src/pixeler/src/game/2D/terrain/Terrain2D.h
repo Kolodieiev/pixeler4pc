@@ -1,6 +1,5 @@
 #pragma once
 #pragma GCC optimize("O3")
-#include <cmath>
 #include <unordered_map>
 
 #include "../sprite/PhysicsState.h"
