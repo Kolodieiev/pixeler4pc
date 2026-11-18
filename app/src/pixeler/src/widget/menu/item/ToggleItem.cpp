@@ -28,22 +28,23 @@ namespace pixeler
 
     clear();
 
-    uint8_t img_width{0};
+    uint16_t current_x = ITEM_PADDING;
+
     if (_image)
     {
-      _image->setParent(this);
-      img_width = _image->getWidth() + ITEM_PADDING;
-      _image->setPos(ITEM_PADDING, (_height - _image->getHeight()) * 0.5);
+      _image->setPos(current_x, (_height - _image->getHeight()) / 2);
       _image->setBackColor(_back_color);
       _image->onDraw();
+      current_x += _image->getWidth() + ITEM_PADDING;
     }
 
-    _toggle->setPos(_width - ITEM_PADDING - _toggle->getWidth(), (_height - _toggle->getHeight()) * 0.5);
+    const uint16_t toggle_x = _width - ITEM_PADDING - _toggle->getWidth();
+    _toggle->setPos(toggle_x, (_height - _toggle->getHeight()) / 2);
     _toggle->onDraw();
 
     _label->setHeight(_height - 2);
-    _label->setPos(img_width + ITEM_PADDING, 1);
-    _label->setWidth(_width - ITEM_PADDING * 2 - img_width - (_toggle->getWidth() + ITEM_PADDING));
+    _label->setPos(current_x, 1);
+    _label->setWidth(toggle_x - current_x - ITEM_PADDING);
 
     if (_has_focus && _need_change_back)
       _label->setFocus();
@@ -58,10 +59,7 @@ namespace pixeler
     MenuItem::copyTo(widget);
 
     ToggleItem* clone = static_cast<ToggleItem*>(widget);
-    clone->setLabel(_label->clone(_label->getID()));
     clone->setToggle(_toggle->clone(_toggle->getID()));
-    if (_image)
-      clone->setImage(_image->clone(_image->getID()));
   }
 
   ToggleItem* ToggleItem::clone(uint16_t id) const

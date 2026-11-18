@@ -16,11 +16,8 @@ namespace pixeler
     MenuItem::copyTo(widget);
 
     ComboItem* clone = static_cast<ComboItem*>(widget);
-    clone->setLabel(_label->clone(_label->getID()));
     clone->_range = _range;
     clone->_selected_pos = _selected_pos;
-    if (_image)
-      clone->setImage(_image->clone(_image->getID()));
   }
 
   ComboItem* ComboItem::clone(uint16_t id) const
@@ -42,7 +39,7 @@ namespace pixeler
   {
     if (range.empty())
     {
-      log_e("Вектор не може бути порожім");
+      log_e("Вектор не може бути порожнім");
       esp_restart();
     }
 
@@ -53,11 +50,12 @@ namespace pixeler
 
   void ComboItem::selectPos(uint16_t pos)
   {
-    if (_range.empty())
+    const size_t total = _range.size();
+    if (total == 0)
       return;
 
-    if (pos >= _range.size())
-      pos = _range.size() - 1;
+    if (pos >= total)
+      pos = total - 1;
 
     _selected_pos = pos;
     _label->setText(_range[_selected_pos]);
@@ -70,11 +68,12 @@ namespace pixeler
 
   void ComboItem::scrollUp()
   {
-    if (_range.empty())
+    const size_t total = _range.size();
+    if (total < 2)
       return;
 
     if (_selected_pos == 0)
-      _selected_pos = _range.size() - 1;
+      _selected_pos = total - 1;
     else
       --_selected_pos;
 
@@ -83,10 +82,11 @@ namespace pixeler
 
   void ComboItem::scrollDown()
   {
-    if (_range.empty())
+    const size_t total = _range.size();
+    if (total < 2)
       return;
 
-    if (_selected_pos < _range.size() - 1)
+    if (_selected_pos < total - 1)
       ++_selected_pos;
     else
       _selected_pos = 0;
