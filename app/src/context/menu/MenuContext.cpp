@@ -38,7 +38,6 @@ MenuContext::MenuContext()
   _menu->setItemHeight(UI_HEIGHT / 4 - 2);
   _menu->setPos(DISPLAY_PADDING, 0);
   
-  _menu->setLooped(true);
   //
   _scrollbar = new ScrollBar(ID_SCROLLBAR);
   layout->addWidget(_scrollbar);
