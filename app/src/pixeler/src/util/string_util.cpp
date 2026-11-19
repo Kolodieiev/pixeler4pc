@@ -1,6 +1,8 @@
 #pragma GCC optimize("O3")
 #include "string_util.h"
 
+#include <cstring>
+
 namespace pixeler
 {
   void rmFilenameExt(String& filename)
@@ -56,16 +58,17 @@ namespace pixeler
     }
   }
 
-  bool endsWith(const char* base, const char* searchString)
+  bool endsWith(const char* base, const char* suffix)
   {
-    int32_t slen = strlen(searchString);
-    if (slen == 0)
+    const size_t suffix_len = std::strlen(suffix);
+    if (suffix_len == 0)
       return false;
-    const char* p = base + strlen(base);
-    p -= slen;
-    if (p < base)
+
+    const size_t base_len = std::strlen(base);
+    if (base_len < suffix_len)
       return false;
-    return (strncmp(p, searchString, slen) == 0);
+
+    return std::memcmp(base + base_len - suffix_len, suffix, suffix_len) == 0;
   }
 
   int indexOf(const char* base, const char* str, int startIndex)

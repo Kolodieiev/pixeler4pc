@@ -1,7 +1,7 @@
 /**
  * @file FileInfo.h
  * @brief Структура для збереження мінімальної інформації про файл.
- * @details 
+ * @details
  */
 
 #pragma once
@@ -26,7 +26,7 @@ namespace pixeler
     bool isDir() const;
 
     /**
-     * @brief Перевіряє чи закінчується ім'я файла вказаною послідовністю символів.
+     * @brief Перевіряє чи закінчується ім'я файлу вказаною послідовністю символів.
      *
      * @param suffix Вказівник на очікувану послідовність символів.
      * @return true - Якщо закінчується.
@@ -35,9 +35,9 @@ namespace pixeler
     bool nameEndsWith(const char* suffix) const;
 
     /**
-     * @brief Повертає кількість байтів, які займає в пам'яті ім'я файла.
+     * @brief Повертає кількість байтів, які займає в пам'яті ім'я файлу.
      *
-     * @return uint16_t
+     * @return uint32_t
      */
     uint32_t getNameLen() const;
 
