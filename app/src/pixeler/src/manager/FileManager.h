@@ -10,6 +10,8 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
+#include <atomic>
+
 #include "defines.h"
 #include "file/FileInfo.h"
 #include "pixeler/config/sd_config.hpp"
@@ -424,7 +426,7 @@ namespace pixeler
     //
     size_t writeOptimalUnlocked(int file_desc, const void* buffer, size_t len);
     bool rmFileUnlocked(const char* path, bool make_full = false);
-    bool rmDirRecursively(const char* path, bool& was_mutex_taken, bool make_full = false);
+    bool rmDirRecursively(const char* path, bool& was_mutex_taken);
     size_t getFileSizeUnlocked(const char* path);
     size_t availableUnlocked(FILE* file, size_t file_size);
     bool createFileCopy(const String& from, const String& to);
@@ -452,15 +454,13 @@ namespace pixeler
 
     unsigned long _ts{0};
 
-    static constexpr uint32_t TASK_SIZE{(1024 / 2) * 30};
-
-    uint8_t _copy_progress{0};
+    std::atomic<uint8_t> _copy_progress{0};
 
     uint8_t _pdrv{0xFF};
 
-    bool _is_working{false};
-    bool _is_canceled{false};
-    bool _last_task_result{true};
+    std::atomic<bool> _is_working{false};
+    std::atomic<bool> _is_canceled{false};
+    std::atomic<bool> _last_task_result{true};
     bool _is_ext_lock{false};
   };
 

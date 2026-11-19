@@ -13,11 +13,12 @@
 #include "util/MutexGuard.h"
 #include "util/string_util.h"
 
-#define IDLE_WD_GUARD_TIME 200U
-#define OPT_BLOCK_SIZE 16384
-
 namespace pixeler
 {
+  static constexpr uint32_t TASK_SIZE{(1024 / 2) * 30};
+  static constexpr unsigned long IDLE_WD_GUARD_TIME{200U};
+  static constexpr size_t OPT_BLOCK_SIZE{16384};
+
   String FileManager::makeFullPath(const char* path)
   {
     String full_path = SD_MOUNTPOINT;
@@ -31,18 +32,28 @@ namespace pixeler
 
   String FileManager::makeUniqueFilename(const String& file_path)
   {
+    if (!fileExistSilently(file_path.c_str()))
+      return file_path;
+
+    const int slash_pos = file_path.lastIndexOf('/');
+    const int dot_pos = file_path.lastIndexOf('.');
+    const bool has_ext = (dot_pos > slash_pos);
+
+    const String base = has_ext ? file_path.substring(0, dot_pos) : file_path;
+    const String ext = has_ext ? file_path.substring(dot_pos) : emptyString;
+
     uint16_t counter = 1;
-    String temp_path = file_path;
-    String unique_filename = file_path;
-    while (fileExistSilently(unique_filename.c_str()))
+    String unique_filename;
+
+    do
     {
-      unique_filename = temp_path.substring(0, temp_path.lastIndexOf("."));
+      unique_filename = base;
       unique_filename += "(";
       unique_filename += counter;
       unique_filename += ")";
-      unique_filename += temp_path.substring(temp_path.lastIndexOf("."));
+      unique_filename += ext;
       ++counter;
-    }
+    } while (counter != 0 && fileExistSilently(unique_filename.c_str()));
 
     return unique_filename;
   }
@@ -283,7 +294,7 @@ namespace pixeler
 
   bool FileManager::readFromFileExact(FILE* file, void* out_buffer, size_t len, size_t seek_pos)
   {
-    return readFromFile(file, out_buffer, len, seek_pos) == static_cast<ssize_t>(len);
+    return readFromFile(file, out_buffer, len, seek_pos) == len;
   }
 
   size_t FileManager::writeFile(const char* path, const void* buffer, size_t len)
@@ -336,31 +347,24 @@ namespace pixeler
   {
     size_t total_written = 0;
     const uint8_t* ptr = static_cast<const uint8_t*>(buffer);
-
-    size_t full_blocks = len / OPT_BLOCK_SIZE;
-    size_t remaining_bytes = len % OPT_BLOCK_SIZE;
-
     unsigned long ts = millis();
-    for (size_t i = 0; i < full_blocks; ++i)
+
+    while (total_written < len)
     {
-      ssize_t res = write(file_desc, ptr + total_written, OPT_BLOCK_SIZE);
-      if (res == -1)
+      const size_t remaining = len - total_written;
+      const size_t chunk = (remaining > OPT_BLOCK_SIZE) ? OPT_BLOCK_SIZE : remaining;
+
+      const ssize_t res = write(file_desc, ptr + total_written, chunk);
+      if (res <= 0)
         break;
 
-      total_written += res;
+      total_written += static_cast<size_t>(res);
 
       if (millis() - ts > IDLE_WD_GUARD_TIME)
       {
         delay(1);
         ts = millis();
       }
-    }
-
-    if (total_written == (full_blocks * OPT_BLOCK_SIZE) && remaining_bytes > 0)
-    {
-      ssize_t res = write(file_desc, ptr + total_written, remaining_bytes);
-      if (res != -1)
-        total_written += res;
     }
 
     if (total_written != len)
@@ -478,6 +482,7 @@ namespace pixeler
     else
     {
       bool was_mutex_taken = false;
+      _ts = millis();
       result = rmDirRecursively(full_path.c_str(), was_mutex_taken);
       if (was_mutex_taken)
         xSemaphoreGive(_sd_mutex);
@@ -489,12 +494,11 @@ namespace pixeler
     invokeTaskDone(result);
   }
 
-  bool FileManager::rmDirRecursively(const char* path, bool& was_mutex_taken, bool make_full)
+  bool FileManager::rmDirRecursively(const char* path, bool& was_mutex_taken)
   {
     bool result = false;
 
     dirent* dir_entry{nullptr};
-    DIR* dir;
 
     if (!was_mutex_taken)
     {
@@ -502,20 +506,11 @@ namespace pixeler
       was_mutex_taken = true;
     }
 
-    if (make_full)
-    {
-      String full_path = makeFullPath(path);
-      dir = opendir(full_path.c_str());
-    }
-    else
-    {
-      dir = opendir(path);
-    }
+    DIR* dir = opendir(path);
 
     if (dir)
     {
       errno = 0;
-      _ts = millis();
       while (!_is_canceled)
       {
         if (!was_mutex_taken)
@@ -572,9 +567,12 @@ namespace pixeler
       closedir(dir);
     }
 
+    if (_is_canceled)
+      result = false;
+
     if (result)
       result = !remove(path);
-    else
+    else if (!_is_canceled)
       log_e("Помилка під час видалення: %s", path);
 
     return result;
@@ -582,14 +580,16 @@ namespace pixeler
 
   bool FileManager::rmDir(const char* path)
   {
+    String full_path = makeFullPath(path);
     _is_canceled = false;
     bool was_mutex_taken = false;
-    bool result = rmDirRecursively(path, was_mutex_taken, true);
+    _ts = millis();
+    bool result = rmDirRecursively(full_path.c_str(), was_mutex_taken);
     if (was_mutex_taken)
       xSemaphoreGive(_sd_mutex);
     return result;
   }
-
+  
   bool FileManager::rmFile(const char* path)
   {
     MutexGuard lock(_sd_mutex);
@@ -644,17 +644,18 @@ namespace pixeler
 
     _rm_path = path;
     _is_canceled = false;
+    _is_working = true;
 
     BaseType_t result = xTaskCreatePinnedToCore(rmTask, "rmTask", TASK_SIZE, this, 10, nullptr, 0);
 
     if (result == pdPASS)
     {
       log_i("rmTask is working now");
-      _is_working = true;
       return true;
     }
     else
     {
+      _is_working = false;
       log_e("rmTask was not running");
       return false;
     }
@@ -685,7 +686,7 @@ namespace pixeler
     xSemaphoreTake(_sd_mutex, portMAX_DELAY);
     bool was_mutex_taken = true;
 
-    int n_fd = open(to.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0666);
+    int n_fd = open(to.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 
     if (n_fd < 0)
     {
@@ -736,13 +737,10 @@ namespace pixeler
       log_i("З: %s", from.c_str());
       log_i("До: %s", to.c_str());
 
-      ssize_t bytes_read;
-
-      off_t current_pos = lseek(o_fd, 0, SEEK_CUR);
       size_t byte_aval = file_size;
-
       _ts = millis();
       uint8_t old_progress = 0;
+
       while (!_is_canceled && byte_aval > 0)
       {
         if (!was_mutex_taken)
@@ -750,27 +748,32 @@ namespace pixeler
           xSemaphoreTake(_sd_mutex, portMAX_DELAY);
           was_mutex_taken = true;
         }
-        size_t to_read = (byte_aval < buf_size) ? byte_aval : buf_size;
-        bytes_read = read(o_fd, buffer, to_read);
+
+        const size_t to_read = (byte_aval < buf_size) ? byte_aval : buf_size;
+        const ssize_t bytes_read = read(o_fd, buffer, to_read);
 
         if (bytes_read <= 0)
           break;
 
-        writed_bytes_counter += writeOptimalUnlocked(n_fd, buffer, bytes_read);
-        _copy_progress = (static_cast<float>(writed_bytes_counter) / file_size) * 100;
+        const size_t written = writeOptimalUnlocked(n_fd, buffer, static_cast<size_t>(bytes_read));
+        writed_bytes_counter += written;
 
-        current_pos = lseek(o_fd, 0, SEEK_CUR);
-        byte_aval = (current_pos != -1 && file_size > static_cast<size_t>(current_pos)) ? file_size - current_pos : 0;
+        if (written != static_cast<size_t>(bytes_read))
+          break;
+
+        byte_aval -= static_cast<size_t>(bytes_read);
+        _copy_progress = static_cast<uint8_t>((static_cast<float>(writed_bytes_counter) / file_size) * 100.0f);
 
         if (millis() - _ts > IDLE_WD_GUARD_TIME)
         {
           xSemaphoreGive(_sd_mutex);
           was_mutex_taken = false;
 
-          if (old_progress != _copy_progress)
+          const uint8_t cur_progress = _copy_progress;
+          if (old_progress != cur_progress)
           {
-            old_progress = _copy_progress;
-            invokeCopyProgressUpd(_copy_progress);
+            old_progress = cur_progress;
+            invokeCopyProgressUpd(cur_progress);
           }
 
           delay(1);
@@ -857,17 +860,18 @@ namespace pixeler
 
     _is_canceled = false;
     _copy_progress = 0;
+    _is_working = true;
 
     BaseType_t result = xTaskCreatePinnedToCore(copyFileTask, "copyFileTask", TASK_SIZE, this, 10, nullptr, 0);
 
     if (result == pdPASS)
     {
       log_i("copyFileTask is working now");
-      _is_working = true;
       return true;
     }
     else
     {
+      _is_working = false;
       log_e("copyFileTask was not running");
       return false;
     }
@@ -876,91 +880,90 @@ namespace pixeler
   std::vector<FileInfo> FileManager::index(const char* dir_path, IndexMode mode, const std::vector<String>& file_ext)
   {
     std::vector<FileInfo> result_vec;
-    result_vec.reserve(40);
 
     if (!dirExist(dir_path))
       return result_vec;
 
+    result_vec.reserve(40);
     String full_path = makeFullPath(dir_path);
 
-    MutexGuard lock(_sd_mutex);
-    DIR* dir = opendir(full_path.c_str());
-    if (!dir)
     {
-      log_e("Помилка відкриття директорії %s", full_path.c_str());
-      return result_vec;
-    }
-
-    dirent* dir_entry{nullptr};
-    String filename;
-    bool is_dir;
-
-    unsigned long ts = millis();
-
-    while (1)
-    {
-      dir_entry = readdir(dir);
-      if (!dir_entry)
-        break;
-
-      filename = dir_entry->d_name;
-
-      if (filename.equals(".") || filename.equals(".."))
-        continue;
-
-      String full_name{full_path};
-      full_name += "/";
-      full_name += filename;
-
-      uint8_t entr_type = getEntryTypeUnlocked(full_name.c_str(), dir_entry);
-
-      if (entr_type == DT_REG)
-        is_dir = false;
-      else if (entr_type == DT_DIR)
-        is_dir = true;
-      else
-        continue;
-
-      switch (mode)
+      MutexGuard lock(_sd_mutex);
+      DIR* dir = opendir(full_path.c_str());
+      if (!dir)
       {
-        case INDX_MODE_DIR:
-          if (is_dir)
-            result_vec.emplace_back(filename, true);
-          break;
-        case INDX_MODE_FILES:
-          if (!is_dir)
-            result_vec.emplace_back(filename, false);
-          break;
-        case INDX_MODE_FILES_EXT:
-          for (const String& i : file_ext)
-          {
-            if (!is_dir && filename.endsWith(i))
+        log_e("Помилка відкриття директорії %s", full_path.c_str());
+        return result_vec;
+      }
+
+      dirent* dir_entry{nullptr};
+      unsigned long ts = millis();
+
+      while ((dir_entry = readdir(dir)) != nullptr)
+      {
+        if (std::strcmp(dir_entry->d_name, ".") == 0 || std::strcmp(dir_entry->d_name, "..") == 0)
+          continue;
+
+        uint8_t entr_type = dir_entry->d_type;
+        if (entr_type == DT_UNKNOWN)
+        {
+          String full_name{full_path};
+          full_name += "/";
+          full_name += dir_entry->d_name;
+          entr_type = getEntryTypeUnlocked(full_name.c_str());
+        }
+
+        bool is_dir;
+        if (entr_type == DT_REG)
+          is_dir = false;
+        else if (entr_type == DT_DIR)
+          is_dir = true;
+        else
+          continue;
+
+        switch (mode)
+        {
+          case INDX_MODE_DIR:
+            if (is_dir)
+              result_vec.emplace_back(dir_entry->d_name, true);
+            break;
+
+          case INDX_MODE_FILES:
+            if (!is_dir)
+              result_vec.emplace_back(dir_entry->d_name, false);
+            break;
+
+          case INDX_MODE_FILES_EXT:
+            if (!is_dir)
             {
-              result_vec.emplace_back(filename, false);
-              break;
+              for (const String& i : file_ext)
+              {
+                if (endsWith(dir_entry->d_name, i.c_str()))
+                {
+                  result_vec.emplace_back(dir_entry->d_name, false);
+                  break;
+                }
+              }
             }
-          }
-          break;
-        case INDX_MODE_ALL:
-          if (is_dir)
-            result_vec.emplace_back(filename, true);
-          else
-            result_vec.emplace_back(filename, false);
-          break;
+            break;
+
+          case INDX_MODE_ALL:
+            result_vec.emplace_back(dir_entry->d_name, is_dir);
+            break;
+        }
+
+        if (millis() - ts > IDLE_WD_GUARD_TIME)
+        {
+          delay(1);
+          ts = millis();
+        }
       }
 
-      if (millis() - ts > IDLE_WD_GUARD_TIME)
-      {
-        delay(1);
-        ts = millis();
-      }
+      closedir(dir);
     }
 
     result_vec.shrink_to_fit();
     std::sort(result_vec.begin(), result_vec.end());
-
-    if (dir)
-      closedir(dir);
 
     return result_vec;
   }
@@ -987,8 +990,8 @@ namespace pixeler
 
   void FileManager::invokeTaskDone(bool result)
   {
-    _is_working = false;
     _last_task_result = result;
+    _is_working = false;
 
     if (_done_handler)
       _done_handler(result, _done_arg);
