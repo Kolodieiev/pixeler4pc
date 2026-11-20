@@ -24,7 +24,7 @@ namespace pixeler
 
     uint8_t getID() const
     {
-      return _btn_id;
+      return _BTN_ID;
     }
 
     bool isHolded() const
@@ -44,7 +44,7 @@ namespace pixeler
 
     bool operator<(const Button& other) const
     {
-      return _btn_id < other.getID();
+      return _BTN_ID < other.getID();
     }
 
     void enable();
@@ -54,15 +54,13 @@ namespace pixeler
     unsigned long _lock_time{0};
     unsigned long _lock_duration{0};
     unsigned long _hold_duration{0};
-    //
-    const uint8_t _btn_id;
-    //
+    const uint8_t _BTN_ID;
     bool _is_locked{false};
     bool _is_touched{false};
     bool _is_holded{false};
     bool _is_pressed{false};
     bool _is_released{false};
-    bool _is_enabled;
+    bool _is_enabled{false};
 
     void updateState();
   };

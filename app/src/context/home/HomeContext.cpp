@@ -78,6 +78,8 @@ void HomeContext::update()
 {
   if (_input.isReleased(BtnID::BTN_OK))
     openContext(new MenuContext());
+  else if (_input.isReleased()) // клік миші
+    openContext(new MenuContext());
 
   if (millis() - _upd_timer > UPD_DISPLAY_INTERVAL_MS)
   {

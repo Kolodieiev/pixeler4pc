@@ -1,12 +1,11 @@
 #pragma GCC optimize("O3")
-
 #include "Button.h"
 
 #include "pixeler/config/input_config.hpp"
 
 namespace pixeler
 {
-  Button::Button(uint8_t btn_id, bool is_touch) : _btn_id{btn_id}
+  Button::Button(uint8_t btn_id, bool) : _BTN_ID{btn_id}
   {
     enable();
   }
@@ -31,6 +30,7 @@ namespace pixeler
     {
       if (millis() - _lock_time < _lock_duration)
         return;
+
       _is_locked = false;
     }
 
@@ -46,6 +46,7 @@ namespace pixeler
     {
       if (millis() - _lock_time < _lock_duration)
         return;
+
       _is_locked = false;
     }
 
@@ -69,12 +70,11 @@ namespace pixeler
 
     if (_is_touched)
     {
-      if (!_is_pressed)
-        if (millis() - _hold_duration > PRESS_DURATION_TIME_MS)
-        {
-          _is_touched = false;
-          _is_pressed = true;
-        }
+      if (!_is_pressed && millis() - _hold_duration > PRESS_DURATION_TIME_MS)
+      {
+        _is_touched = false;
+        _is_pressed = true;
+      }
     }
     else
     {
@@ -99,6 +99,8 @@ namespace pixeler
   void Button::disable()
   {
     _is_enabled = false;
+    _is_locked = false;
+    _is_touched = false;
     reset();
   }
 }  // namespace pixeler

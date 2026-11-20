@@ -1,6 +1,14 @@
 #pragma once
 #include <stdint.h>
 
+#define TOUCHSCREEN_SUPPORT  // Увімкнути підтримку сенсорного екрану
+
+#ifdef TOUCHSCREEN_SUPPORT
+#define TOUCH_ROTATION ROTATION_0  // Може мати значення ROTATION_0/ROTATION_90/ROTATION_180/ROTATION_270
+#define TOUCH_WIDTH 240
+#define TOUCH_HEIGHT 320
+#endif  // TOUCHSCREEN_SUPPORT
+
 // -------------------------------- Закріплення віртуальних назв кнопок до виводів МК
 // Якщо стан кнопок зчитується з іншого МК, тоді ідентифікатором віртуальної кнопки має бути позиція біта(зліва направо) в масиві байт.
 

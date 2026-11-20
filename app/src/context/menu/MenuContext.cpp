@@ -37,7 +37,9 @@ MenuContext::MenuContext()
   _menu->setHeight(UI_HEIGHT);
   _menu->setItemHeight(UI_HEIGHT / 4 - 2);
   _menu->setPos(DISPLAY_PADDING, 0);
-  
+  // _menu->setTouchSupport(true);
+  _menu->setTouchable(true);
+
   //
   _scrollbar = new ScrollBar(ID_SCROLLBAR);
   layout->addWidget(_scrollbar);
@@ -49,6 +51,7 @@ MenuContext::MenuContext()
   // Файли
   MenuItem* files_item = WidgetCreator::getMenuItem(ID_ITEM_FILES);
   _menu->addItem(files_item);
+  // files_item->setTouchable(true);
 
   Image* files_img = new Image(1);
   files_item->setImage(files_img);
@@ -164,6 +167,32 @@ void MenuContext::update()
     _last_sel_item_pos = 0;
     openContext(new HomeContext());
   }
+  else
+  {
+    // Приклад обробки свайпів та дотиків мишею.
+    // Зверни увагу, що в налаштуванні меню закоментовано підтримку сенсорного вигляду.
+    // Тому воно має підтримку кнопок і відповідний вигляд.
+
+    ITouchscreen::Swipe swipe = _input.getSwipe();
+
+    if (swipe == ITouchscreen::SWIPE_L)
+    {
+      _last_sel_item_pos = 0;
+      openContext(new HomeContext());
+    }
+    else if (swipe == ITouchscreen::SWIPE_U)
+    {
+      up();
+    }
+    else if (swipe == ITouchscreen::SWIPE_D)
+    {
+      down();
+    }
+    else if (_input.isReleased())
+    {
+      okTouch();
+    }
+  }
 }
 
 void MenuContext::up()
@@ -180,7 +209,7 @@ void MenuContext::down()
 
 void MenuContext::ok()
 {
-    uint16_t id = _menu->getCurrItemID();
+  uint16_t id = _menu->getCurrItemID();
   _last_sel_item_pos = _menu->getCurrFocusPos();
 
   IContext* context{nullptr};
@@ -195,6 +224,38 @@ void MenuContext::ok()
       break;
     default:
       log_e("Невідомий ідентифікатор контексту: %u", id);
+      break;
+  }
+
+  if (context)
+    openContext(context);
+}
+
+void MenuContext::okTouch()
+{
+  uint16_t x = _input.getTouchX();
+  uint16_t y = _input.getTouchY();
+
+  IWidget* menu_item = _menu->findTouchableAt(x, y);
+  if (!menu_item)
+    return;
+
+  _last_sel_item_pos = _menu->getPageNum();
+
+  uint16_t item_id = menu_item->getID();
+
+  IContext* context{nullptr};
+
+  switch (item_id)
+  {
+    case ID_ITEM_FILES:
+      context = new FilesContext();
+      break;
+    case ID_ITEM_GAMES:
+      context = new GameListContext();
+      break;
+    default:
+      log_e("Невідомий ідентифікатор контексту: %u", item_id);
       break;
   }
 

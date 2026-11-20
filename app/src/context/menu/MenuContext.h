@@ -42,4 +42,5 @@ private:
   void up();
   void down();
   void ok();
+  void okTouch();
 };

@@ -1,10 +1,13 @@
 #pragma once
 #pragma GCC optimize("O3")
-
 #include <unordered_map>
 
 #include "Button.h"
 #include "pixeler/config/input_config.hpp"
+
+#ifdef TOUCHSCREEN_SUPPORT
+#include "VirtualTouchscreen.h"
+#endif  // TOUCHSCREEN_SUPPORT
 
 namespace pixeler
 {
@@ -12,6 +15,7 @@ namespace pixeler
   {
   public:
     Input();
+    ~Input();
 
     /**
      * @brief Ініціалізує драйвер вводу відповідно до налаштувань. Не потрібно викликати метод самостійно.
@@ -99,9 +103,64 @@ namespace pixeler
      */
     void __setState(BtnID btn_id, bool is_holded);
 
+#ifdef TOUCHSCREEN_SUPPORT
+    /**
+     * @brief Перевіряє чи фіксується в даний момент утримання дотику на сенсорному екрані.
+     *
+     * @return true - Якщо екран утримується. false - Інакше
+     */
+    bool isHolded() const;
+
+    /**
+     * @brief Перевіряє чи утримується дотик на сенсорному екрані більше n мілісекунд.
+     *
+     * @return true - Якщо дотик утримується більше n мілісекунд. false - Інакше
+     */
+    bool isPressed() const;
+
+    /**
+     * @brief Перевіряє чи було дотик на сенсорному екрані завершено (відпущено).
+     *
+     * @return true - Якщо дотик щойно відпущено. false - Інакше
+     */
+    bool isReleased() const;
+
+    /**
+     * @brief Повертає напрямок зафіксованого свайпу.
+     *
+     * @return ITouchscreen::Swipe
+     */
+    ITouchscreen::Swipe getSwipe();
+
+    /**
+     * @brief Повертає поточну або останню координату X дотику.
+     *
+     * @return uint16_t
+     */
+    uint16_t getTouchX() const;
+
+    /**
+     * @brief Повертає поточну або останню координату Y дотику.
+     *
+     * @return uint16_t
+     */
+    uint16_t getTouchY() const;
+
+    /**
+     * @brief Використовується виключно для сумісності на ПК.
+     *
+     * @param is_holded
+     * @param x
+     * @param y
+     */
+    void __setTouchState(bool is_holded, int32_t x, int32_t y);
+#endif  // TOUCHSCREEN_SUPPORT
+
   private:
     std::unordered_map<BtnID, Button> _buttons BUTTONS;
-
+#ifdef TOUCHSCREEN_SUPPORT
+    VirtualTouchscreen* _touchscreen{nullptr};
+#endif  // TOUCHSCREEN_SUPPORT
     unsigned long _hold_lock_time;
     unsigned long _click_lock_time;
     unsigned long _press_lock_time;
