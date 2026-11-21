@@ -23,12 +23,11 @@ namespace pixeler
       return false;
     }
 
-    String path = getSettingsFilePath(pref_name, subdir);
-
+    const String path = getSettingsFilePath(pref_name, subdir);
     if (path.isEmpty())
       return false;
 
-    return _fs.writeFile(path.c_str(), value.c_str(), value.length());
+    return _fs.writeFile(path.c_str(), value.c_str(), value.length()) == value.length();
   }
 
   String SettingsManager::get(const String& pref_name, const String& subdir)
@@ -42,7 +41,9 @@ namespace pixeler
       return emptyString;
     }
 
-    String path = getSettingsFilePath(pref_name, subdir);
+    const String path = getSettingsFilePath(pref_name, subdir);
+    if (path.isEmpty())
+      return emptyString;
 
     return _fs.readFileToStr(path);
   }
@@ -59,7 +60,6 @@ namespace pixeler
     }
 
     String path = getSettingsDirPath(subdir);
-
     if (path.isEmpty())
       return emptyString;
 
@@ -81,12 +81,13 @@ namespace pixeler
       return emptyString;
 
     String path{PREF_ROOT};
+
     if (!sub_dirname.isEmpty())
     {
       path += "/";
       path += sub_dirname;
 
-      if (!_fs.dirExist(path.c_str()) && !_fs.createDir(path.c_str()))
+      if (!_fs.dirExistSilently(path.c_str()) && !_fs.createDir(path.c_str()))
         return emptyString;
     }
 
