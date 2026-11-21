@@ -20,7 +20,7 @@ elseif(EN_LOCAL_BUILD)
     if(EN_STATIC_SFML_LIB)
         set(SFML_STATIC_LIBRARIES TRUE)
     endif()
-    find_package(SFML 3.0.2 REQUIRED COMPONENTS Graphics)
+    find_package(SFML 3.0.2 REQUIRED COMPONENTS Graphics Audio)
 
 else()
     message(FATAL_ERROR "Потрібно обрати один із варіантів збірки")
@@ -50,4 +50,5 @@ target_compile_options(main PRIVATE
     -Wno-unknown-pragmas 
 )
 
-target_link_libraries(main PRIVATE SFML::Graphics)
+
+target_link_libraries(main PRIVATE SFML::Graphics SFML::Audio)
