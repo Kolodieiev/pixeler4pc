@@ -19,8 +19,6 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#pragma GCC optimize("O3")
-
 #ifndef String_class_h
 #define String_class_h
 #ifdef __cplusplus

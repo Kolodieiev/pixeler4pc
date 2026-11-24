@@ -46,8 +46,13 @@ target_include_directories(main PUBLIC
 target_compile_features(main PRIVATE cxx_std_20)
 set_target_properties(main PROPERTIES CXX_EXTENSIONS ON)
 
-target_compile_options(main PRIVATE 
-    -Wno-unknown-pragmas 
+target_compile_options(main PRIVATE
+    -Wno-unknown-pragmas
+    $<$<NOT:$<CONFIG:Debug>>:-O2;-flto=auto>
+)
+
+target_link_options(main PRIVATE
+    $<$<NOT:$<CONFIG:Debug>>:-O2;-flto=auto;-fuse-linker-plugin>
 )
 
 

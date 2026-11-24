@@ -1,4 +1,3 @@
-#pragma GCC optimize("O3")
 #include "Button.h"
 
 #include "pixeler/config/input_config.hpp"

@@ -6,7 +6,6 @@
  * https://github.com/lovyan03/LovyanGFX.git
  */
 
-#pragma GCC optimize("O3")
 #include "Arduino_Canvas.h"
 
 #include "float.h"

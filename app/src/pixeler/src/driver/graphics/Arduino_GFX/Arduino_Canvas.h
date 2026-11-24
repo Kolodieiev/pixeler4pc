@@ -3,7 +3,6 @@
  * https://github.com/adafruit/Adafruit-GFX-Library.git
  */
 
-#pragma GCC optimize("O3")
 #pragma once
 
 #include <SFML/Graphics.hpp>

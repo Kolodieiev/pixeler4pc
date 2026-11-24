@@ -1,5 +1,5 @@
 #pragma once
-#pragma GCC optimize("O3")
+
 #include "../../defines.h"
 #include "pixeler/config/input_config.hpp"
 

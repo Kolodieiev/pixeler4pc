@@ -22,8 +22,6 @@
 
  */
 
-#pragma GCC optimize("O3")
-
 #include "stdlib_noniso.h"
 
 #include <math.h>

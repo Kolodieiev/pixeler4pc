@@ -17,7 +17,6 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#pragma GCC optimize("O3")
 
 #ifndef STDLIB_NONISO_H
 #define STDLIB_NONISO_H

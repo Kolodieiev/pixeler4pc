@@ -1,4 +1,3 @@
-#pragma GCC optimize("O3")
 #pragma once
 #include "pixeler/lib/lua/lua.h"
 

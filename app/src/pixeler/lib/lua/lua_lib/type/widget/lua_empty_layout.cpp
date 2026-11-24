@@ -1,4 +1,3 @@
-#pragma GCC optimize("O3")
 #include "lua_empty_layout.h"
 
 #include "./lua_iwidget_cont.h"
@@ -10,8 +9,8 @@ using namespace pixeler;
 int lua_el_new(lua_State* L)
 {
   uint16_t id = luaL_checkinteger(L, 2);
-  EmptyLayout** ret_wid_ptr = static_cast<EmptyLayout**>(lua_newuserdata(L, sizeof(EmptyLayout*)));
-  *ret_wid_ptr = new EmptyLayout(id);
+  EmptyLayout** widet = static_cast<EmptyLayout**>(lua_newuserdata(L, sizeof(EmptyLayout*)));
+  *widet = new EmptyLayout(id);
   luaL_getmetatable(L, STR_TYPE_NAME_EMPTY_LAYOUT);
   lua_setmetatable(L, -2);
   return 1;
