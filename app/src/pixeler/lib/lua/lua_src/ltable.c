@@ -87,7 +87,8 @@ static const Node dummynode_ = {
      {NULL}} /* key type, next, and key value */
 };
 
-static const TValue absentkey = {ABSTKEYCONSTANT};
+LUAI_DDEF const TValue luaH_absentkey = {ABSTKEYCONSTANT};
+#define absentkey luaH_absentkey
 
 /*
 ** Hash for integers. To allow a good hash, use the remainder operator
@@ -256,6 +257,10 @@ LUAI_FUNC unsigned int luaH_realasize(const Table* t)
   else
   {
     unsigned int size = t->alimit;
+#if defined(__GNUC__) && !defined(LUA_NOBUILTIN)
+    /* t->alimit гарантовано != 0 і не є степенем двійки */
+    size = 1u << ((sizeof(unsigned int) * CHAR_BIT) - cast_uint(__builtin_clz(size)));
+#else
     /* compute the smallest power of 2 not smaller than 'size' */
     size |= (size >> 1);
     size |= (size >> 2);
@@ -268,11 +273,11 @@ LUAI_FUNC unsigned int luaH_realasize(const Table* t)
 #endif
 #endif
     size++;
+#endif
     lua_assert(ispow2(size) && size / 2 < t->alimit && t->alimit < size);
     return size;
   }
 }
-
 /*
 ** Check whether real size of the array is a power of 2.
 ** (If it is not, 'alimit' cannot be changed to any other value
@@ -299,6 +304,9 @@ static unsigned int setlimittosize(Table* t)
 */
 static const TValue* getgeneric(Table* t, const TValue* key, int deadok)
 {
+  if (isdummy(t))
+    return &absentkey;
+
   Node* n = mainpositionTV(t, key);
   for (;;)
   { /* check whether 'key' is somewhere in the chain */
@@ -577,6 +585,21 @@ void luaH_resize(lua_State* L, Table* t, unsigned int newasize, unsigned int nhs
   Table newt; /* to keep the new hash part */
   unsigned int oldasize = setlimittosize(t);
   TValue* newarray;
+  /* швидкий шлях: чистий масив без хеш-частини (OP_NEWTABLE / ріст масиву) */
+  if (nhsize == 0 && isdummy(t) && newasize >= oldasize)
+  {
+    if (newasize > oldasize)
+    {
+      newarray = luaM_reallocvector(L, t->array, oldasize, newasize, TValue);
+      if (l_unlikely(newarray == NULL))
+        luaM_error(L);
+      t->array = newarray;
+      t->alimit = newasize;
+      for (i = oldasize; i < newasize; i++)
+        setempty(&t->array[i]);
+    }
+    return;
+  }
   /* create new hash part with appropriate size into 'newt' */
   setnodevector(L, &newt, nhsize);
   if (newasize < oldasize)
@@ -592,22 +615,27 @@ void luaH_resize(lua_State* L, Table* t, unsigned int newasize, unsigned int nhs
     t->alimit = oldasize;       /* restore current size... */
     exchangehashpart(t, &newt); /* and hash (in case of errors) */
   }
-  /* allocate new array */
-  newarray = luaM_reallocvector(L, t->array, oldasize, newasize, TValue);
-  if (l_unlikely(newarray == NULL && newasize > 0))
-  {                     /* allocation failed? */
-    freehash(L, &newt); /* release new hash part */
-    luaM_error(L);      /* raise error (with array unchanged) */
+  /* реаллокуємо масив ТІЛЬКИ якщо його розмір реально змінився */
+  if (newasize != oldasize)
+  {
+    newarray = luaM_reallocvector(L, t->array, oldasize, newasize, TValue);
+    if (l_unlikely(newarray == NULL && newasize > 0))
+    {                     /* allocation failed? */
+      freehash(L, &newt); /* release new hash part */
+      luaM_error(L);      /* raise error (with array unchanged) */
+    }
+    t->array = newarray; /* set new array part */
+    t->alimit = newasize;
+    for (i = oldasize; i < newasize; i++) /* clear new slice of the array */
+      setempty(&t->array[i]);
   }
-  /* allocation ok; initialize new part of the array */
+  /* allocation ok; switch hash part and re-insert old hash elements if present */
   exchangehashpart(t, &newt); /* 't' has the new hash ('newt' has the old) */
-  t->array = newarray;        /* set new array part */
-  t->alimit = newasize;
-  for (i = oldasize; i < newasize; i++) /* clear new slice of the array */
-    setempty(&t->array[i]);
-  /* re-insert elements from old hash part into new parts */
-  reinsert(L, &newt, t); /* 'newt' now has the old hash */
-  freehash(L, &newt);    /* free old hash part */
+  if (!isdummy(&newt))
+  {
+    reinsert(L, &newt, t); /* 'newt' now has the old hash */
+    freehash(L, &newt);    /* free old hash part */
+  }
 }
 
 void luaH_resizearray(lua_State* L, Table* t, unsigned int nasize)
@@ -661,7 +689,8 @@ Table* luaH_new(lua_State* L)
 void luaH_free(lua_State* L, Table* t)
 {
   freehash(L, t);
-  luaM_freearray(L, t->array, luaH_realasize(t));
+  if (t->array != NULL)
+    luaM_freearray(L, t->array, luaH_realasize_fast(t));
   luaM_free(L, t);
 }
 
@@ -786,6 +815,9 @@ const TValue* luaH_getint(Table* t, lua_Integer key)
   }
   else
   { /* key is not in the array part; check the hash */
+    if (isdummy(t))
+      return &absentkey; /* уникаємо повільного '%' на порожній хеш-частині */
+
     Node* n = hashint(t, key);
     for (;;)
     { /* check whether 'key' is somewhere in the chain */
@@ -806,10 +838,8 @@ const TValue* luaH_getint(Table* t, lua_Integer key)
 /*
 ** search function for short strings
 */
-const TValue* luaH_getshortstr(Table* t, TString* key)
+const TValue* luaH_getshortstr_chain(Node* n, TString* key)
 {
-  Node* n = hashstr(t, key);
-  lua_assert(key->tt == LUA_VSHRSTR);
   for (;;)
   { /* check whether 'key' is somewhere in the chain */
     if (keyisshrstr(n) && eqshrstr(keystrval(n), key))
@@ -822,6 +852,12 @@ const TValue* luaH_getshortstr(Table* t, TString* key)
       n += nx;
     }
   }
+}
+
+const TValue* luaH_getshortstr(Table* t, TString* key)
+{
+  lua_assert(key->tt == LUA_VSHRSTR);
+  return luaH_getshortstr_fast(t, key);
 }
 
 const TValue* luaH_getstr(Table* t, TString* key)

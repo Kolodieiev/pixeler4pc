@@ -35,7 +35,7 @@ static const char STR_UPDATE_NAME[] = "update";
 static constexpr size_t LUA_INTERNAL_RAM_RESERVE = 40 * 1024;
 
 static constexpr uint64_t LUA_SLICE_US = 20000U;
-static constexpr uint16_t LUA_MAX_YIELDS = 200U;
+static constexpr uint16_t LUA_MAX_YIELDS = 0U;  // 0 - без переривання скрипта на дуже важкому pcall
 //
 namespace pixeler
 {
